@@ -242,13 +242,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     const message = buildGenerationPrompt(blueprint, designSystem)
 
-    console.log(`Initiating async dynamic archetype generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
+    console.log(`Initiating dynamic archetype generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
 
-    const chatResponse = await v0.chats.createAsync({
-      message,
-    })
+    let chatResponse: any
+    try {
+      chatResponse = await v0.chats.create({
+        message,
+      })
+    } catch {
+      chatResponse = await v0.chats.createAsync({
+        message,
+      })
+    }
 
-    const chatId = chatResponse.data?.chatId || (chatResponse.data as any)?.chat?.id || (chatResponse.data as any)?.id
+    const chatId = chatResponse.data?.chat?.id || chatResponse.data?.chatId || chatResponse.data?.id
 
     if (chatResponse.error || !chatId) {
       console.error('Portfolio generation failed:', chatResponse.error)
