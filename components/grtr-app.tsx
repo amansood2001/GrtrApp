@@ -1,0 +1,1388 @@
+'use client'
+
+import { AnimatePresence, motion } from 'motion/react'
+import {
+  ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, CircleUserRound,
+  Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2, LayoutDashboard,
+  Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
+  Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw
+} from 'lucide-react'
+import { useState, useRef } from 'react'
+import { CareerSignal } from './career-signal'
+import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
+import { Button } from '@/components/ui/button'
+import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
+
+const views = [
+  { id: 1, short: 'Input', label: 'Input Studio', icon: FileText },
+  { id: 2, short: 'Blueprint', label: 'Strategic Blueprint', icon: Target },
+  { id: 3, short: 'Studio', label: 'Live Studio', icon: Code2 },
+  { id: 4, short: 'Analytics', label: 'Portfolio Hub', icon: BarChart3 },
+]
+
+const designSystems = [
+  { name: 'Material 3', maker: 'Google', mark: 'G', color: '#4285F4' },
+  { name: 'Carbon', maker: 'IBM', mark: 'IB', color: '#8A3FFC' },
+  { name: 'Fluent', maker: 'Microsoft', mark: 'M', color: '#2D7DFF' },
+  { name: 'Cloudscape', maker: 'AWS', mark: 'A', color: '#FF9900' },
+  { name: 'Primer', maker: 'GitHub', mark: 'GH', color: '#F0F6FC' },
+]
+
+function Header({
+  active,
+  setActive,
+  applicationsCount = 3,
+}: {
+  active: number
+  setActive: (n: number) => void
+  applicationsCount?: number
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+  return (
+    <header className="app-header">
+      <button className="brand" onClick={() => setActive(1)} aria-label="Go to Input Studio">
+        <span className="brand-name">Grtr</span>
+        <span className="brand-trademark">TM</span>
+      </button>
+      <nav className="main-links" aria-label="Main navigation">
+        <button onClick={() => setActive(1)}>New Application</button>
+        <button onClick={() => setActive(4)}>
+          My Applications <span>{applicationsCount}</span>
+        </button>
+        <button className="upgrade-link">Plus Plan</button>
+      </nav>
+      <nav className="view-switcher" aria-label="Demo views">
+        {views.map(({ id, short, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActive(id)}
+            className={active === id ? 'active' : ''}
+            aria-current={active === id ? 'page' : undefined}
+          >
+            <Icon aria-hidden="true" />
+            <span className="step-number">{id}.</span>
+            <span>{short}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="profile">
+        <span className="tier-badge">Plus</span>
+        <button className="avatar" aria-label="Open profile menu">
+          <CircleUserRound aria-label="Your profile" />
+        </button>
+      </div>
+      <button
+        className="mobile-menu"
+        onClick={() => setMobileOpen(!mobileOpen)}
+        aria-expanded={mobileOpen}
+        aria-label="Toggle navigation"
+      >
+        <Menu />
+      </button>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="mobile-nav"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+          >
+            {views.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  setActive(id)
+                  setMobileOpen(false)
+                }}
+                className={active === id ? 'active' : ''}
+              >
+                {id}. {label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  )
+}
+
+interface UploadZoneProps {
+  title: string
+  subtitle: string
+  file?: string
+  loading?: boolean
+  onFileSelect?: (file: File) => void
+  onClear?: () => void
+}
+
+function UploadZone({ title, subtitle, file, loading, onFileSelect, onClear }: UploadZoneProps) {
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    if (e.dataTransfer.files && e.dataTransfer.files[0] && onFileSelect) {
+      onFileSelect(e.dataTransfer.files[0])
+    }
+  }
+
+  return (
+    <div
+      className="upload-zone"
+      tabIndex={0}
+      role="button"
+      aria-label={title}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onClick={() => !file && fileRef.current?.click()}
+    >
+      <input
+        ref={fileRef}
+        type="file"
+        hidden
+        accept=".pdf,.docx,.doc,.txt"
+        onChange={e => {
+          if (e.target.files && e.target.files[0] && onFileSelect) {
+            onFileSelect(e.target.files[0])
+          }
+        }}
+      />
+      <div className="upload-icon">
+        {loading ? <Loader2 className="w-4 h-4 animate-spin text-purple-400" /> : <Upload />}
+      </div>
+      <div>
+        <strong>{title}</strong>
+        <span>{subtitle}</span>
+      </div>
+      {file ? (
+        <div className="file-chip">
+          <FileText />
+          <span>{file}</span>
+          <button
+            aria-label="Remove file"
+            onClick={e => {
+              e.stopPropagation()
+              onClear?.()
+            }}
+          >
+            <X />
+          </button>
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={loading}
+          onClick={e => {
+            e.stopPropagation()
+            fileRef.current?.click()
+          }}
+        >
+          {loading ? 'Reading...' : 'Browse'}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+interface InputStudioProps {
+  resumeText: string
+  resumeFileName: string
+  onCvParsed: (text: string, filename: string) => void
+  onCvCleared: () => void
+  jobDescription: string
+  setJobDescription: (val: string) => void
+  selectedDesign: string
+  setSelectedDesign: (val: string) => void
+  onGenerate: () => void
+  isGeneratingBlueprint: boolean
+  error?: string | null
+}
+
+function InputStudio({
+  resumeText,
+  resumeFileName,
+  onCvParsed,
+  onCvCleared,
+  jobDescription,
+  setJobDescription,
+  selectedDesign,
+  setSelectedDesign,
+  onGenerate,
+  isGeneratingBlueprint,
+  error,
+}: InputStudioProps) {
+  const [jdMode, setJdMode] = useState<'text' | 'file'>('text')
+  const [designTab, setDesignTab] = useState('systems')
+  const [parsingCv, setParsingCv] = useState(false)
+  const [parsingJd, setParsingJd] = useState(false)
+
+  const handleResumeUpload = async (file: File) => {
+    try {
+      setParsingCv(true)
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/parse-cv', {
+        method: 'POST',
+        body: fd,
+      })
+      const data = await res.json()
+      if (data.success && data.text) {
+        onCvParsed(data.text, data.filename || file.name)
+      } else {
+        alert(data.error || 'Failed to parse resume document')
+      }
+    } catch (err: unknown) {
+      alert('Upload failed: ' + (err instanceof Error ? err.message : String(err)))
+    } finally {
+      setParsingCv(false)
+    }
+  }
+
+  const handleJdUpload = async (file: File) => {
+    try {
+      setParsingJd(true)
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/parse-cv', {
+        method: 'POST',
+        body: fd,
+      })
+      const data = await res.json()
+      if (data.success && data.text) {
+        setJobDescription(data.text)
+        setJdMode('text')
+      } else {
+        alert(data.error || 'Failed to parse job description')
+      }
+    } catch (err: unknown) {
+      alert('Upload failed: ' + (err instanceof Error ? err.message : String(err)))
+    } finally {
+      setParsingJd(false)
+    }
+  }
+
+  const hasInputs = resumeText.trim().length > 0 && jobDescription.trim().length > 0
+
+  return (
+    <div className="view-shell input-view">
+      <div id="input-workspace" className="workspace-heading">
+        <div>
+          <h1>Input studio</h1>
+          <p>Your experience, shaped for your next role.</p>
+        </div>
+        <CareerSignal />
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex items-center justify-between">
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="input-grid">
+        <section className="panel input-panel">
+          <div className="panel-title">
+            <div>
+              <h2>Target application data</h2>
+              <p>Your documents stay private and are only used for this application.</p>
+            </div>
+          </div>
+          <label className="field-label">Resume or CV</label>
+          <UploadZone
+            title={resumeFileName ? 'Resume loaded' : 'Drop your resume here'}
+            subtitle={resumeText ? `${resumeText.length.toLocaleString()} characters extracted` : 'PDF or DOCX · Max 10MB'}
+            file={resumeFileName}
+            loading={parsingCv}
+            onFileSelect={handleResumeUpload}
+            onClear={onCvCleared}
+          />
+
+          <div className="field-row">
+            <label className="field-label">Target job description</label>
+            <div className="mini-toggle">
+              <button
+                type="button"
+                onClick={() => setJdMode('text')}
+                className={jdMode === 'text' ? 'active' : ''}
+              >
+                <Link2 />
+                Paste / Link
+              </button>
+              <button
+                type="button"
+                onClick={() => setJdMode('file')}
+                className={jdMode === 'file' ? 'active' : ''}
+              >
+                <FileText />
+                Upload
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {jdMode === 'text' ? (
+              <motion.div
+                key="text"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                <textarea
+                  className="jd-textarea"
+                  aria-label="Job description"
+                  value={jobDescription}
+                  onChange={e => setJobDescription(e.target.value)}
+                  placeholder="Paste the target job description, requirements, or role brief..."
+                />
+                <div className="input-meta">
+                  <span>
+                    <Check />
+                    {jobDescription.length > 20 ? 'Target role signals active' : 'Awaiting job description'}
+                  </span>
+                  <span>{jobDescription.length.toLocaleString()} characters</span>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="file"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <UploadZone
+                  title="Upload job description"
+                  subtitle="PDF, DOCX or TXT · Max 10MB"
+                  loading={parsingJd}
+                  onFileSelect={handleJdUpload}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+
+        <section className="panel design-panel">
+          <div className="panel-title">
+            <div>
+              <h2>Choose a design foundation</h2>
+              <p>Pick the visual language for your role-winning portfolio.</p>
+            </div>
+          </div>
+          <div className="design-tabs" role="tablist">
+            {[
+              ['systems', 'Systems'],
+              ['templates', 'Templates'],
+              ['moods', 'Moods'],
+              ['custom', 'Custom'],
+            ].map(([id, label]) => (
+              <button
+                role="tab"
+                aria-selected={designTab === id}
+                key={id}
+                onClick={() => setDesignTab(id)}
+                className={designTab === id ? 'active' : ''}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={designTab}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              className="design-content"
+            >
+              {designTab === 'systems' && (
+                <div className="system-grid">
+                  {designSystems.map(d => (
+                    <button
+                      key={d.name}
+                      onClick={() => setSelectedDesign(d.name)}
+                      className={`design-card ${selectedDesign === d.name ? 'selected beam' : ''}`}
+                    >
+                      <span className="system-logo" style={{ '--logo-color': d.color } as React.CSSProperties}>
+                        {d.mark}
+                      </span>
+                      <span>
+                        <strong>{d.name}</strong>
+                        <small>{d.maker} design system</small>
+                      </span>
+                      {selectedDesign === d.name && <Check className="selected-check" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {designTab === 'templates' && (
+                <>
+                  <div className="template-tools">
+                    <div>
+                      <Search />
+                      <input aria-label="Search templates" placeholder="Search templates" />
+                    </div>
+                    <button>All</button>
+                    <button>Landing</button>
+                    <button>Editorial</button>
+                  </div>
+                  <div className="template-grid">
+                    {['Gen Z Brand', 'Architecture Studio', 'AI Compute', 'Fintech Dashboard'].map((x, i) => (
+                      <button
+                        className={`template-card ${selectedDesign === x ? 'selected' : ''}`}
+                        key={x}
+                        onClick={() => setSelectedDesign(x)}
+                      >
+                        <span className={`template-preview preview-${i}`}>
+                          <i />
+                          <b />
+                          <em />
+                        </span>
+                        <strong>{x}</strong>
+                        <small>Community template</small>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              {designTab === 'moods' && (
+                <div className="mood-grid">
+                  {['Minimal Monochrome', 'High-Tech Cyber', 'Luxury Editorial', 'Bold Neobrutalist'].map((x, i) => (
+                    <button
+                      key={x}
+                      onClick={() => setSelectedDesign(x)}
+                      className={`mood-card mood-${i} ${selectedDesign === x ? 'border-purple-400' : ''}`}
+                    >
+                      <strong>{x}</strong>
+                      <small>
+                        View direction <ArrowRight />
+                      </small>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {designTab === 'custom' && (
+                <div className="custom-prompt">
+                  <textarea
+                    aria-label="Custom design direction"
+                    placeholder="Describe a visual direction — e.g. A restrained editorial portfolio with Swiss typography, warm paper textures, and subtle kinetic type..."
+                    onChange={e => setSelectedDesign(e.target.value)}
+                  />
+                  <div className="prompt-tags">
+                    {['Dark glassmorphism', 'Editorial serif', 'Micro-spring motion'].map(t => (
+                      <button key={t} onClick={() => setSelectedDesign(`${selectedDesign} ${t}`.trim())}>
+                        <Plus />
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </section>
+      </div>
+
+      <div className="generate-bar">
+        <div>
+          <span className={`pulse-dot ${hasInputs ? 'bg-emerald-400' : ''}`} />
+          {hasInputs ? 'Inputs analyzed · Ready to build' : 'Provide resume & job description to proceed'}
+        </div>
+        <Button
+          className="primary-cta beam-button"
+          onClick={onGenerate}
+          disabled={!hasInputs || isGeneratingBlueprint}
+        >
+          {isGeneratingBlueprint ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
+              Synthesizing Strategy...
+            </>
+          ) : (
+            <>
+              <WandSparkles data-icon="inline-start" />
+              Generate Strategic Blueprint <ArrowRight data-icon="inline-end" />
+            </>
+          )}
+        </Button>
+        <span>Ready in ~2 seconds</span>
+      </div>
+    </div>
+  )
+}
+
+interface BlueprintProps {
+  blueprint: StrategicBlueprint
+  onBack: () => void
+  onBuild: () => void
+  isBuildingPortfolio: boolean
+  onUpdateHook: (newHook: string) => void
+}
+
+function Blueprint({
+  blueprint,
+  onBack,
+  onBuild,
+  isBuildingPortfolio,
+  onUpdateHook,
+}: BlueprintProps) {
+  const [direction, setDirection] = useState(0)
+  const directions = blueprint.directions || []
+  const activeDirection = directions[direction] || directions[0]
+
+  return (
+    <div className="view-shell blueprint-view">
+      <div className="blueprint-top">
+        <div>
+          <span className="eyebrow">Pre-flight strategy</span>
+          <h1>Your strongest route to the role.</h1>
+        </div>
+        <div className="match-score">
+          <span>{blueprint.matchScore || 94}</span>
+          <div>
+            <strong>%</strong>
+            <small>Strategic match</small>
+          </div>
+        </div>
+      </div>
+      <div className="blueprint-layout">
+        <div className="blueprint-main">
+          <section className="strategy-card hero-strategy beam">
+            <div className="strategy-label">
+              AI positioning hook <button>Edit</button>
+            </div>
+            <textarea
+              aria-label="Positioning hook"
+              value={blueprint.positioningHook}
+              onChange={e => onUpdateHook(e.target.value)}
+            />
+            <div className="confidence">
+              <Sparkles />
+              Distinctive, specific, and supported by verified proof points in your CV
+            </div>
+          </section>
+
+          <section className="strategy-card">
+            <div className="strategy-label">Company research &amp; right-to-win angle</div>
+            <div className="direction-pills">
+              {directions.map((d, i) => (
+                <button
+                  key={d.angle || i}
+                  onClick={() => setDirection(i)}
+                  className={direction === i ? 'active' : ''}
+                >
+                  {d.angle}
+                </button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={direction}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="deep-dive"
+              >
+                <div>
+                  <small>Observed challenge</small>
+                  <p>{activeDirection?.observedChallenge}</p>
+                </div>
+                <ChevronRight />
+                <div>
+                  <small>Proposed strategy</small>
+                  <p>{activeDirection?.proposedStrategy}</p>
+                </div>
+                <ChevronRight />
+                <div className="win-proof">
+                  <small>Your right to win</small>
+                  <p>{activeDirection?.rightToWinProof}</p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            <input className="custom-direction" placeholder="Or specify a custom strategic direction..." />
+          </section>
+
+          <section className="strategy-card">
+            <div className="strategy-label">
+              Prioritized case studies <button>Reorder</button>
+            </div>
+            <ProjectHighlights caseStudies={blueprint.caseStudies} />
+          </section>
+        </div>
+
+        <aside className="blueprint-aside">
+          <div className="target-card">
+            <small>Target brief</small>
+            <h3>{blueprint.targetRole}</h3>
+            <p>{blueprint.targetCompany}</p>
+            <div>
+              <span>Role fit</span>
+              <strong>{blueprint.fitStats?.roleFit || 'Exceptional'}</strong>
+            </div>
+            <div>
+              <span>Evidence coverage</span>
+              <strong>{blueprint.fitStats?.evidenceCoverage || '8 / 9'}</strong>
+            </div>
+            <div>
+              <span>Design foundation</span>
+              <strong>{blueprint.fitStats?.designFoundation || 'IBM Carbon'}</strong>
+            </div>
+          </div>
+          <div className="motion-card">
+            <div className="orb-preview">
+              <span />
+              <span />
+              <span />
+            </div>
+            <small>Motion narrative</small>
+            <h3>{blueprint.motionNarrative?.headline || 'Signal → System → Scale'}</h3>
+            <p>{blueprint.motionNarrative?.detail || 'Subtle reveals guide recruiters from thesis to evidence without distraction.'}</p>
+          </div>
+        </aside>
+      </div>
+
+      <div className="sticky-footer">
+        <Button variant="outline" onClick={onBack} disabled={isBuildingPortfolio}>
+          Refine inputs
+        </Button>
+        <div>
+          <span>Strategy is fully editable in Live Studio</span>
+          <Button
+            className="primary-cta"
+            onClick={onBuild}
+            disabled={isBuildingPortfolio}
+          >
+            {isBuildingPortfolio ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
+                Building Portfolio Sandbox...
+              </>
+            ) : (
+              <>
+                <Rocket data-icon="inline-start" />
+                Approve &amp; build portfolio <ArrowRight data-icon="inline-end" />
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DynamicPortfolioFallback({ blueprint }: { blueprint: StrategicBlueprint }) {
+  const primaryMetric = blueprint.caseStudies?.[0]?.metric || '+142%'
+  const secondMetric = blueprint.caseStudies?.[1]?.metric || '3.4×'
+  const thirdMetric = blueprint.caseStudies?.[2]?.metric || '−31%'
+
+  return (
+    <div className="portfolio-preview">
+      <nav>
+        <strong>
+          <CircleUserRound aria-label="Your profile" />
+          <span>{blueprint.candidateName || 'Grtr'}</span>
+        </strong>
+        <div>
+          <span>Approach</span>
+          <span>Work</span>
+          <span>About</span>
+        </div>
+        <button>
+          Let&apos;s talk <ArrowRight />
+        </button>
+      </nav>
+      <section className="preview-hero">
+        <div className="availability">
+          <span />
+          {blueprint.targetRole} · {blueprint.targetCompany}
+        </div>
+        <h2>
+          {blueprint.positioningHook}
+        </h2>
+        <p>
+          Executive operator for {blueprint.targetCompany}. Proven systems, category positioning, and compounding execution.
+        </p>
+        <div>
+          <button>
+            Explore my approach <ArrowRight />
+          </button>
+          <span>Available Worldwide</span>
+        </div>
+      </section>
+      <section className="teardown">
+        <small>{blueprint.targetCompany} Strategic Teardown</small>
+        <div>
+          <h3>
+            Execution doesn&apos;t need more noise.
+            <br />
+            It needs a sharper signal.
+          </h3>
+          <p>
+            {blueprint.directions?.[0]?.observedChallenge}
+          </p>
+        </div>
+        <div className="teardown-cards">
+          {blueprint.directions?.map((d, i) => (
+            <article key={i}>
+              <strong>{d.angle}</strong>
+              <p>{d.proposedStrategy}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="preview-metrics">
+        <div>
+          <strong>{primaryMetric}</strong>
+          <span>{blueprint.caseStudies?.[0]?.metricLabel || 'Pipeline growth'}</span>
+        </div>
+        <div>
+          <strong>{secondMetric}</strong>
+          <span>{blueprint.caseStudies?.[1]?.metricLabel || 'Revenue Velocity'}</span>
+        </div>
+        <div>
+          <strong>{thirdMetric}</strong>
+          <span>{blueprint.caseStudies?.[2]?.metricLabel || 'Efficiency'}</span>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function PublishModal({
+  close,
+  blueprint,
+}: {
+  close: () => void
+  blueprint?: StrategicBlueprint | null
+}) {
+  const [copied, setCopied] = useState(false)
+  const candidateSlug = blueprint?.candidateName
+    ? blueprint.candidateName.toLowerCase().replace(/[^a-z0-9]/g, '')
+    : 'leader'
+  const companySlug = blueprint?.targetCompany
+    ? blueprint.targetCompany.toLowerCase().replace(/[^a-z0-9]/g, '')
+    : 'target'
+  const shareUrl = `grtr.app/p/${candidateSlug}/${companySlug}`
+
+  return (
+    <motion.div
+      className="modal-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onMouseDown={close}
+    >
+      <motion.div
+        className="publish-modal beam"
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        onMouseDown={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="publish-title"
+      >
+        <button className="modal-close" onClick={close} aria-label="Close">
+          <X />
+        </button>
+        <span className="eyebrow">Ready to go live</span>
+        <h2 id="publish-title">Publish your portfolio</h2>
+        <p>Choose how recruiters and hiring committees will experience your new portfolio.</p>
+        <div className="plan-grid">
+          <section className="plan-card">
+            <div className="plan-name">
+              <span>Plus</span>
+              <small>Included in your plan</small>
+            </div>
+            <h3>Your Grtr URL</h3>
+            <div className="url-box">
+              <Globe2 />
+              <span>{shareUrl}</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://${shareUrl}`)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+                aria-label="Copy URL"
+              >
+                {copied ? <Check /> : <Copy />}
+              </button>
+            </div>
+            <ul>
+              <li>
+                <Check />
+                Instantly live &amp; indexable
+              </li>
+              <li>
+                <Check />
+                Unlimited portfolio updates
+              </li>
+              <li>
+                <Check />
+                Dedicated QR code sharing
+              </li>
+            </ul>
+            <Button
+              variant="outline"
+              className="full-button"
+              onClick={() => {
+                alert(`Published to https://${shareUrl}!`)
+                close()
+              }}
+            >
+              <Rocket data-icon="inline-start" />
+              Publish with Plus
+            </Button>
+          </section>
+          <section className="plan-card pro">
+            <div className="recommended">RECOMMENDED</div>
+            <div className="plan-name">
+              <span>Pro</span>
+              <small>Upgrade for full control</small>
+            </div>
+            <h3>Own your presence</h3>
+            <div className="domain-box">
+              <Globe2 />
+              <div>
+                <small>Custom domain</small>
+                <strong>{candidateSlug}.com/{companySlug}</strong>
+              </div>
+            </div>
+            <ul>
+              <li>
+                <Check />
+                Custom domain &amp; automated SSL
+              </li>
+              <li>
+                <Check />
+                Live recruiter tracking &amp; alerts
+              </li>
+              <li>
+                <Check />
+                Per-section content heatmaps
+              </li>
+            </ul>
+            <Button className="full-button primary-cta">
+              Upgrade to Pro <ArrowRight data-icon="inline-end" />
+            </Button>
+          </section>
+        </div>
+        <div className="dns-helper">
+          <span>
+            <Check />
+            DNS verification handled for you
+          </span>
+          <small>Add one CNAME record — typically live in under 10 minutes.</small>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+interface LiveStudioProps {
+  blueprint: StrategicBlueprint | null
+  chatId: string | null
+  previewUrl: string | null
+  selectedDesign: string
+}
+
+function LiveStudio({
+  blueprint,
+  chatId,
+  previewUrl,
+  selectedDesign,
+}: LiveStudioProps) {
+  const [publish, setPublish] = useState(false)
+  const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
+  const [mobileTab, setMobileTab] = useState<'chat' | 'preview'>('preview')
+  const [iframeKey, setIframeKey] = useState(0)
+
+  const reloadPreview = () => {
+    setIframeKey(k => k + 1)
+  }
+
+  const roleText = blueprint?.targetRole || 'Executive Candidate'
+  const companyText = blueprint?.targetCompany || 'Target Company'
+
+  return (
+    <div className="studio-view">
+      <div className="mobile-studio-toggle">
+        <button
+          onClick={() => setMobileTab('chat')}
+          className={mobileTab === 'chat' ? 'active' : ''}
+        >
+          <MessageSquare />
+          Chat
+        </button>
+        <button
+          onClick={() => setMobileTab('preview')}
+          className={mobileTab === 'preview' ? 'active' : ''}
+        >
+          <Monitor />
+          Preview
+        </button>
+      </div>
+
+      <aside className={`chat-pane ${mobileTab === 'chat' ? 'mobile-show' : ''}`}>
+        <div className="chat-head">
+          <div className="ai-avatar">
+            <Sparkles />
+          </div>
+          <div>
+            <strong>Grtr Strategist</strong>
+            <span>
+              <i />
+              Online · {chatId ? 'Live Sandbox Connected' : 'Ready'}
+            </span>
+          </div>
+          <button aria-label="Refresh preview" onClick={reloadPreview} title="Reload live preview">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="chat-context">
+          <span>Context</span>
+          <strong>
+            {roleText} · {companyText}
+          </strong>
+          <small>{selectedDesign} · Executive / Strategic</small>
+        </div>
+        <StudioChat
+          chatId={chatId}
+          onUpdatePreview={reloadPreview}
+          contextLabel={`${roleText} @ ${companyText}`}
+        />
+      </aside>
+
+      <main className={`preview-pane ${mobileTab === 'preview' ? 'mobile-show' : ''}`}>
+        <div className="studio-toolbar">
+          <div>
+            <span className="status-dot" />
+            {chatId ? 'Live Sandbox Active' : 'All changes saved'}
+          </div>
+          <div className="toolbar-actions">
+            <div className="viewport-toggle">
+              <button
+                onClick={() => setViewport('mobile')}
+                className={viewport === 'mobile' ? 'active' : ''}
+                aria-label="Mobile preview"
+              >
+                <Smartphone />
+              </button>
+              <button
+                onClick={() => setViewport('desktop')}
+                className={viewport === 'desktop' ? 'active' : ''}
+                aria-label="Desktop preview"
+              >
+                <Monitor />
+              </button>
+            </div>
+            <span className="system-badge">
+              <b>{selectedDesign}</b>
+            </span>
+            <Button onClick={() => setPublish(true)} className="publish-button">
+              <Rocket data-icon="inline-start" />
+              Publish
+            </Button>
+          </div>
+        </div>
+
+        <div className="preview-canvas">
+          <div
+            className={`preview-frame ${viewport}`}
+            style={{ width: viewport === 'mobile' ? 375 : '100%', minHeight: '680px' }}
+          >
+            <div className="browser-bar">
+              <span />
+              <span />
+              <span />
+              <div>
+                grtr.app/p/{blueprint?.candidateName?.toLowerCase().replace(/\s+/g, '') || 'candidate'}/
+                {blueprint?.targetCompany?.toLowerCase().replace(/\s+/g, '') || 'role'}
+              </div>
+            </div>
+
+            {previewUrl ? (
+              <iframe
+                key={iframeKey}
+                src={previewUrl}
+                title="Live Portfolio Sandbox"
+                className="w-full h-[calc(100vh-230px)] min-h-[640px] border-0 bg-[#08090a]"
+                sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+              />
+            ) : blueprint ? (
+              <DynamicPortfolioFallback blueprint={blueprint} />
+            ) : (
+              <div className="portfolio-preview p-12 text-center text-muted">
+                <p>Generating live portfolio sandbox...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <AnimatePresence>
+        {publish && <PublishModal close={() => setPublish(false)} blueprint={blueprint} />}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+interface ApplicationItem {
+  role: string
+  company: string
+  url: string
+  plan: string
+  views: number
+  time: string
+  last: string
+  color: string
+}
+
+const initialApplications: ApplicationItem[] = [
+  { role: 'VP, Growth', company: 'Northstar Labs', url: 'grtr.app/p/you/northstar', plan: 'Plus', views: 32, time: '4m 15s', last: '14 min ago', color: '#8b5cf6' },
+  { role: 'Product Strategy Lead', company: 'Vertex AI', url: 'yourname.com/vertex', plan: 'Pro', views: 28, time: '3m 40s', last: '2 hours ago', color: '#4285f4' },
+  { role: 'GTM Director', company: 'Atlas Commerce', url: 'grtr.app/p/you/atlas', plan: 'Plus', views: 14, time: '2m 50s', last: 'Yesterday', color: '#f97316' },
+]
+
+function AnalyticsView({
+  openStudio,
+  applications,
+}: {
+  openStudio: () => void
+  applications: ApplicationItem[]
+}) {
+  const [selected, setSelected] = useState(0)
+  const app = applications[selected] || applications[0]
+
+  return (
+    <div className="view-shell analytics-view">
+      <div className="dashboard-head">
+        <div>
+          <span className="eyebrow">Portfolio intelligence</span>
+          <h1>Applications</h1>
+          <p>Build deliberately. See what resonates. Improve every application.</p>
+        </div>
+        <Button onClick={openStudio} className="primary-cta">
+          <Plus data-icon="inline-start" />
+          New portfolio
+        </Button>
+      </div>
+
+      <div className="metric-grid">
+        {[
+          [BriefcaseBusiness, String(applications.length), 'Applications built', '+1 this month'],
+          [CircleUserRound, '74', 'Recruiter views', '+18% this week'],
+          [TrendingUp, '3m 38s', 'Avg. dwell time', 'Top 12%'],
+          [Globe2, '1', 'Custom domain', 'Active'],
+        ].map(([Icon, val, label, trend]) => (
+          <article className="metric-card" key={String(label)}>
+            <div>
+              <span>
+                <Icon />
+              </span>
+              <small>{label as string}</small>
+            </div>
+            <strong>{val as string}</strong>
+            <p>{trend as string}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="dashboard-grid">
+        <section className="applications-panel">
+          <div className="list-head">
+            <div>
+              <h2>Tailored applications</h2>
+              <p>Every role, one purpose-built story.</p>
+            </div>
+            <button>
+              <Search />
+              Search
+            </button>
+          </div>
+          <div className="app-list">
+            {applications.map((a, i) => (
+              <button
+                key={a.company + i}
+                className={`app-row ${selected === i ? 'selected' : ''}`}
+                onClick={() => setSelected(i)}
+              >
+                <span className="company-mark" style={{ '--company-color': a.color } as React.CSSProperties}>
+                  {a.company.slice(0, 1)}
+                </span>
+                <div className="app-primary">
+                  <strong>{a.role}</strong>
+                  <span>{a.company}</span>
+                  <small>
+                    <Link2 />
+                    {a.url}
+                  </small>
+                </div>
+                <span className={`plan-pill ${a.plan.toLowerCase()}`}>
+                  {a.plan}
+                  {a.plan === 'Pro' && <i />}
+                </span>
+                <div className="app-stat">
+                  <strong>{a.views}</strong>
+                  <small>views</small>
+                </div>
+                <div className="app-stat">
+                  <strong>{a.time}</strong>
+                  <small>avg. time</small>
+                </div>
+                <div className="last-view">
+                  <span>{a.last}</span>
+                  <small>last viewed</small>
+                </div>
+                <ChevronRight />
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <aside className="intel-panel">
+          <div className="intel-head">
+            <div>
+              <span className="company-mark" style={{ '--company-color': app.color } as React.CSSProperties}>
+                {app.company.slice(0, 1)}
+              </span>
+              <div>
+                <small>Recruiter intelligence</small>
+                <h2>{app.company}</h2>
+              </div>
+            </div>
+            <button aria-label="Open portfolio">
+              <ExternalLink />
+            </button>
+          </div>
+          <div className="heatmap">
+            <div>
+              <span>Content heatmap</span>
+              <strong>84% engaged</strong>
+            </div>
+            <div className="heat-bars">
+              <span style={{ width: '92%' }} />
+              <span style={{ width: '84%' }} />
+              <span style={{ width: '62%' }} />
+              <span style={{ width: '38%' }} />
+            </div>
+            <div className="heat-labels">
+              <span>Hero</span>
+              <span>Strategy</span>
+              <span>Case studies</span>
+              <span>About</span>
+            </div>
+          </div>
+          <div className="intel-feed">
+            <h3>Recent activity</h3>
+            <article>
+              <span />
+              <div>
+                <p>
+                  A recruiter in <strong>New York, US</strong> viewed your strategic teardown.
+                </p>
+                <small>14 minutes ago · 3m 42s session</small>
+              </div>
+            </article>
+            <article>
+              <span />
+              <div>
+                <p>
+                  Return visit to your <strong>Category Creation</strong> case study.
+                </p>
+                <small>2 hours ago · Direct link</small>
+              </div>
+            </article>
+            <article>
+              <span className="muted" />
+              <div>
+                <p>Your portfolio was shared through a private link.</p>
+                <small>Yesterday · 2 new visitors</small>
+              </div>
+            </article>
+          </div>
+          <Button variant="outline" className="full-button" onClick={openStudio}>
+            Open Live Studio <ArrowRight data-icon="inline-end" />
+          </Button>
+        </aside>
+      </div>
+    </div>
+  )
+}
+
+export function GrtrApp() {
+  const [active, setActive] = useState(1)
+
+  // Application State
+  const [resumeText, setResumeText] = useState('')
+  const [resumeFileName, setResumeFileName] = useState('')
+  const [jobDescription, setJobDescription] = useState(
+    'Head of Growth — B2B SaaS\n\nWe are looking for a strategic growth leader to build a high-performance demand engine across enterprise and mid-market segments. The ideal candidate will orchestrate category narrative, multi-segment go-to-market, and a rigorous quantitative experimentation loop.'
+  )
+  const [selectedDesign, setSelectedDesign] = useState('Carbon')
+
+  // Pipeline State
+  const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
+  const [isBuildingPortfolio, setIsBuildingPortfolio] = useState(false)
+  const [blueprint, setBlueprint] = useState<StrategicBlueprint | null>(null)
+  const [chatId, setChatId] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Tracked Applications
+  const [applications, setApplications] = useState<ApplicationItem[]>(initialApplications)
+
+  // Handler: Parse CV
+  const handleCvParsed = (text: string, filename: string) => {
+    setResumeText(text)
+    setResumeFileName(filename)
+    setErrorMessage(null)
+  }
+
+  const handleCvCleared = () => {
+    setResumeText('')
+    setResumeFileName('')
+  }
+
+  // Handler: Generate Blueprint (Stage 1)
+  const handleGenerateBlueprint = async () => {
+    try {
+      setIsGeneratingBlueprint(true)
+      setErrorMessage(null)
+
+      const res = await fetch('/api/blueprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resumeText,
+          jobDescription,
+          designSystem: selectedDesign,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success && data.blueprint) {
+        setBlueprint(data.blueprint)
+        setActive(2) // Advance to Stage 2: Blueprint
+      } else {
+        setErrorMessage(data.error || 'Failed to generate blueprint')
+      }
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : 'Network error')
+    } finally {
+      setIsGeneratingBlueprint(false)
+    }
+  }
+
+  // Handler: Build Portfolio on v0 (Stage 2)
+  const handleBuildPortfolio = async () => {
+    if (!blueprint) return
+
+    try {
+      setIsBuildingPortfolio(true)
+      setErrorMessage(null)
+
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blueprint,
+          designSystem: selectedDesign,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success && data.chatId) {
+        setChatId(data.chatId)
+        setPreviewUrl(data.previewUrl || `/api/preview/${data.chatId}`)
+
+        // Add to applications list
+        const newApp: ApplicationItem = {
+          role: blueprint.targetRole || 'Growth Executive',
+          company: blueprint.targetCompany || 'Target Enterprise',
+          url: `grtr.app/p/${blueprint.candidateName.toLowerCase().replace(/\s+/g, '')}/${blueprint.targetCompany.toLowerCase().replace(/\s+/g, '')}`,
+          plan: 'Plus',
+          views: 1,
+          time: 'Just now',
+          last: 'Live now',
+          color: '#8b5cf6',
+        }
+        setApplications(prev => [newApp, ...prev])
+
+        setActive(3) // Advance to Stage 3: Live Studio
+      } else {
+        alert(data.error || 'Generation failed on v0')
+      }
+    } catch (err: unknown) {
+      alert('Build failed: ' + (err instanceof Error ? err.message : String(err)))
+    } finally {
+      setIsBuildingPortfolio(false)
+    }
+  }
+
+  const handleUpdateHook = (newHook: string) => {
+    if (blueprint) {
+      setBlueprint({ ...blueprint, positioningHook: newHook })
+    }
+  }
+
+  return (
+    <div className="grtr-app">
+      <div className="ambient-bg" aria-hidden="true" />
+      <Header
+        active={active}
+        setActive={setActive}
+        applicationsCount={applications.length}
+      />
+      <AnimatePresence initial={false} mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+        >
+          {active === 1 && (
+            <InputStudio
+              resumeText={resumeText}
+              resumeFileName={resumeFileName}
+              onCvParsed={handleCvParsed}
+              onCvCleared={handleCvCleared}
+              jobDescription={jobDescription}
+              setJobDescription={setJobDescription}
+              selectedDesign={selectedDesign}
+              setSelectedDesign={setSelectedDesign}
+              onGenerate={handleGenerateBlueprint}
+              isGeneratingBlueprint={isGeneratingBlueprint}
+              error={errorMessage}
+            />
+          )}
+          {active === 2 && blueprint && (
+            <Blueprint
+              blueprint={blueprint}
+              onBack={() => setActive(1)}
+              onBuild={handleBuildPortfolio}
+              isBuildingPortfolio={isBuildingPortfolio}
+              onUpdateHook={handleUpdateHook}
+            />
+          )}
+          {active === 3 && (
+            <LiveStudio
+              blueprint={blueprint}
+              chatId={chatId}
+              previewUrl={previewUrl}
+              selectedDesign={selectedDesign}
+            />
+          )}
+          {active === 4 && (
+            <AnalyticsView
+              openStudio={() => setActive(1)}
+              applications={applications}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
