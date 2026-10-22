@@ -111,12 +111,53 @@ export async function GET(req: NextRequest, context: RouteContext) {
     }
 
     // Proxy the request through v0's official preview handler
-    return await fetchPreview({
+    const previewResponse = await fetchPreview({
       request: req,
       preview: previewRes.data,
       path,
       fallbackUrl: previewRes.data.url,
     })
+
+    const contentType = previewResponse.headers.get('content-type') || ''
+
+    // If serving HTML, rewrite root-relative asset URLs so the browser loads CSS/JS through this proxy
+    if (contentType.includes('text/html')) {
+      let html = await previewResponse.text()
+      const prefix = `/api/preview/${chatId}`
+
+      // Inject base tag & essential reset styling for links
+      const injection = `<base href="${prefix}/">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    a { text-decoration: none !important; color: inherit !important; }
+    body { background-color: #08090a !important; color: #f4f4f5 !important; font-family: Inter, system-ui, sans-serif !important; margin: 0; }
+  </style>`
+
+      if (html.includes('<head>')) {
+        html = html.replace('<head>', `<head>\n  ${injection}`)
+      }
+
+      // Rewrite /_next/ to proxy prefix so chunks and CSS stylesheets are routed correctly
+      html = html.replaceAll('/_next/', `${prefix}/_next/`)
+
+      // Rewrite root-relative src and href for assets
+      html = html.replace(/(href|src)=["']\/([a-zA-Z0-9_\-\.\/]+)["']/g, (match, attr, relPath) => {
+        if (relPath.startsWith('api/preview') || relPath.startsWith('http://') || relPath.startsWith('https://')) {
+          return match
+        }
+        return `${attr}="${prefix}/${relPath}"`
+      })
+
+      return new NextResponse(html, {
+        status: previewResponse.status,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      })
+    }
+
+    return previewResponse
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Preview proxy error'
     console.error('Preview error:', err)

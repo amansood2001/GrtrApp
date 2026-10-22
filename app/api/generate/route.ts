@@ -65,48 +65,73 @@ Project ${i + 1}: ${c.title}
 - Architecture & Section Blueprint: ${templateSpec.layoutDirective}
 - Styling & Aesthetic Guide: ${templateSpec.styleGuide}
 - Build Rule: Fork and build directly on top of this exact v0.app template (${templateSpec.v0Url}). Preserve the layout architecture, typography hierarchy, visual rhythm, and component patterns of this template while populating all sections with ${blueprint.candidateName}'s verified executive narrative, teardown angles, and case metrics below.`
-    : `DESIGN DIRECTION:
+    : `DESIGN DIRECTION (${designSystem || 'Modern Executive'}):
 - Design Foundation: ${designSystem || blueprint.fitStats?.designFoundation || 'Modern Executive'}
-- Style: Obsidian dark mode, ultra-refined typography, razor-thin subtle glowing borders, Swiss-grid precision, and fluid motion.
-- Palette: Deep charcoal & obsidian background (#0a0a0c, #111215), pure white typography (#f8fafc), subtle muted silver text (#94a3b8), brand accent highlights, and subtle glassmorphic surface cards.
+- Style: Obsidian dark mode (#08090a), ultra-refined typography, razor-thin subtle glowing borders, Swiss-grid precision, and fluid motion.
+- Palette: Deep charcoal & obsidian background (#08090a, #0e1013), pure white typography (#f8fafc), subtle muted silver text (#94a3b8), brand accent highlights (emerald #34d399, violet #8b5cf6), and frosted glassmorphic surface cards.
 - Motion: Use Framer Motion for smooth scroll reveals, active state toggles, and hover states.`
 
   return `Build a world-class, executive role-tailored portfolio website for ${blueprint.candidateName}, applying for the position of ${blueprint.targetRole} at ${blueprint.targetCompany}.
 
 ${templateDirective}
 
-CONTENT & SECTIONS TO INCLUDE:
-1. Navigation Bar:
-   - Candidate brand mark: "${blueprint.candidateName}."
-   - Nav links: "Strategic Teardown", "Proven Impact", "Trajectory", "Contact"
-   - Right badge: "Targeting ${blueprint.targetCompany}" + "Schedule Strategic Dialogue" CTA
+CRITICAL FRONTEND & STYLING SPECIFICATIONS (MANDATORY):
+1. Modern Styling & Framework:
+   - Use clean, modern Tailwind CSS utility classes on EVERY component and element.
+   - Deep obsidian background: bg-[#08090a] min-h-screen text-[#f4f4f5].
+   - All surface cards must have visible container borders and glassmorphism:
+     className="bg-zinc-900/60 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-md hover:border-white/20 transition-all"
 
-2. Hero Section:
-   - Availability pill: "Available for ${blueprint.targetRole} · ${blueprint.targetCompany}"
-   - Executive Positioning Hook: "${blueprint.positioningHook}"
-   - Subtitle emphasizing systems-thinking, quantified execution, and high-velocity strategy.
+2. Navigation Bar (Strict Flexbox & Spacing):
+   - Fixed or sticky top bar: <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-5 bg-zinc-950/80 backdrop-blur-md border-b border-white/10">
+   - Candidate brand mark: <span className="font-bold text-lg text-white tracking-tight">${blueprint.candidateName}.</span>
+   - Nav links: MUST be inside a flex container with explicit gap: <div className="flex items-center gap-8">.
+   - Each link MUST have NO browser default underlines: <a className="text-sm font-medium text-zinc-300 hover:text-white no-underline transition-colors cursor-pointer">
+   - NEVER output bare unstyled <a> tags that touch each other or have blue browser underlines!
+   - Right CTA: <button className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-purple-600/20 cursor-pointer">Schedule Strategic Dialogue</button>
+
+3. Clean Typography & Word Spacing:
+   - NEVER concatenate words or numbers! All tickers, marquee badges, and milestone lists MUST have clear spaces and separators.
+   - Ticker marquee must have wide spacing: "STRATEGY  ·  SIGNALS  ·  SYSTEMS  ·  SCALE  ·  POINT OF VIEW". NEVER emit concatenated strings like "READBUILDCOMPOUND".
+   - For numbered steps or milestones (01, 02, 03), separate the number from the text cleanly:
+     <div className="flex items-start gap-4 mb-4"><span className="font-mono text-purple-400 font-bold text-sm">01</span><span className="text-zinc-300 text-sm">Read the signal: Market curiosity over assumption.</span></div>
+
+4. Hero Section:
+   - Availability pill: <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-mono text-xs mb-4">
+       <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+       Targeting ${blueprint.targetRole} · ${blueprint.targetCompany}
+     </div>
+   - Executive Positioning Hook: "${blueprint.positioningHook}" in text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight.
+   - Subtitle: text-base text-zinc-400 max-w-2xl mb-8 leading-relaxed.
    - Dual CTAs: "Explore Strategic Teardown" and "Download Executive Dossier".
 
-3. Interactive Strategic Teardown Section ("Why ${blueprint.candidateName} for ${blueprint.targetCompany}"):
+5. Strategic Teardown Section ("Why ${blueprint.candidateName} for ${blueprint.targetCompany}"):
    - Header: "The Opportunity at ${blueprint.targetCompany}"
    - Subtitle: "A targeted point-of-view on category leadership and execution leverage."
-   - Interactive 3-direction pill selector or cards:
+   - 3 interactive angle cards arranged in a responsive grid (grid grid-cols-1 md:grid-cols-3 gap-6):
 ${directionsSummary}
-   - For each direction, visually display the "Observed Challenge", "Proposed Strategy", and highlight the candidate's "Right to Win" proof point with distinctive accent styling.
+   - Each card must display:
+     - Badge: "Angle 01", "Angle 02", "Angle 03" in font-mono text-xs text-purple-400
+     - Observed Challenge (bold title + detailed observation in text-zinc-300)
+     - Proposed Strategy (concrete roadmap in text-zinc-400)
+     - Right to Win Proof Point (highlighted in an emerald border pill: bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-mono text-xs)
 
-4. Verified Case Studies & Proven Track Record:
+6. Verified Case Studies & Proven Track Record:
    - Header: "Quantified Evidence & Systems Built"
-   - 3 structured case cards featuring:
+   - Subtitle: "Commercial outcomes codified into repeatable operating systems."
+   - Responsive grid of 3 case cards (grid grid-cols-1 md:grid-cols-3 gap-6):
 ${caseStudiesSummary}
-   - Highlight the headline metrics prominently in large monospace or editorial numbers.
+   - Highlight the headline metrics prominently in large monospace numbers:
+     <span className="text-3xl md:text-4xl font-bold font-mono text-emerald-400">{metric}</span>
+     <span className="text-xs uppercase tracking-wider font-mono text-zinc-400">{metricLabel}</span>
 
-5. Career Signal & Philosophy:
+7. Career Signal & Philosophy:
    - Headline: "${blueprint.motionNarrative?.headline || 'Signal → System → Scale'}"
    - Narrative: "${blueprint.motionNarrative?.detail || 'Architecting compounding advantages through rapid iteration.'}"
-   - Core operating principles and leadership philosophy.
+   - 3 distinct operating principles with clear numbered badges (01, 02, 03) and generous padding.
 
-6. Recruiter Dialogue / Contact Footer:
-   - Executive CTA: "Let's discuss how this strategy applies to ${blueprint.targetCompany}'s upcoming quarters."
+8. Recruiter Dialogue / Contact Footer:
+   - Executive CTA box: "Let's discuss how this strategy applies to ${blueprint.targetCompany}'s upcoming quarters."
    - Direct contact buttons: Email, LinkedIn, and Calendar booking.
 
 Make the page feel like an elite, $50,000 custom-engineered executive presence that instantly commands respect from founders, board members, and executive recruiters.`

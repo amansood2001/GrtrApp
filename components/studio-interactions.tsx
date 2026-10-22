@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Send, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Send, Loader2, RefreshCw, CheckCircle2, ExternalLink, Copy } from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
 
 export const portfolioPlaceholders = {
@@ -130,7 +130,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chatId, message: value }),
+          body: JSON.stringify({ chatId, message: value, contextLabel }),
         })
         const data = await res.json()
         if (data.success) {
@@ -175,12 +175,47 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
     }
   }
 
+  const renderMessageContent = (text: string) => {
+    const urlMatch = text.match(/(https?:\/\/[^\s\)\*]+)/)
+    const url = urlMatch ? urlMatch[1] : null
+
+    return (
+      <div className="space-y-2">
+        <div className="whitespace-pre-wrap">{text}</div>
+        {url && (
+          <div className="flex items-center gap-2 pt-2">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors no-underline"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open Live Site</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(url)
+                alert('Live link copied to clipboard!')
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer border border-zinc-700"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copy Link</span>
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="studio-chat-interactive">
       <div className="messages" role="log" aria-label="Studio chat history" aria-live="polite">
         {messages.map((m, i) => (
           <div key={i} className={m.role === 'user' ? 'user-message' : 'ai-message'}>
-            <p>{m.text}</p>
+            {renderMessageContent(m.text)}
           </div>
         ))}
         {typing && (
@@ -193,7 +228,13 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
       </div>
 
       <div className="suggestions">
-        {['Sharpen company teardown', 'Highlight ARR and retention metrics', 'Elevate executive positioning hook', 'Tune spring physics & motion reveals'].map(text => (
+        {[
+          'Deploy and share the link on chat',
+          'Sharpen company teardown',
+          'Highlight ARR and retention metrics',
+          'Make navbar sleek obsidian',
+          'Tune spring physics & motion reveals',
+        ].map(text => (
           <button key={text} disabled={typing} onClick={() => send(text)}>
             {text}
             <ArrowRight />
