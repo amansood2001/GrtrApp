@@ -5,35 +5,40 @@ import type { GenerateResponse, StrategicBlueprint } from '@/lib/types'
 export const runtime = 'nodejs'
 export const maxDuration = 120
 
-export const TEMPLATE_SPECS: Record<string, { id: string; name: string; layoutDirective: string; styleGuide: string }> = {
+export const TEMPLATE_SPECS: Record<string, { id: string; name: string; v0Url: string; layoutDirective: string; styleGuide: string }> = {
   'Modern Developer Portfolio': {
     id: 'evBwFXFJcM9',
     name: 'Modern Developer Portfolio',
-    layoutDirective: 'Build directly upon the Modern Developer Portfolio template architecture (evBwFXFJcM9). Implement sleek obsidian dark glassmorphism, fluid interactive project cards, smooth spring physics, ambient radial glows, and tech stack badges.',
+    v0Url: 'https://v0.app/templates/evBwFXFJcM9',
+    layoutDirective: 'Build directly on top of the canonical v0 template at https://v0.app/templates/evBwFXFJcM9 (ID: evBwFXFJcM9). Implement sleek obsidian dark glassmorphism, fluid interactive project cards, smooth spring physics, ambient radial glows, and tech stack badges.',
     styleGuide: 'Deep obsidian backdrop (#08090a), subtle violet/indigo ambient aura (#8b5cf6), frosted glass cards with 1px border highlights, monospace metrics, and smooth Framer Motion reveals.',
   },
   'Executive Impact Showcase': {
     id: 'E3xFlIXCZi4',
     name: 'Executive Impact Showcase',
-    layoutDirective: 'Build directly upon the Portfolio Website Design template architecture (E3xFlIXCZi4). Implement bold executive headline positioning, prominent quantified ROI metric callouts, interactive 3-direction teardown tabs, and recruiter conversion CTAs.',
+    v0Url: 'https://v0.app/templates/portfolio-website-design-E3xFlIXCZi4',
+    layoutDirective: 'Build directly on top of the canonical v0 template at https://v0.app/templates/portfolio-website-design-E3xFlIXCZi4 (ID: E3xFlIXCZi4). Implement bold executive headline positioning, prominent quantified ROI metric callouts, interactive 3-direction teardown tabs, and recruiter conversion CTAs.',
     styleGuide: 'High-impact executive presence, commanding typography, high-contrast metric badges, dark mode with crisp emerald/indigo accents.',
   },
   'Bento Grid Portfolio': {
     id: 'mA8N4h1POSv',
     name: 'Bento Grid Portfolio',
-    layoutDirective: 'Build directly upon the Bento Portfolio Template architecture (mA8N4h1POSv). Implement an asymmetric bento grid layout with dynamic metric counters, modular timeline milestones, interactive expandable project cards, and sticky navigation.',
+    v0Url: 'https://v0.app/templates/portfolio-template-mA8N4h1POSv',
+    layoutDirective: 'Build directly on top of the canonical v0 template at https://v0.app/templates/portfolio-template-mA8N4h1POSv (ID: mA8N4h1POSv). Implement an asymmetric bento grid layout with dynamic metric counters, modular timeline milestones, interactive expandable project cards, and sticky navigation.',
     styleGuide: 'Bento-box modular layout, charcoal surfaces with rounded-2xl radii, soft inner borders, prominent stat chips, and high information density.',
   },
   'Retro Screen Developer Showcase': {
     id: 'JgcWH8Dw9d3',
     name: 'Retro Screen Developer Showcase',
-    layoutDirective: 'Build directly upon the Retro Hardware Showcase architecture (JgcWH8Dw9d3). Implement a vintage CRT monitor aesthetic, analog scanline filters, stark monospace displays, and tactile interactive modules.',
+    v0Url: 'https://v0.app/templates/JgcWH8Dw9d3',
+    layoutDirective: 'Build directly on top of the canonical v0 template at https://v0.app/templates/JgcWH8Dw9d3 (ID: JgcWH8Dw9d3). Implement a vintage CRT monitor aesthetic, analog scanline filters, stark monospace displays, and tactile interactive modules.',
     styleGuide: 'Vintage CRT display, analog scanline textures, green/amber phosphor monochrome accents, monospace metrics, and tactile toggle buttons.',
   },
   'Avant-Garde Creative Portfolio': {
     id: 'dmRJapDTzFk',
     name: 'Avant-Garde Creative Portfolio',
-    layoutDirective: 'Build directly upon the Avant-Garde Designer Showcase template architecture (dmRJapDTzFk). Implement asymmetric editorial grids, oversized display typography, editorial case study narratives, and artful image/metric placements.',
+    v0Url: 'https://v0.app/templates/avant-garde-designer-portfolio-showcase-dmRJapDTzFk',
+    layoutDirective: 'Build directly on top of the canonical v0 template at https://v0.app/templates/avant-garde-designer-portfolio-showcase-dmRJapDTzFk (ID: dmRJapDTzFk). Implement asymmetric editorial grids, oversized display typography, editorial case study narratives, and artful image/metric placements.',
     styleGuide: 'Avant-garde editorial, high fashion pacing, dark walnut and obsidian tones, large display serif headings, and generous margins.',
   },
 }
@@ -55,10 +60,11 @@ Project ${i + 1}: ${c.title}
   const templateSpec = TEMPLATE_SPECS[designSystem]
   const templateDirective = templateSpec
     ? `BASE CANONICAL TEMPLATE ARCHITECTURE (BUILD DIRECTLY ON TOP OF THIS TEMPLATE):
-- Canonical Template: "${templateSpec.name}" (Reference ID: ${templateSpec.id})
+- Base Canonical v0 Template URL: ${templateSpec.v0Url}
+- Base Canonical v0 Template ID: ${templateSpec.id}
 - Architecture & Section Blueprint: ${templateSpec.layoutDirective}
 - Styling & Aesthetic Guide: ${templateSpec.styleGuide}
-- Construction Rule: Build directly on top of this template structure. Preserve the layout structure, typography hierarchy, visual rhythm, and component patterns of this template while populating all sections with ${blueprint.candidateName}'s verified executive narrative, teardown angles, and case metrics below.`
+- Build Rule: Fork and build directly on top of this exact v0.app template (${templateSpec.v0Url}). Preserve the layout architecture, typography hierarchy, visual rhythm, and component patterns of this template while populating all sections with ${blueprint.candidateName}'s verified executive narrative, teardown angles, and case metrics below.`
     : `DESIGN DIRECTION:
 - Design Foundation: ${designSystem || blueprint.fitStats?.designFoundation || 'Modern Executive'}
 - Style: Obsidian dark mode, ultra-refined typography, razor-thin subtle glowing borders, Swiss-grid precision, and fluid motion.
