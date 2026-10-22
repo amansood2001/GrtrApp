@@ -202,6 +202,80 @@ interface InputStudioProps {
   error?: string | null
 }
 
+const communityTemplates = [
+  {
+    id: 'swiss-dossier',
+    name: 'Minimalist Swiss Dossier',
+    archetype: 'Grid Precision · High Density',
+    styleClass: 'swiss',
+    accentColor: '#e11d48',
+    description: 'International Typographic Style with strict modular grids, monochrome hierarchy, and razor-thin borders.',
+    directive: 'Swiss International style with strict grid alignment, bold sans-serif headlines (Instrument Sans), muted graphite rules, high information density, and restrained monochromatic accents.',
+    bestFor: 'Founding Engineers, Research Principals, Systems Architects',
+  },
+  {
+    id: 'kinetic-operator',
+    name: 'Kinetic High-Growth Operator',
+    archetype: 'Dark Obsidian · Dynamic Reveal Loops',
+    styleClass: 'kinetic',
+    accentColor: '#8b5cf6',
+    description: 'Deep obsidian theme with ambient violet aura glow, metric callout counters, and interactive Framer Motion reveals.',
+    directive: 'Executive high-growth operator portfolio with dark obsidian (#0C0D0E) theme, subtle violet-indigo radiant aura, staggered Framer Motion reveals, and prominent monospace metrics.',
+    bestFor: 'VP Growth, Heads of Product, GTM Directors',
+  },
+  {
+    id: 'luxury-monolith',
+    name: 'Editorial Luxury Monolith',
+    archetype: 'Dark Walnut · Instrument Serif Narrative',
+    styleClass: 'editorial',
+    accentColor: '#d4af37',
+    description: 'Warm dark editorial tone with bespoke serif pull-quotes, generous magazine whitespace, and long-form narrative pacing.',
+    directive: 'Luxury editorial dossier with dark walnut and warm muted tones, bespoke Instrument Serif pull-quotes, generous magazine margins, and narrative case study presentation.',
+    bestFor: 'Managing Directors, Executive Partners, Strategic Counsel',
+  },
+  {
+    id: 'systems-terminal',
+    name: 'Quantitative Systems Terminal',
+    archetype: 'Financial Telemetry · Tabular Precision',
+    styleClass: 'terminal',
+    accentColor: '#10b981',
+    description: 'Bloomberg-inspired density, tabular data streams, JetBrains Mono font, and sharp high-contrast ROI proof matrices.',
+    directive: 'High-precision financial systems terminal aesthetic with dense tabular alignment, JetBrains Mono font, muted cyan/emerald telemetry accents, and structured ROI proof tables.',
+    bestFor: 'Quantitative Analysts, Macro Researchers, Finance Executives',
+  },
+]
+
+const visualMoods = [
+  {
+    id: 'minimal-monochrome',
+    name: 'Minimal Monochrome',
+    tag: 'Pure Grayscale & Restraint',
+    palette: ['#09090b', '#27272a', '#71717a', '#f4f4f5'],
+    directive: 'Restrained monochromatic minimalism with pure grayscale hierarchy, zero extraneous decoration, razor-thin 1px borders, and pure typographic clarity.',
+  },
+  {
+    id: 'high-tech-cyber',
+    name: 'High-Tech Obsidian & Aura',
+    tag: 'Space Obsidian & Violet Aurora',
+    palette: ['#08090a', '#1e1b4b', '#8b5cf6', '#38bdf8'],
+    directive: 'Deep obsidian glassmorphism with subtle 1px border glows, radial violet aurora backdrops, monospace metrics, and smooth Framer Motion spring physics.',
+  },
+  {
+    id: 'luxury-editorial',
+    name: 'Luxury Editorial & Serif',
+    tag: 'Warm Walnut & Sandstone Serif',
+    palette: ['#141312', '#292524', '#d4af37', '#fafaf9'],
+    directive: 'Editorial luxury aesthetic with dark walnut and warm cream tones, bespoke Instrument Serif typography, generous magazine margins, and editorial essay card structures.',
+  },
+  {
+    id: 'architectural-grid',
+    name: 'Architectural Grid & Structure',
+    tag: 'Strict Structural Wireframe',
+    palette: ['#0c0d0e', '#27272a', '#f43f5e', '#fafafa'],
+    directive: 'Architectural grid system with visible structural rules, bold high-contrast section anchors, angular containers, and strict modular discipline.',
+  },
+]
+
 function InputStudio({
   resumeText,
   resumeFileName,
@@ -217,6 +291,8 @@ function InputStudio({
 }: InputStudioProps) {
   const [jdMode, setJdMode] = useState<'text' | 'file'>('text')
   const [designTab, setDesignTab] = useState('systems')
+  const [templateFilter, setTemplateFilter] = useState('All')
+  const [templateSearch, setTemplateSearch] = useState('')
   const [parsingCv, setParsingCv] = useState(false)
   const [parsingJd, setParsingJd] = useState(false)
 
@@ -266,6 +342,23 @@ function InputStudio({
   }
 
   const hasInputs = resumeText.trim().length > 0 && jobDescription.trim().length > 0
+
+  const filteredTemplates = communityTemplates.filter(t => {
+    const matchesFilter =
+      templateFilter === 'All' ||
+      (templateFilter === 'Landing' && (t.id === 'kinetic-operator' || t.id === 'systems-terminal')) ||
+      (templateFilter === 'Editorial' && (t.id === 'swiss-dossier' || t.id === 'luxury-monolith'))
+    const matchesSearch =
+      t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+      t.archetype.toLowerCase().includes(templateSearch.toLowerCase()) ||
+      t.description.toLowerCase().includes(templateSearch.toLowerCase())
+    return matchesFilter && matchesSearch
+  })
+
+  // Determine active directive text to show the user
+  const activeTemplate = communityTemplates.find(t => t.name === selectedDesign)
+  const activeMood = visualMoods.find(m => m.name === selectedDesign)
+  const activePromptDirective = activeTemplate?.directive || activeMood?.directive
 
   return (
     <div className="view-shell input-view">
@@ -341,7 +434,7 @@ function InputStudio({
                 <div className="input-meta">
                   <span>
                     <Check />
-                    {jobDescription.length > 20 ? 'Target role signals active' : 'Awaiting job description'}
+                    {jobDescription.trim().length > 15 ? 'Target role signals active' : 'Enter target role & company requirements'}
                   </span>
                   <span>{jobDescription.length.toLocaleString()} characters</span>
                 </div>
@@ -416,66 +509,136 @@ function InputStudio({
                   ))}
                 </div>
               )}
+
               {designTab === 'templates' && (
                 <>
                   <div className="template-tools">
                     <div>
-                      <Search />
-                      <input aria-label="Search templates" placeholder="Search templates" />
+                      <Search className="w-3 h-3 text-muted" />
+                      <input
+                        aria-label="Search templates"
+                        placeholder="Search curated templates..."
+                        value={templateSearch}
+                        onChange={e => setTemplateSearch(e.target.value)}
+                      />
                     </div>
-                    <button>All</button>
-                    <button>Landing</button>
-                    <button>Editorial</button>
-                  </div>
-                  <div className="template-grid">
-                    {['Gen Z Brand', 'Architecture Studio', 'AI Compute', 'Fintech Dashboard'].map((x, i) => (
+                    {['All', 'Landing', 'Editorial'].map(cat => (
                       <button
-                        className={`template-card ${selectedDesign === x ? 'selected' : ''}`}
-                        key={x}
-                        onClick={() => setSelectedDesign(x)}
+                        key={cat}
+                        className={templateFilter === cat ? 'active' : ''}
+                        onClick={() => setTemplateFilter(cat)}
                       >
-                        <span className={`template-preview preview-${i}`}>
-                          <i />
-                          <b />
-                          <em />
-                        </span>
-                        <strong>{x}</strong>
-                        <small>Community template</small>
+                        {cat}
                       </button>
                     ))}
                   </div>
+
+                  <div className="template-grid">
+                    {filteredTemplates.map(t => {
+                      const isSelected = selectedDesign === t.name
+                      return (
+                        <div
+                          key={t.id}
+                          onClick={() => setSelectedDesign(t.name)}
+                          className={`curated-template-card ${isSelected ? 'selected' : ''}`}
+                        >
+                          <div className={`template-visual ${t.styleClass}`}>
+                            <div className="flex items-center justify-between text-[8px] font-mono opacity-60">
+                              <span>{t.archetype}</span>
+                              <span style={{ color: t.accentColor }}>●</span>
+                            </div>
+                            <div className="my-auto">
+                              <span className="text-[11px] font-serif tracking-tight block text-white/90">
+                                {t.id === 'swiss-dossier' && '01 // EXECUTIVE DOSSIER'}
+                                {t.id === 'kinetic-operator' && '+142% PIPELINE ACCELERATION'}
+                                {t.id === 'luxury-monolith' && '“Turning product into market dominance.”'}
+                                {t.id === 'systems-terminal' && 'SYS_STATUS: VERIFIED [99.4%]'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-[7px] text-muted">
+                              <span>Curated Community</span>
+                              {isSelected && <Check className="w-3 h-3 text-purple-400" />}
+                            </div>
+                          </div>
+                          <strong className="text-xs text-white block mb-0.5">{t.name}</strong>
+                          <p className="text-[10px] text-muted leading-tight mb-1.5">{t.description}</p>
+                          <div className="mt-auto pt-1 border-t border-white/5 flex items-center justify-between text-[8px] text-muted font-mono">
+                            <span>Best for: {t.bestFor.split(',')[0]}</span>
+                            <span className="text-purple-400">Select →</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {activeTemplate && (
+                    <div className="prompt-directive-preview">
+                      <span className="text-muted block text-[9px] uppercase tracking-wider mb-1 font-mono">
+                        Prompt Directive to v0 Builder:
+                      </span>
+                      &quot;{activeTemplate.directive}&quot;
+                    </div>
+                  )}
                 </>
               )}
+
               {designTab === 'moods' && (
-                <div className="mood-grid">
-                  {['Minimal Monochrome', 'High-Tech Cyber', 'Luxury Editorial', 'Bold Neobrutalist'].map((x, i) => (
-                    <button
-                      key={x}
-                      onClick={() => setSelectedDesign(x)}
-                      className={`mood-card mood-${i} ${selectedDesign === x ? 'border-purple-400' : ''}`}
-                    >
-                      <strong>{x}</strong>
-                      <small>
-                        View direction <ArrowRight />
-                      </small>
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div className="mood-grid">
+                    {visualMoods.map(m => {
+                      const isSelected = selectedDesign === m.name
+                      return (
+                        <div
+                          key={m.id}
+                          onClick={() => setSelectedDesign(m.name)}
+                          className={`curated-mood-card ${isSelected ? 'selected' : ''}`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <strong className="text-xs text-white block">{m.name}</strong>
+                              <small className="text-[9px] text-muted block font-mono mt-0.5">{m.tag}</small>
+                            </div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                          </div>
+
+                          <div className="mood-palette-dots">
+                            {m.palette.map((color, i) => (
+                              <span key={i} style={{ backgroundColor: color }} title={color} />
+                            ))}
+                          </div>
+
+                          <div className="mt-2 pt-1 border-t border-white/5 flex items-center justify-between text-[8px] text-purple-400 font-mono">
+                            <span>Inspect direction</span>
+                            <ArrowRight className="w-2.5 h-2.5" />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {activeMood && (
+                    <div className="prompt-directive-preview">
+                      <span className="text-muted block text-[9px] uppercase tracking-wider mb-1 font-mono">
+                        Active Mood Directive to v0:
+                      </span>
+                      &quot;{activeMood.directive}&quot;
+                    </div>
+                  )}
+                </>
               )}
+
               {designTab === 'custom' && (
                 <div className="custom-prompt">
                   <textarea
                     aria-label="Custom design direction"
-                    placeholder="Describe a visual direction — e.g. A restrained editorial portfolio with Swiss typography, warm paper textures, and subtle kinetic type..."
-                    onChange={e => setSelectedDesign(e.target.value)}
+                    value={selectedDesign.startsWith('Custom: ') ? selectedDesign.replace('Custom: ', '') : ''}
+                    placeholder="Describe your custom visual direction — e.g. An understated, high-density engineering dossier with Swiss grid layout, muted slate palette, monospace code snippets for technical metrics, and subtle scroll-linked typography reveals..."
+                    onChange={e => setSelectedDesign(`Custom: ${e.target.value}`)}
+                    className="min-h-[160px]"
                   />
-                  <div className="prompt-tags">
-                    {['Dark glassmorphism', 'Editorial serif', 'Micro-spring motion'].map(t => (
-                      <button key={t} onClick={() => setSelectedDesign(`${selectedDesign} ${t}`.trim())}>
-                        <Plus />
-                        {t}
-                      </button>
-                    ))}
+                  <div className="mt-2 text-[10px] text-muted font-mono flex items-center justify-between">
+                    <span>Direct prompt injection into v0 builder</span>
+                    <span>Fully editable anytime</span>
                   </div>
                 </div>
               )}
@@ -484,29 +647,36 @@ function InputStudio({
         </section>
       </div>
 
-      <div className="generate-bar">
-        <div>
-          <span className={`pulse-dot ${hasInputs ? 'bg-emerald-400' : ''}`} />
-          {hasInputs ? 'Inputs analyzed · Ready to build' : 'Provide resume & job description to proceed'}
+      <div className="executive-generate-bar">
+        <div className="flex items-center gap-2 text-xs text-muted font-mono">
+          <span className={`w-2 h-2 rounded-full transition-all duration-300 ${hasInputs ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-zinc-600'}`} />
+          <span>
+            {hasInputs ? 'Inputs verified · AI Strategist ready' : 'Upload resume & enter job description to unlock blueprint'}
+          </span>
         </div>
-        <Button
-          className="primary-cta beam-button"
+
+        <button
           onClick={onGenerate}
           disabled={!hasInputs || isGeneratingBlueprint}
+          className="executive-cta-button group"
         >
           {isGeneratingBlueprint ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
-              Synthesizing Strategy...
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+              <span>Synthesizing Strategic Blueprint…</span>
             </>
           ) : (
             <>
-              <WandSparkles data-icon="inline-start" />
-              Generate Strategic Blueprint <ArrowRight data-icon="inline-end" />
+              <Sparkles className="w-4 h-4 text-purple-400 transition-transform group-hover:scale-110" />
+              <span>Generate Strategic Blueprint</span>
+              <ArrowRight className="w-4 h-4 text-white/70 transition-transform group-hover:translate-x-1" />
             </>
           )}
-        </Button>
-        <span>Ready in ~2 seconds</span>
+        </button>
+
+        <span className="text-[10px] text-muted font-mono">
+          ⚡ Ready in ~2 seconds · No credits wasted · Pre-flight verified
+        </span>
       </div>
     </div>
   )
@@ -1217,9 +1387,7 @@ export function GrtrApp() {
   // Application State
   const [resumeText, setResumeText] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
-  const [jobDescription, setJobDescription] = useState(
-    'Head of Growth — B2B SaaS\n\nWe are looking for a strategic growth leader to build a high-performance demand engine across enterprise and mid-market segments. The ideal candidate will orchestrate category narrative, multi-segment go-to-market, and a rigorous quantitative experimentation loop.'
-  )
+  const [jobDescription, setJobDescription] = useState('')
   const [selectedDesign, setSelectedDesign] = useState('Carbon')
 
   // Pipeline State

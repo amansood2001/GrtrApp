@@ -33,3 +33,199 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 @media(max-width:720px){.grtr-app .studio-view{height:calc(100dvh - 70px)}.grtr-app .chat-pane,.grtr-app .preview-pane{height:calc(100% - 42px)}}
 @media(max-width:599px){.grtr-app .input-grid{grid-template-columns:1fr}.grtr-app .system-grid{grid-template-columns:1fr 1fr}.grtr-app .workspace-heading{padding:8px 0}.career-signal canvas{width:90px;height:90px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
+
+/* ==========================================================================
+   Anthropic Frontend Design Refinements & Fixes
+   ========================================================================== */
+.grtr-app .template-tools {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.grtr-app .template-tools > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px;
+  padding: 6px 12px;
+  flex: 1;
+}
+.grtr-app .template-tools input {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 11px;
+  width: 100%;
+}
+.grtr-app .template-tools button {
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.grtr-app .template-tools button:hover,
+.grtr-app .template-tools button.active {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-color: var(--line-bright) !important;
+}
+
+.grtr-app .template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.grtr-app .curated-template-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.grtr-app .curated-template-card:hover {
+  border-color: var(--line-bright);
+  transform: translateY(-1px);
+}
+.grtr-app .curated-template-card.selected {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), var(--surface) 60%);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+}
+.grtr-app .template-visual {
+  height: 80px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+.grtr-app .template-visual.swiss {
+  background: #090a0c;
+  border-left: 2px solid #e11d48;
+}
+.grtr-app .template-visual.kinetic {
+  background: radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.3), #090a0f 70%);
+}
+.grtr-app .template-visual.editorial {
+  background: linear-gradient(145deg, #181512, #0d0c0a);
+  border-left: 2px solid #d4af37;
+}
+.grtr-app .template-visual.terminal {
+  background: #08090a;
+  border: 1px solid #10b98133;
+}
+
+.grtr-app .mood-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.grtr-app .curated-mood-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 110px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  cursor: pointer;
+}
+.grtr-app .curated-mood-card:hover {
+  border-color: var(--line-bright);
+}
+.grtr-app .curated-mood-card.selected {
+  border-color: #8b5cf6;
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.1), var(--surface) 50%);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+}
+.grtr-app .mood-palette-dots {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+}
+.grtr-app .mood-palette-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.grtr-app .prompt-directive-preview {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #08090b;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #c4b5fd;
+}
+
+.grtr-app .executive-generate-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.4));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.grtr-app .executive-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  min-width: 340px;
+  height: 52px;
+  padding: 0 28px;
+  background: linear-gradient(135deg, #18191f 0%, #0e0f14 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  font-family: 'Instrument Sans', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.grtr-app .executive-cta-button:hover:not(:disabled) {
+  border-color: rgba(167, 139, 250, 0.6) !important;
+  background: linear-gradient(135deg, #22232b 0%, #13141a 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 24px rgba(139, 92, 246, 0.3), 0 8px 24px rgba(0, 0, 0, 0.8) !important;
+  transform: translateY(-1px);
+}
+.grtr-app .executive-cta-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+.grtr-app .executive-cta-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
