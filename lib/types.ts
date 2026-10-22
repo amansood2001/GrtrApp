@@ -12,12 +12,42 @@ export interface TeardownDirection {
   rightToWinProof: string
 }
 
+export interface CareerRoleItem {
+  year: string
+  company: string
+  title: string
+  location?: string
+  accent?: string
+  number?: string
+  summary: string
+  outcomes: string[]
+}
+
+export interface StatItem {
+  value: string
+  label: string
+  note: string
+}
+
+export interface CompanyBrandIdentity {
+  primaryColor: string
+  accentColor: string
+  surfaceColor: string
+  textColor: string
+  metaphor: string
+}
+
 export interface StrategicBlueprint {
   matchScore: number
   candidateName: string
   targetRole: string
   targetCompany: string
   positioningHook: string
+  positioningSubtitle?: string
+  companyBrand?: CompanyBrandIdentity
+  roles?: CareerRoleItem[]
+  stats?: StatItem[]
+  skills?: Record<string, string[]>
   directions: TeardownDirection[]
   caseStudies: CaseStudyItem[]
   motionNarrative: {
