@@ -187,7 +187,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
           }}
         />
         <div>
-          <span>{chatId ? 'Live v0 assistant · Enter to apply' : 'Simulated chat · Enter to test'}</span>
+          <span>{chatId ? 'Live AI Copilot · Enter to apply' : 'Simulated chat · Enter to test'}</span>
           <button aria-label="Send message" disabled={typing || !draft.trim()} onClick={() => send(draft)}>
             <Send />
           </button>

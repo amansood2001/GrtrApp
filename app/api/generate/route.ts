@@ -5,6 +5,45 @@ import type { GenerateResponse, StrategicBlueprint } from '@/lib/types'
 export const runtime = 'nodejs'
 export const maxDuration = 120
 
+export const TEMPLATE_SPECS: Record<string, { id: string; name: string; layoutDirective: string; styleGuide: string }> = {
+  'Retro Brutalist Portfolio': {
+    id: 'OWdF1aPYmXV',
+    name: 'Retro Brutalist Portfolio',
+    layoutDirective: 'Build directly upon the Retro Brutalist template architecture (OWdF1aPYmXV). Implement bold, high-contrast monochrome neo-brutalist containers with thick 2px solid borders, retro terminal-style header tags, modular bento grids, and stark typography.',
+    styleGuide: 'Neo-brutalist, retro high-contrast borders (#ffffff, #000000), stark monospace headers, monospace metric callouts, and clean modular content blocks.',
+  },
+  'Modern Developer Portfolio': {
+    id: 'evBwFXFJcM9',
+    name: 'Modern Developer Portfolio',
+    layoutDirective: 'Build directly upon the Modern Developer Portfolio template architecture (evBwFXFJcM9). Implement sleek obsidian dark glassmorphism, fluid interactive project cards, smooth spring physics, ambient radial glows, and tech stack badges.',
+    styleGuide: 'Deep obsidian backdrop (#08090a), subtle violet/indigo ambient aura (#8b5cf6), frosted glass cards with 1px border highlights, monospace metrics, and smooth Framer Motion reveals.',
+  },
+  'Minimalist Editorial Portfolio': {
+    id: 'NFhsR5cAXJp',
+    name: 'Minimalist Editorial Portfolio',
+    layoutDirective: 'Build directly upon the Minimalist Portfolio template architecture (NFhsR5cAXJp). Implement an ultra-clean Swiss editorial layout, generous magazine whitespace, quiet serif display headlines, restrained monochrome palette, and focused case-study narrative pacing.',
+    styleGuide: 'Swiss editorial minimalism, pure grayscale (#09090b, #f4f4f5), quiet serif display typography, generous padding, and razor-thin 1px dividing rules.',
+  },
+  'Bento Grid Portfolio': {
+    id: 'mA8N4h1POSv',
+    name: 'Bento Grid Portfolio',
+    layoutDirective: 'Build directly upon the Bento Portfolio Template architecture (mA8N4h1POSv). Implement an asymmetric bento grid layout with dynamic metric counters, modular timeline milestones, interactive expandable project cards, and sticky navigation.',
+    styleGuide: 'Bento-box modular layout, charcoal surfaces with rounded-2xl radii, soft inner borders, prominent stat chips, and high information density.',
+  },
+  'Executive Impact Showcase': {
+    id: 'E3xFlIXCZi4',
+    name: 'Executive Impact Showcase',
+    layoutDirective: 'Build directly upon the Portfolio Website Design template architecture (E3xFlIXCZi4). Implement bold executive headline positioning, prominent quantified ROI metric callouts, interactive 3-direction teardown tabs, and recruiter conversion CTAs.',
+    styleGuide: 'High-impact executive presence, commanding typography, high-contrast metric badges, dark mode with crisp emerald/indigo accents.',
+  },
+  'Avant-Garde Creative Portfolio': {
+    id: 'dmRJapDTzFk',
+    name: 'Avant-Garde Creative Portfolio',
+    layoutDirective: 'Build directly upon the Avant-Garde Designer Showcase template architecture (dmRJapDTzFk). Implement asymmetric editorial grids, oversized display typography, editorial case study narratives, and artful image/metric placements.',
+    styleGuide: 'Avant-garde editorial, high fashion pacing, dark walnut and obsidian tones, large display serif headings, and generous margins.',
+  },
+}
+
 function buildGenerationPrompt(blueprint: StrategicBlueprint, designSystem: string): string {
   const directionsSummary = blueprint.directions.map((d, i) => `
 Angle ${i + 1}: ${d.angle}
@@ -19,13 +58,22 @@ Project ${i + 1}: ${c.title}
 - Headline Metric: ${c.metric} (${c.metricLabel})
 `).join('\n')
 
-  return `Build a world-class, executive role-tailored portfolio website for ${blueprint.candidateName}, applying for the position of ${blueprint.targetRole} at ${blueprint.targetCompany}.
-
-DESIGN DIRECTION:
-- Design Foundation: ${designSystem || blueprint.fitStats?.designFoundation || 'IBM Carbon'}
+  const templateSpec = TEMPLATE_SPECS[designSystem]
+  const templateDirective = templateSpec
+    ? `BASE CANONICAL TEMPLATE ARCHITECTURE (BUILD DIRECTLY ON TOP OF THIS TEMPLATE):
+- Canonical Template: "${templateSpec.name}" (Reference ID: ${templateSpec.id})
+- Architecture & Section Blueprint: ${templateSpec.layoutDirective}
+- Styling & Aesthetic Guide: ${templateSpec.styleGuide}
+- Construction Rule: Build directly on top of this template structure. Preserve the layout structure, typography hierarchy, visual rhythm, and component patterns of this template while populating all sections with ${blueprint.candidateName}'s verified executive narrative, teardown angles, and case metrics below.`
+    : `DESIGN DIRECTION:
+- Design Foundation: ${designSystem || blueprint.fitStats?.designFoundation || 'Modern Executive'}
 - Style: Obsidian dark mode, ultra-refined typography, razor-thin subtle glowing borders, Swiss-grid precision, and fluid motion.
 - Palette: Deep charcoal & obsidian background (#0a0a0c, #111215), pure white typography (#f8fafc), subtle muted silver text (#94a3b8), brand accent highlights, and subtle glassmorphic surface cards.
-- Motion: Use Framer Motion for smooth scroll reveals, active state toggles, and hover states.
+- Motion: Use Framer Motion for smooth scroll reveals, active state toggles, and hover states.`
+
+  return `Build a world-class, executive role-tailored portfolio website for ${blueprint.candidateName}, applying for the position of ${blueprint.targetRole} at ${blueprint.targetCompany}.
+
+${templateDirective}
 
 CONTENT & SECTIONS TO INCLUDE:
 1. Navigation Bar:
@@ -66,7 +114,7 @@ Make the page feel like an elite, $50,000 custom-engineered executive presence t
 
 export async function POST(req: NextRequest): Promise<NextResponse<GenerateResponse>> {
   try {
-    const { blueprint, designSystem = 'Carbon' }: { blueprint: StrategicBlueprint; designSystem?: string } = await req.json()
+    const { blueprint, designSystem = 'Modern Developer Portfolio' }: { blueprint: StrategicBlueprint; designSystem?: string } = await req.json()
 
     if (!blueprint || !blueprint.candidateName) {
       return NextResponse.json({ success: false, error: 'A valid StrategicBlueprint is required.' }, { status: 400 })
@@ -74,25 +122,25 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     const message = buildGenerationPrompt(blueprint, designSystem)
 
-    console.log(`Initiating v0 generation for candidate "${blueprint.candidateName}" -> "${blueprint.targetCompany}"`)
+    console.log(`Initiating generation for candidate "${blueprint.candidateName}" -> "${blueprint.targetCompany}"`)
 
     const chatResponse = await v0.chats.create({
       message,
     })
 
     if (chatResponse.error || !chatResponse.data?.chat?.id) {
-      console.error('v0.chats.create failed:', chatResponse.error)
+      console.error('Portfolio generation failed:', chatResponse.error)
       return NextResponse.json(
         {
           success: false,
-          error: chatResponse.error?.message || 'Failed to initiate portfolio generation on v0.',
+          error: chatResponse.error?.message || 'Failed to initiate portfolio generation.',
         },
         { status: 502 }
       )
     }
 
     const chatId = chatResponse.data.chat.id
-    console.log(`Successfully created v0 chat: ${chatId}`)
+    console.log(`Successfully created portfolio chat: ${chatId}`)
 
     return NextResponse.json({
       success: true,

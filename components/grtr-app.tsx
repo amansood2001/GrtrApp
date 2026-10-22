@@ -202,46 +202,91 @@ interface InputStudioProps {
   error?: string | null
 }
 
-const communityTemplates = [
+export interface CommunityTemplate {
+  id: string
+  name: string
+  archetype: string
+  category: 'Developer' | 'Executive' | 'Design'
+  imageUrl: string
+  templateUrl: string
+  description: string
+  directive: string
+  bestFor: string
+  author?: string
+}
+
+const communityTemplates: CommunityTemplate[] = [
   {
-    id: 'swiss-dossier',
-    name: 'Minimalist Swiss Dossier',
-    archetype: 'Grid Precision · High Density',
-    styleClass: 'swiss',
-    accentColor: '#e11d48',
-    description: 'International Typographic Style with strict modular grids, monochrome hierarchy, and razor-thin borders.',
-    directive: 'Swiss International style with strict grid alignment, bold sans-serif headlines (Instrument Sans), muted graphite rules, high information density, and restrained monochromatic accents.',
-    bestFor: 'Founding Engineers, Research Principals, Systems Architects',
+    id: 'OWdF1aPYmXV',
+    name: 'Retro Brutalist Portfolio',
+    archetype: 'Neo-Brutalist',
+    category: 'Developer',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot%202025-12-19%20at%2011.22.59%E2%80%AFPM-CFSEdHmUiPj0mnKrqteZAVMyScePSO.png',
+    templateUrl: 'https://v0.app/templates/OWdF1aPYmXV',
+    description: 'High-contrast neo-brutalist layout with heavy borders, monochrome typography, retro computer aesthetics, and modular project blocks.',
+    directive: 'Build directly on top of the Retro Brutalist template (OWdF1aPYmXV): High-contrast neo-brutalist styling with bold monochrome borders, retro terminal aesthetics, monospace metric highlights, and strict modular grid containers.',
+    bestFor: 'Founding Engineers & Systems Architects',
+    author: 'shadcn',
   },
   {
-    id: 'kinetic-operator',
-    name: 'Kinetic High-Growth Operator',
-    archetype: 'Dark Obsidian · Dynamic Reveal Loops',
-    styleClass: 'kinetic',
-    accentColor: '#8b5cf6',
-    description: 'Deep obsidian theme with ambient violet aura glow, metric callout counters, and interactive Framer Motion reveals.',
-    directive: 'Executive high-growth operator portfolio with dark obsidian (#0C0D0E) theme, subtle violet-indigo radiant aura, staggered Framer Motion reveals, and prominent monospace metrics.',
-    bestFor: 'VP Growth, Heads of Product, GTM Directors',
+    id: 'evBwFXFJcM9',
+    name: 'Modern Developer Portfolio',
+    archetype: 'Dark Obsidian · Smooth Motion',
+    category: 'Developer',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot-2026-01-01-at-11.11.58%E2%80%AFAM-75MGc9XubNCPsB6ffBLtDmtgq4sHDm.jpg',
+    templateUrl: 'https://v0.app/templates/evBwFXFJcM9',
+    description: 'Sleek dark developer showcase featuring glassmorphic cards, smooth animations, interactive project showcases, and tech stack badges.',
+    directive: 'Build directly on top of the Modern Developer Portfolio template (evBwFXFJcM9): Sleek obsidian theme with frosted glass cards, fluid Framer Motion reveals, interactive project displays, and polished tech badges.',
+    bestFor: 'Fullstack Engineers & Tech Leads',
+    author: 'community',
   },
   {
-    id: 'luxury-monolith',
-    name: 'Editorial Luxury Monolith',
-    archetype: 'Dark Walnut · Instrument Serif Narrative',
-    styleClass: 'editorial',
-    accentColor: '#d4af37',
-    description: 'Warm dark editorial tone with bespoke serif pull-quotes, generous magazine whitespace, and long-form narrative pacing.',
-    directive: 'Luxury editorial dossier with dark walnut and warm muted tones, bespoke Instrument Serif pull-quotes, generous magazine margins, and narrative case study presentation.',
-    bestFor: 'Managing Directors, Executive Partners, Strategic Counsel',
+    id: 'NFhsR5cAXJp',
+    name: 'Minimalist Editorial Portfolio',
+    archetype: 'Editorial Swiss · Clean Typography',
+    category: 'Executive',
+    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/screenshots/dpl_2pj1VzSpxBN8SG9FE6LTYFJnKAe8-zzHYM3hx33It4kXbG8FqohcS4iZwPg.jpg',
+    templateUrl: 'https://v0.app/templates/NFhsR5cAXJp',
+    description: 'Ultra-clean editorial portfolio with generous whitespace, subtle micro-interactions, serif titles, and focused project storytelling.',
+    directive: 'Build directly on top of the Minimalist Portfolio template (NFhsR5cAXJp): Ultra-clean Swiss editorial aesthetic, generous whitespace, quiet serif display typography, restrained monochrome palette, and focus on deep narrative.',
+    bestFor: 'Product Executives & Strategic Counsel',
+    author: 'shadcn',
   },
   {
-    id: 'systems-terminal',
-    name: 'Quantitative Systems Terminal',
-    archetype: 'Financial Telemetry · Tabular Precision',
-    styleClass: 'terminal',
-    accentColor: '#10b981',
-    description: 'Bloomberg-inspired density, tabular data streams, JetBrains Mono font, and sharp high-contrast ROI proof matrices.',
-    directive: 'High-precision financial systems terminal aesthetic with dense tabular alignment, JetBrains Mono font, muted cyan/emerald telemetry accents, and structured ROI proof tables.',
-    bestFor: 'Quantitative Analysts, Macro Researchers, Finance Executives',
+    id: 'mA8N4h1POSv',
+    name: 'Bento Grid Portfolio',
+    archetype: 'Bento Grid · Interactive Cards',
+    category: 'Executive',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/v0-portfolio-template-theta.vercel.app_%28Desktop%20windows%29-7wF0uGsuUYhxtiiaakDJrrDHxaAZT4.png',
+    templateUrl: 'https://v0.app/templates/mA8N4h1POSv',
+    description: 'Modern bento-grid layout with live metric cards, experience timeline, interactive project popovers, and responsive layout.',
+    directive: 'Build directly on top of the Bento Portfolio template (mA8N4h1POSv): Dynamic bento-grid structure with metric stat callouts, interactive cards, career timeline, and modular content hierarchy.',
+    bestFor: 'Heads of Growth & Product Leaders',
+    author: 'theta',
+  },
+  {
+    id: 'E3xFlIXCZi4',
+    name: 'Executive Impact Showcase',
+    archetype: 'Bold Typography · Metric Highlights',
+    category: 'Executive',
+    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/screenshots/dpl_2mBppWzodmwGLdSRkz73xkkt97fs-Z4Y3DAAD5Y75vloWANLHK540Wbac7j.jpg',
+    templateUrl: 'https://v0.app/templates/E3xFlIXCZi4',
+    description: 'Bold typography-driven layout with dynamic case studies, quantified achievements, and high-impact CTA section.',
+    directive: 'Build directly on top of the Portfolio Website Design template (E3xFlIXCZi4): Bold typography-driven hero, highlighted executive metrics, strategic teardown case studies, and high-converting recruiter CTAs.',
+    bestFor: 'VPs, GTM Directors & C-Suite',
+    author: 'community',
+  },
+  {
+    id: 'dmRJapDTzFk',
+    name: 'Avant-Garde Creative Portfolio',
+    archetype: 'High Fashion · Asymmetric Grid',
+    category: 'Design',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot%202025-12-29%20at%2011.01.03%E2%80%AFPM-y21XKqv59SVVgzoEOMDtBOngIvfMLl.png',
+    templateUrl: 'https://v0.app/templates/dmRJapDTzFk',
+    description: 'High-end creative portfolio featuring asymmetric layouts, oversized editorial headings, and immersive visual project showcases.',
+    directive: 'Build directly on top of the Avant-Garde Designer Showcase template (dmRJapDTzFk): High-end luxury editorial with asymmetric layouts, large display serif headings, and refined visual storytelling.',
+    bestFor: 'Design Directors & Creative Leaders',
+    author: 'community',
   },
 ]
 
@@ -250,6 +295,7 @@ const visualMoods = [
     id: 'minimal-monochrome',
     name: 'Minimal Monochrome',
     tag: 'Pure Grayscale & Restraint',
+    description: 'Razor-thin 1px borders, pure typographic clarity, and zero extraneous ornament. Engineered for deep technical credibility.',
     palette: ['#09090b', '#27272a', '#71717a', '#f4f4f5'],
     directive: 'Restrained monochromatic minimalism with pure grayscale hierarchy, zero extraneous decoration, razor-thin 1px borders, and pure typographic clarity.',
   },
@@ -257,6 +303,7 @@ const visualMoods = [
     id: 'high-tech-cyber',
     name: 'High-Tech Obsidian & Aura',
     tag: 'Space Obsidian & Violet Aurora',
+    description: 'Deep obsidian glassmorphism with subtle violet aurora backdrops, monospace metrics, and smooth spring physics.',
     palette: ['#08090a', '#1e1b4b', '#8b5cf6', '#38bdf8'],
     directive: 'Deep obsidian glassmorphism with subtle 1px border glows, radial violet aurora backdrops, monospace metrics, and smooth Framer Motion spring physics.',
   },
@@ -264,6 +311,7 @@ const visualMoods = [
     id: 'luxury-editorial',
     name: 'Luxury Editorial & Serif',
     tag: 'Warm Walnut & Sandstone Serif',
+    description: 'Warm cream and dark walnut tones, bespoke serif pull-quotes, generous magazine margins, and essay case study pacing.',
     palette: ['#141312', '#292524', '#d4af37', '#fafaf9'],
     directive: 'Editorial luxury aesthetic with dark walnut and warm cream tones, bespoke Instrument Serif typography, generous magazine margins, and editorial essay card structures.',
   },
@@ -271,6 +319,7 @@ const visualMoods = [
     id: 'architectural-grid',
     name: 'Architectural Grid & Structure',
     tag: 'Strict Structural Wireframe',
+    description: 'Architectural grid system with visible structural rules, bold high-contrast section anchors, and strict modular discipline.',
     palette: ['#0c0d0e', '#27272a', '#f43f5e', '#fafafa'],
     directive: 'Architectural grid system with visible structural rules, bold high-contrast section anchors, angular containers, and strict modular discipline.',
   },
@@ -345,9 +394,7 @@ function InputStudio({
 
   const filteredTemplates = communityTemplates.filter(t => {
     const matchesFilter =
-      templateFilter === 'All' ||
-      (templateFilter === 'Landing' && (t.id === 'kinetic-operator' || t.id === 'systems-terminal')) ||
-      (templateFilter === 'Editorial' && (t.id === 'swiss-dossier' || t.id === 'luxury-monolith'))
+      templateFilter === 'All' || t.category === templateFilter
     const matchesSearch =
       t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
       t.archetype.toLowerCase().includes(templateSearch.toLowerCase()) ||
@@ -517,12 +564,12 @@ function InputStudio({
                       <Search className="w-3 h-3 text-muted" />
                       <input
                         aria-label="Search templates"
-                        placeholder="Search curated templates..."
+                        placeholder="Search featured community templates..."
                         value={templateSearch}
                         onChange={e => setTemplateSearch(e.target.value)}
                       />
                     </div>
-                    {['All', 'Landing', 'Editorial'].map(cat => (
+                    {['All', 'Developer', 'Executive', 'Design'].map(cat => (
                       <button
                         key={cat}
                         className={templateFilter === cat ? 'active' : ''}
@@ -540,31 +587,60 @@ function InputStudio({
                         <div
                           key={t.id}
                           onClick={() => setSelectedDesign(t.name)}
-                          className={`curated-template-card ${isSelected ? 'selected' : ''}`}
+                          className={`curated-template-card group cursor-pointer ${isSelected ? 'selected' : ''}`}
                         >
-                          <div className={`template-visual ${t.styleClass}`}>
-                            <div className="flex items-center justify-between text-[8px] font-mono opacity-60">
+                          {/* Real Preview Screenshot */}
+                          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-zinc-950 border border-white/10 mb-2.5">
+                            <img
+                              src={t.imageUrl}
+                              alt={t.name}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
+
+                            {/* Category Pill */}
+                            <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-[9px] font-mono text-white/90">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                               <span>{t.archetype}</span>
-                              <span style={{ color: t.accentColor }}>●</span>
                             </div>
-                            <div className="my-auto">
-                              <span className="text-[11px] font-serif tracking-tight block text-white/90">
-                                {t.id === 'swiss-dossier' && '01 // EXECUTIVE DOSSIER'}
-                                {t.id === 'kinetic-operator' && '+142% PIPELINE ACCELERATION'}
-                                {t.id === 'luxury-monolith' && '“Turning product into market dominance.”'}
-                                {t.id === 'systems-terminal' && 'SYS_STATUS: VERIFIED [99.4%]'}
+
+                            {/* Selected Badge */}
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-purple-600 text-white border border-purple-400/50 text-[9px] font-medium flex items-center gap-1 shadow-lg shadow-purple-600/40">
+                                <Check className="w-2.5 h-2.5" />
+                                <span>Selected</span>
+                              </div>
+                            )}
+
+                            {/* Inspect Link */}
+                            <a
+                              href={t.templateUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={e => e.stopPropagation()}
+                              className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 hover:bg-zinc-800 backdrop-blur-md border border-white/20 hover:border-white/40 text-[9px] text-white/90 font-mono flex items-center gap-1 transition-all duration-150 shadow-md group/link"
+                              title="Inspect template in new tab"
+                            >
+                              <span>Preview Template</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-zinc-400 group-hover/link:text-white transition-colors" />
+                            </a>
+                          </div>
+
+                          <div className="flex flex-col flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <strong className="text-xs text-white font-medium group-hover:text-purple-300 transition-colors">
+                                {t.name}
+                              </strong>
+                              {t.author && <span className="text-[9px] font-mono text-zinc-400">by {t.author}</span>}
+                            </div>
+                            <p className="text-[10px] text-zinc-400 leading-snug mb-2 line-clamp-2">{t.description}</p>
+                            <div className="mt-auto pt-2 border-t border-white/5 flex items-center justify-between text-[9px] text-zinc-400 font-mono">
+                              <span>Best for: {t.bestFor.split(',')[0]}</span>
+                              <span className={isSelected ? 'text-purple-400 font-semibold' : 'text-zinc-400 group-hover:text-purple-300'}>
+                                {isSelected ? '✓ Selected to build' : 'Select to build →'}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center text-[7px] text-muted">
-                              <span>Curated Community</span>
-                              {isSelected && <Check className="w-3 h-3 text-purple-400" />}
-                            </div>
-                          </div>
-                          <strong className="text-xs text-white block mb-0.5">{t.name}</strong>
-                          <p className="text-[10px] text-muted leading-tight mb-1.5">{t.description}</p>
-                          <div className="mt-auto pt-1 border-t border-white/5 flex items-center justify-between text-[8px] text-muted font-mono">
-                            <span>Best for: {t.bestFor.split(',')[0]}</span>
-                            <span className="text-purple-400">Select →</span>
                           </div>
                         </div>
                       )
@@ -572,11 +648,27 @@ function InputStudio({
                   </div>
 
                   {activeTemplate && (
-                    <div className="prompt-directive-preview">
-                      <span className="text-muted block text-[9px] uppercase tracking-wider mb-1 font-mono">
-                        Prompt Directive to v0 Builder:
-                      </span>
-                      &quot;{activeTemplate.directive}&quot;
+                    <div className="mt-3.5 p-3 rounded-lg bg-zinc-950/80 border border-purple-500/30 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                        <div>
+                          <div className="text-[10px] font-mono uppercase tracking-wider text-purple-300 font-medium">
+                            Active Template Foundation: {activeTemplate.name}
+                          </div>
+                          <p className="text-[11px] text-zinc-400 mt-0.5">
+                            Your portfolio will be built directly on top of this canonical template architecture, styling, and section hierarchy.
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href={activeTemplate.templateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 px-2.5 py-1 text-[10px] font-mono rounded bg-white/5 hover:bg-white/10 border border-white/10 text-white/90 flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>Inspect Source</span>
+                        <ExternalLink className="w-3 h-3 text-zinc-400" />
+                      </a>
                     </div>
                   )}
                 </>
@@ -601,6 +693,8 @@ function InputStudio({
                             {isSelected && <Check className="w-3.5 h-3.5 text-purple-400" />}
                           </div>
 
+                          <p className="text-[10px] text-zinc-400 mt-1.5 leading-snug">{m.description}</p>
+
                           <div className="mood-palette-dots">
                             {m.palette.map((color, i) => (
                               <span key={i} style={{ backgroundColor: color }} title={color} />
@@ -608,7 +702,7 @@ function InputStudio({
                           </div>
 
                           <div className="mt-2 pt-1 border-t border-white/5 flex items-center justify-between text-[8px] text-purple-400 font-mono">
-                            <span>Inspect direction</span>
+                            <span>Select tone</span>
                             <ArrowRight className="w-2.5 h-2.5" />
                           </div>
                         </div>
@@ -617,11 +711,23 @@ function InputStudio({
                   </div>
 
                   {activeMood && (
-                    <div className="prompt-directive-preview">
-                      <span className="text-muted block text-[9px] uppercase tracking-wider mb-1 font-mono">
-                        Active Mood Directive to v0:
-                      </span>
-                      &quot;{activeMood.directive}&quot;
+                    <div className="mt-3.5 p-3 rounded-lg bg-zinc-950/80 border border-purple-500/30 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-purple-400" />
+                        <div>
+                          <div className="text-[10px] font-mono uppercase tracking-wider text-purple-300 font-medium">
+                            Aesthetic Direction: {activeMood.name}
+                          </div>
+                          <p className="text-[11px] text-zinc-400 mt-0.5">
+                            {activeMood.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {activeMood.palette.map((color, i) => (
+                          <span key={i} className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: color }} title={color} />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </>
@@ -637,7 +743,7 @@ function InputStudio({
                     className="min-h-[160px]"
                   />
                   <div className="mt-2 text-[10px] text-muted font-mono flex items-center justify-between">
-                    <span>Direct prompt injection into v0 builder</span>
+                    <span>Custom architectural prompt injection</span>
                     <span>Fully editable anytime</span>
                   </div>
                 </div>
@@ -1388,7 +1494,7 @@ export function GrtrApp() {
   const [resumeText, setResumeText] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
   const [jobDescription, setJobDescription] = useState('')
-  const [selectedDesign, setSelectedDesign] = useState('Carbon')
+  const [selectedDesign, setSelectedDesign] = useState('Modern Developer Portfolio')
 
   // Pipeline State
   const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
@@ -1443,7 +1549,7 @@ export function GrtrApp() {
     }
   }
 
-  // Handler: Build Portfolio on v0 (Stage 2)
+  // Handler: Build Portfolio Engine (Stage 2)
   const handleBuildPortfolio = async () => {
     if (!blueprint) return
 
@@ -1480,7 +1586,7 @@ export function GrtrApp() {
 
         setActive(3) // Advance to Stage 3: Live Studio
       } else {
-        alert(data.error || 'Generation failed on v0')
+        alert(data.error || 'Portfolio generation failed')
       }
     } catch (err: unknown) {
       alert('Build failed: ' + (err instanceof Error ? err.message : String(err)))

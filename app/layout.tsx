@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Grtr — AI Executive Portfolio Builder',
   description: 'Turn your CV and target role into a bespoke, role-winning executive portfolio.',
   metadataBase: new URL('https://grtr.app'),
-  generator: 'v0.app',
+  generator: 'Grtr App',
 }
 
 export const viewport: Viewport = {
