@@ -1,27 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import path from 'path'
-import { PDFParse } from 'pdf-parse'
+import { extractText } from 'unpdf'
 import type { ParseCvResponse } from '@/lib/types'
 
 export const runtime = 'nodejs'
-
-// Ensure worker path is explicitly set in server environments
-try {
-  const workerPath = path.resolve(process.cwd(), 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')
-  PDFParse.setWorker(workerPath)
-} catch (e) {
-  console.warn('Could not set custom pdf worker path:', e)
-}
-
-function extractAsciiFromBuffer(buffer: Buffer): string {
-  // Simple fallback string extractor from binary streams
-  const str = buffer.toString('latin1')
-  const matches = str.match(/\(([^\(\)]{3,})\)/g)
-  if (matches && matches.length > 0) {
-    return matches.map(m => m.slice(1, -1)).join(' ')
-  }
-  return buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse<ParseCvResponse>> {
   try {
@@ -37,21 +18,23 @@ export async function POST(req: NextRequest): Promise<NextResponse<ParseCvRespon
 
       const filename = file.name
       const arrayBuffer = await file.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
-
       let extractedText = ''
 
       if (filename.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
         try {
-          const parser = new PDFParse({ data: buffer })
-          const parsed = await parser.getText()
-          extractedText = parsed?.text || ''
-          await parser.destroy()
+          const result = await extractText(new Uint8Array(arrayBuffer))
+          if (Array.isArray(result.text)) {
+            extractedText = result.text.join('\n\n')
+          } else if (typeof result.text === 'string') {
+            extractedText = result.text
+          }
         } catch (pdfErr) {
-          console.warn('PDFParse primary extraction failed, trying stream fallback:', pdfErr)
-          extractedText = extractAsciiFromBuffer(buffer)
+          console.warn('PDF extraction error:', pdfErr)
+          const buffer = Buffer.from(arrayBuffer)
+          extractedText = buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ')
         }
       } else {
+        const buffer = Buffer.from(arrayBuffer)
         extractedText = buffer.toString('utf-8')
       }
 
