@@ -37,6 +37,24 @@ export interface CompanyBrandIdentity {
   metaphor: string
 }
 
+export interface VisualConcept {
+  archetype: string
+  conceptName: string
+  conceptualMetaphor: string
+  aestheticTone: string
+  primaryColor: string
+  accentColor: string
+  surfaceColor: string
+  textColor: string
+  artifactBlueprint: {
+    title: string
+    subtitle: string
+    badge: string
+    interactiveType: 'simulator' | 'matrix' | 'terminal' | 'dossier' | 'calculator' | 'ticket'
+    description: string
+  }
+}
+
 export interface StrategicBlueprint {
   matchScore: number
   candidateName: string
@@ -45,6 +63,7 @@ export interface StrategicBlueprint {
   positioningHook: string
   positioningSubtitle?: string
   companyBrand?: CompanyBrandIdentity
+  visualConcept?: VisualConcept
   roles?: CareerRoleItem[]
   stats?: StatItem[]
   skills?: Record<string, string[]>

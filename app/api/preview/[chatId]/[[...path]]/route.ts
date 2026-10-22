@@ -120,33 +120,24 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
     const contentType = previewResponse.headers.get('content-type') || ''
 
-    // If serving HTML, rewrite root-relative asset URLs so the browser loads CSS/JS through this proxy
+    // If serving HTML, rewrite /_next/ asset paths cleanly WITHOUT injecting breaking base tags or overriding body styling
     if (contentType.includes('text/html')) {
       let html = await previewResponse.text()
       const prefix = `/api/preview/${chatId}`
 
-      // Inject base tag & essential reset styling for links
-      const injection = `<base href="${prefix}/">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    a { text-decoration: none !important; color: inherit !important; }
-    body { background-color: #08090a !important; color: #f4f4f5 !important; font-family: Inter, system-ui, sans-serif !important; margin: 0; }
-  </style>`
-
-      if (html.includes('<head>')) {
-        html = html.replace('<head>', `<head>\n  ${injection}`)
-      }
-
-      // Rewrite /_next/ to proxy prefix so chunks and CSS stylesheets are routed correctly
+      // Rewrite /_next/ URLs to route through this preview proxy
+      html = html.replaceAll('"/_next/', `"${prefix}/_next/`)
+      html = html.replaceAll("'/_next/", `'${prefix}/_next/`)
       html = html.replaceAll('/_next/', `${prefix}/_next/`)
 
-      // Rewrite root-relative src and href for assets
-      html = html.replace(/(href|src)=["']\/([a-zA-Z0-9_\-\.\/]+)["']/g, (match, attr, relPath) => {
-        if (relPath.startsWith('api/preview') || relPath.startsWith('http://') || relPath.startsWith('https://')) {
-          return match
-        }
-        return `${attr}="${prefix}/${relPath}"`
-      })
+      // Clean CSS reset to ensure no default blue underlines without overriding design background
+      const resetSnippet = `<style>
+        a { text-decoration: none; color: inherit; }
+      </style>`
+
+      if (html.includes('<head>')) {
+        html = html.replace('<head>', `<head>\n  ${resetSnippet}`)
+      }
 
       return new NextResponse(html, {
         status: previewResponse.status,

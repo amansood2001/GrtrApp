@@ -1497,7 +1497,6 @@ function LiveStudio({
   const [publish, setPublish] = useState(false)
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [mobileTab, setMobileTab] = useState<'chat' | 'preview'>('preview')
-  const [previewMode, setPreviewMode] = useState<'sandbox' | 'interactive'>('sandbox')
   const [iframeKey, setIframeKey] = useState(0)
 
   const reloadPreview = () => {
@@ -1563,24 +1562,6 @@ function LiveStudio({
               <span className="status-dot" />
               <span>{chatId ? 'Live Sandbox Active' : 'All changes saved'}</span>
             </div>
-            {previewUrl && (
-              <div className="hidden sm:flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-[11px] ml-2">
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode('sandbox')}
-                  className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${previewMode === 'sandbox' ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
-                >
-                  Live Sandbox
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode('interactive')}
-                  className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${previewMode === 'interactive' ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
-                >
-                  Interactive Blueprint
-                </button>
-              </div>
-            )}
           </div>
           <div className="toolbar-actions">
             <div className="viewport-toggle">
@@ -1624,19 +1605,19 @@ function LiveStudio({
               </div>
             </div>
 
-            {previewUrl && previewMode === 'sandbox' ? (
+            {previewUrl ? (
               <iframe
                 key={iframeKey}
                 src={previewUrl}
                 title="Live Portfolio Sandbox"
-                className="w-full h-[calc(100vh-230px)] min-h-[640px] border-0 bg-[#08090a]"
+                className="w-full h-[calc(100vh-230px)] min-h-[640px] border-0 bg-transparent"
                 sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
               />
-            ) : blueprint ? (
-              <DynamicPortfolioFallback blueprint={blueprint} selectedDesign={selectedDesign} />
             ) : (
-              <div className="portfolio-preview p-12 text-center text-muted">
-                <p>Generating live portfolio sandbox...</p>
+              <div className="portfolio-preview p-12 text-center text-muted flex flex-col items-center justify-center min-h-[500px]">
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-zinc-300 font-medium text-sm">Generating live portfolio sandbox...</p>
+                <p className="text-zinc-500 text-xs mt-1">Assembling responsive layout, interactive widgets & typography</p>
               </div>
             )}
           </div>

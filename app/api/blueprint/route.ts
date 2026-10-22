@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v0 } from 'v0'
-import type { BlueprintResponse, StrategicBlueprint, CareerRoleItem, StatItem, CompanyBrandIdentity } from '@/lib/types'
+import type { BlueprintResponse, StrategicBlueprint, CareerRoleItem, StatItem, CompanyBrandIdentity, VisualConcept } from '@/lib/types'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
 function buildBlueprintPrompt(resumeText: string, jobDescription: string, designSystem: string): string {
-  return `You are an elite executive career strategist, brand director, and editorial positioning partner at Grtr.
-Your task is to analyze a candidate's resume/CV and target Job Description, and craft an unforgettable, ultra-high-taste "Strategic Blueprint" modeled after the world's most bespoke executive portfolios (like the canonical Aman Sood MakeMyTrip portfolio).
+  return `You are an elite executive career strategist, brand creative director, and interactive experience designer at Grtr.
+Your task is to analyze a candidate's resume/CV, the target Job Description, and their selected design foundation, and dynamically architect a completely bespoke, 1-of-1 "Strategic Blueprint".
+
+CRITICAL ARCHITECTURE RULE (NO HARDCODED COMPANY TEMPLATES):
+Do NOT use static industry templates (e.g. do not default to an airline ticket just because a company is in travel, or a generic crypto dark mode for tech). 
+Instead, dynamically invent a bespoke visual concept and interactive artifact that sits at the exact intersection of:
+1. The Candidate's Functional Craft (e.g. Growth Marketing, Data Science, Product Design, Legal/Compliance, Supply Chain, Revenue Ops).
+2. The Target Company's Specific Business Problem (from the JD).
+3. The User-Selected Design Foundation (${designSystem || 'Bento Grid Portfolio'}).
 
 CANDIDATE RESUME / EXPERIENCE:
 \"\"\"
@@ -19,59 +26,68 @@ TARGET JOB DESCRIPTION:
 ${jobDescription.slice(0, 4000)}
 \"\"\"
 
-DESIGN FOUNDATION SELECTED: ${designSystem || 'Modern Developer Portfolio'}
+DESIGN FOUNDATION SELECTED: ${designSystem || 'Bento Grid Portfolio'}
 
-Generate a strictly valid JSON object (no markdown formatting, no code blocks, raw JSON only) adhering to this exact schema:
+Generate a strictly valid JSON object (raw JSON only, no markdown backticks, no other text) with the following exact schema:
 {
   "matchScore": <number between 92 and 98>,
   "candidateName": "<Candidate full name extracted from CV>",
   "targetRole": "<Target role title from JD>",
   "targetCompany": "<Target company name from JD>",
-  "positioningHook": "<CRITICAL: MUST be a poetic, unforgettable 4 to 7 word editorial display headline with ONE focal word surrounded by asterisks for italic brand emphasis. Examples: 'Growth that *moves* people.', 'Finding the *signal* in the scale.', 'Turning buyer signals into enterprise *pipeline*.', 'Architecting *systems* that compound.' NEVER output a sentence paragraph or resume summary here. Strictly 4 to 7 words.>",
+  "positioningHook": "<CRITICAL: MUST be a poetic, unforgettable 4 to 7 word editorial display headline with ONE focal word surrounded by asterisks for italic brand emphasis. Examples: 'Growth that *moves* people.', 'Finding the *signal* in the scale.', 'Turning buyer signals into enterprise *pipeline*.', 'Optimizing *yield* through telemetry.' NEVER output a sentence paragraph or resume summary here. Strictly 4 to 7 words.>",
   "positioningSubtitle": "<A crisp, authoritative 1-2 sentence executive thesis explaining how the candidate translates insight into demand and commercial velocity for the target company.>",
-  "companyBrand": {
-    "primaryColor": "<Hex code for the target company's primary brand accent, e.g. MakeMyTrip is '#e41d24', CleverTap is '#0b63e5', Netflix is '#e50914', Airbnb is '#ff385c', Tech/Modern is '#0b7189' or '#6366f1'>",
-    "accentColor": "<Hex code for secondary accent, e.g. '#0a192f', '#f1ca70', '#ff5722', or '#1e293b'>",
-    "surfaceColor": "<Hex code for canvas: '#faf9f6' for warm editorial paper or '#0b0f19' for deep obsidian/navy>",
-    "textColor": "<Hex code for text: '#0a192f' on light paper canvas or '#f8fafc' on dark canvas>",
-    "metaphor": "<Conceptual centerpiece artifact metaphor: 'airline-boarding-pass' (travel/transport), 'retention-growth-matrix' (SaaS/GTM/retention), 'macro-trading-terminal' (fintech/investing), or 'editorial-broadsheet' (creative/strategy)>"
+  "visualConcept": {
+    "archetype": "<A creative, role-specific archetype name, e.g. 'Interactive Travel Corridor & Demand Matrix', 'Live Bottling & Supply Telemetry Simulator', 'Product Component Token Studio', 'Enterprise GTM Conversion Terminal', 'Regulatory Risk & Whitespace Audit Matrix'>",
+    "conceptName": "<Short 2-3 word concept title>",
+    "conceptualMetaphor": "<1 sentence explaining why this interactive artifact proves the candidate's unfair advantage for this specific role>",
+    "aestheticTone": "<e.g. 'Warm Swiss Editorial Paper', 'Precision Monospaced Data Terminal', 'Charcoal Modular Bento', 'High-Fashion Asymmetric Broadsheet'>",
+    "primaryColor": "<Authentic primary hex brand color for the target company, e.g. MakeMyTrip is '#e41d24', CleverTap is '#0b63e5', Netflix is '#e50914', Coca-Cola is '#f40009', Stripe is '#635bff', Spotify is '#1db954', Linear is '#5e6ad2', etc.>",
+    "accentColor": "<Secondary accent hex color, e.g. '#0a192f', '#f1ca70', '#ff5722', '#10b981', or '#1e293b'>",
+    "surfaceColor": "<Canvas surface hex color matching the aesthetic tone: '#faf9f6' for warm paper, '#0b0f19' for deep midnight slate, '#090a0f' for obsidian terminal, or '#f8fafc' for clean crisp white>",
+    "textColor": "<Main text hex color: '#0a192f' or '#18181b' on light surfaces, '#f8fafc' on dark surfaces>",
+    "artifactBlueprint": {
+      "title": "<Title of the signature interactive hero artifact>",
+      "subtitle": "<Short description of what the recruiter can interact with>",
+      "badge": "<Short status pill, e.g. 'Live Model Active', 'Corridor Sizing Active', 'System Verified'>",
+      "interactiveType": "<One of: 'simulator', 'matrix', 'terminal', 'dossier', 'calculator', 'ticket'>",
+      "description": "<Concrete description of what the user can click, toggle, or simulate on this centerpiece artifact>"
+    }
   },
   "stats": [
     {
-      "value": "<Headline stat 1, e.g. '$1M+', '+40%', '3.4x'>",
-      "label": "<Short 2-3 word uppercase label, e.g. 'Qualified pipeline'>",
-      "note": "<Short context, e.g. 'built from zero'>"
+      "value": "<Headline stat 1 from CV, e.g. '$1M+', '+40%', '3.4x', '500+'>",
+      "label": "<Short 2-3 word uppercase label>",
+      "note": "<Short context>"
     },
     {
-      "value": "<Stat 2, e.g. '+40%', '45', '120k'>",
-      "label": "<Label 2, e.g. 'Funnel conversion'>",
-      "note": "<Note 2, e.g. 'after GTM redesign'>"
+      "value": "<Stat 2>",
+      "label": "<Label 2>",
+      "note": "<Note 2>"
     },
     {
-      "value": "<Stat 3, e.g. '500+', '25+', '85%'>",
-      "label": "<Label 3, e.g. 'Districts sized'>",
-      "note": "<Note 3, e.g. 'across target markets'>"
+      "value": "<Stat 3>",
+      "label": "<Label 3>",
+      "note": "<Note 3>"
     },
     {
-      "value": "<Stat 4, e.g. '100K+', '$4.2M', '10+'>",
-      "label": "<Label 4, e.g. 'Social reach'>",
-      "note": "<Note 4, e.g. 'investor education'>"
+      "value": "<Stat 4>",
+      "label": "<Label 4>",
+      "note": "<Note 4>"
     }
   ],
   "roles": [
     {
-      "year": "<e.g. 'JUN 25 — JUN 26' or '2024 — PRESENT'>",
+      "year": "<e.g. 'JUN 25 — PRESENT' or '2024 — 2025'>",
       "company": "<Company name from CV>",
       "title": "<Role title>",
-      "location": "<Location or business scope, e.g. 'Remote · 10+ countries' or 'Mumbai · UHNI & HNI'>",
-      "accent": "<Hex color pill, e.g. '#e41d24', '#0b7189', '#c99b3b', '#1e293b'>",
+      "location": "<Location or business scope>",
+      "accent": "<Hex color for category pill>",
       "number": "01",
       "summary": "<1-sentence punchy summary of what they built>",
       "outcomes": [
         "<Quantified outcome 1 from CV>",
         "<Quantified outcome 2 from CV>",
-        "<Quantified outcome 3 from CV>",
-        "<Quantified outcome 4 from CV>"
+        "<Quantified outcome 3 from CV>"
       ]
     },
     {
@@ -92,7 +108,7 @@ Generate a strictly valid JSON object (no markdown formatting, no code blocks, r
       "accent": "<Hex color 3>",
       "number": "03",
       "summary": "<Summary 3>",
-      "outcomes": ["<Outcome 1>", "<Outcome 2>", "<Outcome 3>"]
+      "outcomes": ["<Outcome 1>", "<Outcome 2>"]
     },
     {
       "year": "<Time period 4>",
@@ -106,13 +122,13 @@ Generate a strictly valid JSON object (no markdown formatting, no code blocks, r
     }
   ],
   "skills": {
-    "Growth & Strategy": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
-    "Acquisition & Analytics": ["<Tool/Skill 1>", "<Tool/Skill 2>", "<Tool/Skill 3>", "<Tool/Skill 4>", "<Tool/Skill 5>"],
-    "Research & Narrative": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"]
+    "<Category 1, e.g. Growth & GTM / Algorithms & Modeling>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
+    "<Category 2, e.g. Experimentation & Analytics / Data Engineering>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
+    "<Category 3, e.g. Strategy & Domain / System Architecture>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"]
   },
   "directions": [
     {
-      "angle": "<Angle 1, e.g. Category Leadership, Market Expansion, Operating Leverage>",
+      "angle": "<Angle 1, e.g. Corridor Penetration, Yield Optimization, Operating Leverage>",
       "observedChallenge": "<Specific strategic challenge the target company faces>",
       "proposedStrategy": "<The actionable strategy the candidate will deploy>",
       "rightToWinProof": "<Concrete proof from CV citing a verified metric/win>"
@@ -132,10 +148,10 @@ Generate a strictly valid JSON object (no markdown formatting, no code blocks, r
   ],
   "caseStudies": [
     {
-      "title": "<CRITICAL: Provocative editorial headline, e.g. 'A map is only useful when it changes the route.' or 'Growth compounds when more people can open the door.'>",
+      "title": "<CRITICAL: Provocative editorial headline, e.g. 'A map is only useful when it changes the route.' or 'Conversion compounds when the signal gets sharper.'>",
       "detail": "<1-2 sentence magazine-style narrative of the methodology and transferable play for the target company>",
       "metric": "<Headline metric, e.g. '500+ Districts', '+$1M Pipeline', '+40% Conversion'>",
-      "metricLabel": "<Short label, e.g. 'Market Sizing → Expansion'>"
+      "metricLabel": "<Short label>"
     },
     {
       "title": "<Second provocative editorial headline>",
@@ -145,13 +161,13 @@ Generate a strictly valid JSON object (no markdown formatting, no code blocks, r
     }
   ],
   "motionNarrative": {
-    "headline": "<e.g. Signal → System → Scale>",
+    "headline": "<e.g. Signal → System → Scale, or Telemetry → Model → Impact>",
     "detail": "<One sentence explaining pacing and reveal hierarchy>"
   },
   "fitStats": {
     "roleFit": "Exceptional",
     "evidenceCoverage": "9 / 10",
-    "designFoundation": "${designSystem || 'Modern Developer Portfolio'}"
+    "designFoundation": "${designSystem || 'Bento Grid Portfolio'}"
   }
 }
 
@@ -168,15 +184,15 @@ function cleanJsonString(raw: string): string {
   return cleaned.trim()
 }
 
-// Fallback generator crafted to the high-taste standard of aman-sood.vercel.app
+// Fallback generator with dynamic visualConcept synthesis
 function generateFallbackBlueprint(resumeText: string, jobDescription: string, designSystem: string): StrategicBlueprint {
   const lines = resumeText.split('\n').map(l => l.trim()).filter(Boolean)
   const isAmanSood = resumeText.toLowerCase().includes('aman sood') || resumeText.toLowerCase().includes('seeklab') || resumeText.toLowerCase().includes('ionic wealth')
   const candidateName = isAmanSood ? 'Aman Sood' : (lines[0] || 'Executive Leader')
 
   // Extract company & role heuristic
-  let targetCompany = 'MakeMyTrip'
-  let targetRole = 'Marketing Manager'
+  let targetCompany = 'Target Enterprise'
+  let targetRole = 'Strategic Leader'
 
   const jdLower = jobDescription.toLowerCase()
   if (jdLower.includes('clevertap')) {
@@ -184,7 +200,10 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
     targetRole = 'Head of Growth'
   } else if (jdLower.includes('makemytrip')) {
     targetCompany = 'MakeMyTrip'
-    targetRole = 'Marketing Manager'
+    targetRole = 'Marketing Manager, Brand & Performance Growth'
+  } else if (jdLower.includes('coca-cola') || jdLower.includes('beverage')) {
+    targetCompany = 'Coca-Cola'
+    targetRole = 'Data Science & Operations Lead'
   } else {
     const jdFirstLines = jobDescription.split('\n').map(l => l.trim()).filter(Boolean)
     if (jdFirstLines.length > 0) {
@@ -202,44 +221,47 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
   const isMMT = targetCompany.toLowerCase().includes('makemytrip')
   const isCleverTap = targetCompany.toLowerCase().includes('clevertap')
 
-  const companyBrand: CompanyBrandIdentity = isMMT
-    ? {
-        primaryColor: '#e41d24',
-        accentColor: '#0a192f',
-        surfaceColor: '#faf9f6',
-        textColor: '#0a192f',
-        metaphor: 'airline-boarding-pass'
-      }
-    : isCleverTap
-    ? {
-        primaryColor: '#0b63e5',
-        accentColor: '#ff5722',
-        surfaceColor: '#0b0f19',
-        textColor: '#f8fafc',
-        metaphor: 'retention-growth-matrix'
-      }
-    : {
-        primaryColor: '#e41d24',
-        accentColor: '#0a192f',
-        surfaceColor: '#faf9f6',
-        textColor: '#0a192f',
-        metaphor: 'airline-boarding-pass'
-      }
+  const primaryColor = isMMT ? '#e41d24' : isCleverTap ? '#0b63e5' : '#0b7189'
+  const accentColor = isMMT ? '#0a192f' : isCleverTap ? '#ff5722' : '#1e293b'
+  const surfaceColor = isMMT ? '#faf9f6' : isCleverTap ? '#0b0f19' : '#090a0f'
+  const textColor = surfaceColor.startsWith('#0') ? '#f8fafc' : '#0a192f'
+
+  const visualConcept: VisualConcept = {
+    archetype: isMMT ? 'Interactive Travel Corridor & Demand Matrix' : 'Live Telemetry & Pipeline Optimization Console',
+    conceptName: isMMT ? 'Corridor Sizing Engine' : 'GTM Velocity Engine',
+    conceptualMetaphor: isMMT 
+      ? 'Translating regional mobility signals into prioritized travel corridor demand.'
+      : 'Turning telemetry and behavioral cohort signals into predictable enterprise pipeline.',
+    aestheticTone: surfaceColor.startsWith('#0') ? 'Precision Dark Mode Data Matrix' : 'Warm Editorial Paper Canvas',
+    primaryColor,
+    accentColor,
+    surfaceColor,
+    textColor,
+    artifactBlueprint: {
+      title: isMMT ? 'Corridor Demand & Expansion Matrix' : 'Live Retention & Pipeline Console',
+      subtitle: isMMT ? 'Interactive district-level sizing and expansion modeling' : 'Cohort conversion and telemetry monitor',
+      badge: 'Interactive Model Active',
+      interactiveType: 'matrix',
+      description: isMMT
+        ? 'Clickable corridor nodes (e.g. Mumbai-Goa, Delhi-Shimla, Tier-2 Expansion) updating demand volume, CAC estimates, and partner distribution reach.'
+        : 'Interactive pipeline stages showing conversion velocity and retention impact.'
+    }
+  }
 
   const defaultRoles: CareerRoleItem[] = [
     {
-      year: 'JUN 25 — JUN 26',
+      year: 'JUN 25 — PRESENT',
       company: 'SeekLab Inc',
       title: 'Founding GTM',
       location: 'Remote · 10+ countries',
-      accent: '#e41d24',
+      accent: primaryColor,
       number: '01',
       summary: 'Built the 0→1 growth engine for a YC / a16z / Google-backed startup.',
       outcomes: [
-        '$1M+ qualified demand pipeline',
-        '45 early clients closed',
-        '+40% funnel conversion',
-        '500+ partner network'
+        '$1M+ qualified demand pipeline generated',
+        '45 early clients closed across 10+ countries',
+        '+40% funnel conversion lift after positioning redesign',
+        '500+ partner network activated'
       ]
     },
     {
@@ -247,14 +269,13 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
       company: 'Ionic Wealth by AngelOne',
       title: 'Macro Research Analyst',
       location: 'Mumbai · UHNI & HNI',
-      accent: '#0b7189',
+      accent: accentColor,
       number: '02',
       summary: 'Turned complex macro signals into sharp, decision-ready client narratives.',
       outcomes: [
-        '25+ UHNI prospects converted',
-        '80+ market briefings delivered',
-        '85% client retention',
-        '70K commentary impressions'
+        '25+ UHNI prospects converted with decision-ready narratives',
+        '80+ market briefings delivered with 85% client retention',
+        '70K commentary impressions across monthly policy releases'
       ]
     },
     {
@@ -266,9 +287,9 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
       number: '03',
       summary: 'Mapped whitespace across India to direct market-entry recommendations.',
       outcomes: [
-        '500+ Indian districts mapped',
-        '10+ demographic indicators',
-        '4 of 7 recommendations adopted'
+        '500+ Indian districts mapped with 10+ demographic indicators',
+        '50 priority expansion markets ranked',
+        '57% recommendation adoption (4 of 7 implemented)'
       ]
     },
     {
@@ -278,10 +299,10 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
       location: 'Mumbai · Investor education',
       accent: '#1e293b',
       number: '04',
-      summary: 'Made investing feel more accessible through useful, high-signal content.',
+      summary: 'Made investing accessible through high-signal research and content.',
       outcomes: [
-        '20+ investor education pieces',
-        '100K+ social impressions'
+        '20+ investor education pieces produced',
+        '100K+ social impressions across digital media campaigns'
       ]
     }
   ]
@@ -294,9 +315,9 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
   ]
 
   const defaultSkills: Record<string, string[]> = {
-    'Growth & Strategy': ['GTM Strategy', 'Market Sizing', 'Funnel Optimization', 'Campaign Strategy'],
-    'Acquisition & Analytics': ['Meta Ads', 'Google Analytics', 'Clay', 'Apollo', 'Smartlead'],
-    'Research & Narrative': ['Bloomberg', 'Macro Research', 'Consumer Insights', 'Executive Briefings']
+    'Growth & GTM Strategy': ['0→1 GTM Strategy', 'Market Expansion', 'Partner Ecosystem Design', 'Funnel Optimization'],
+    'Acquisition & Analytics': ['ICP Segmentation', 'Cohort Analytics', 'A/B Testing', 'Meta & Google Ads', 'AI-Native Workflows'],
+    'Research & Narrative': ['Market Sizing', 'Win-Loss Analysis', 'Macro Trend Translation', 'Executive Briefings']
   }
 
   return {
@@ -306,7 +327,7 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
     targetCompany,
     positioningHook: `Growth that *moves* people.`,
     positioningSubtitle: `A market-minded operator translating insight into demand, and demand into memorable commercial momentum for ${targetCompany}.`,
-    companyBrand,
+    visualConcept,
     stats: defaultStats,
     roles: defaultRoles,
     skills: defaultSkills,
@@ -333,13 +354,13 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
     caseStudies: [
       {
         title: 'A map is only useful when it changes the route.',
-        detail: `At Turtlemint, ranked opportunity across 500+ districts using 10+ demographic signals — translating a fragmented market into a prioritized growth plan that directly expanded territory coverage.`,
+        detail: `Ranked opportunity across 500+ districts using 10+ demographic signals — translating a fragmented market into a prioritized growth plan that directly expanded territory coverage.`,
         metric: '500+ Districts',
         metricLabel: 'Market Sizing → Priority Corridors'
       },
       {
         title: 'Growth compounds when more people can open the door.',
-        detail: `At SeekLab, built a 500+ partner network driving 40% incremental pipeline across 10+ countries — pairing high-resonance campaign messaging with scalable distribution channels.`,
+        detail: `Built a 500+ partner network driving 40% incremental pipeline across 10+ countries — pairing high-resonance campaign messaging with scalable distribution channels.`,
         metric: '+$1M Pipeline',
         metricLabel: 'Distribution Flywheel'
       }
@@ -351,7 +372,7 @@ function generateFallbackBlueprint(resumeText: string, jobDescription: string, d
     fitStats: {
       roleFit: 'Exceptional',
       evidenceCoverage: '9 / 10',
-      designFoundation: designSystem || 'Modern Developer Portfolio'
+      designFoundation: designSystem || 'Bento Grid Portfolio'
     }
   }
 }
@@ -397,7 +418,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BlueprintResp
 
       return NextResponse.json({ success: true, blueprint: parsed })
     } catch (llmErr) {
-      console.warn('Error during AI blueprint generation, falling back to high-taste blueprint:', llmErr)
+      console.warn('Error during AI blueprint generation, falling back to dynamic blueprint:', llmErr)
       const fallback = generateFallbackBlueprint(resumeText, jobDescription, designSystem)
       return NextResponse.json({ success: true, blueprint: fallback })
     }
