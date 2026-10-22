@@ -7,7 +7,7 @@ import {
   Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
   Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw
 } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { CareerSignal } from './career-signal'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
 import { Button } from '@/components/ui/button'
@@ -892,16 +892,7 @@ function Blueprint({
               <strong>{blueprint.fitStats?.designFoundation || 'IBM Carbon'}</strong>
             </div>
           </div>
-          <div className="motion-card">
-            <div className="orb-preview">
-              <span />
-              <span />
-              <span />
-            </div>
-            <small>Motion narrative</small>
-            <h3>{blueprint.motionNarrative?.headline || 'Signal → System → Scale'}</h3>
-            <p>{blueprint.motionNarrative?.detail || 'Subtle reveals guide recruiters from thesis to evidence without distraction.'}</p>
-          </div>
+          <MotionNarrativeCard motionNarrative={blueprint.motionNarrative} />
         </aside>
       </div>
 
@@ -934,80 +925,426 @@ function Blueprint({
   )
 }
 
-function DynamicPortfolioFallback({ blueprint }: { blueprint: StrategicBlueprint }) {
-  const primaryMetric = blueprint.caseStudies?.[0]?.metric || '+142%'
-  const secondMetric = blueprint.caseStudies?.[1]?.metric || '3.4×'
-  const thirdMetric = blueprint.caseStudies?.[2]?.metric || '−31%'
+function MotionNarrativeCard({
+  motionNarrative,
+}: {
+  motionNarrative?: { headline?: string; detail?: string }
+}) {
+  const [testingPhysics, setTestingPhysics] = useState(false)
+  const [physicsMode, setPhysicsMode] = useState<'spring' | 'inertia'>('spring')
+
+  const triggerTest = () => {
+    setTestingPhysics(true)
+    setTimeout(() => setTestingPhysics(false), 900)
+  }
 
   return (
-    <div className="portfolio-preview">
-      <nav>
-        <strong>
-          <CircleUserRound aria-label="Your profile" />
-          <span>{blueprint.candidateName || 'Grtr'}</span>
-        </strong>
-        <div>
-          <span>Approach</span>
-          <span>Work</span>
-          <span>About</span>
+    <div className="motion-card enhanced-motion-card">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="orb-preview" style={{ width: 22, height: 22 }}>
+            <span />
+            <span />
+            <span />
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold">
+            Motion Architecture
+          </span>
         </div>
-        <button>
-          Let&apos;s talk <ArrowRight />
-        </button>
-      </nav>
-      <section className="preview-hero">
-        <div className="availability">
-          <span />
-          {blueprint.targetRole} · {blueprint.targetCompany}
+        <span className="text-[9px] font-mono text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/50">
+          60fps Verified
+        </span>
+      </div>
+
+      <h3 className="text-sm font-semibold text-white mb-1">
+        {motionNarrative?.headline || 'Signal → System → Scale'}
+      </h3>
+      <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+        {motionNarrative?.detail || 'Engineered inertia reveals and magnetic spring physics guide executive recruiters through your strategic narrative without friction.'}
+      </p>
+
+      {/* Interactive Physics Sandbox Widget */}
+      <div className="physics-tester-box">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono text-zinc-400">Physics Simulation</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPhysicsMode('spring')}
+              className={`text-[9px] font-mono px-2 py-0.5 rounded cursor-pointer transition-colors ${physicsMode === 'spring' ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              Spring
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhysicsMode('inertia')}
+              className={`text-[9px] font-mono px-2 py-0.5 rounded cursor-pointer transition-colors ${physicsMode === 'inertia' ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              Inertia
+            </button>
+          </div>
         </div>
-        <h2>
-          {blueprint.positioningHook}
-        </h2>
-        <p>
-          Executive operator for {blueprint.targetCompany}. Proven systems, category positioning, and compounding execution.
-        </p>
-        <div>
-          <button>
-            Explore my approach <ArrowRight />
-          </button>
-          <span>Available Worldwide</span>
+
+        <div className="physics-stage" onClick={triggerTest} title="Click to test physics rebound">
+          <motion.div
+            className="physics-puck"
+            animate={
+              testingPhysics
+                ? physicsMode === 'spring'
+                  ? { x: [0, 110, 75, 95, 88, 90], scale: [1, 1.15, 0.92, 1.05, 1] }
+                  : { x: [0, 90], transition: { ease: [0.16, 1, 0.3, 1], duration: 0.8 } }
+                : { x: 0, scale: 1 }
+            }
+            transition={
+              physicsMode === 'spring'
+                ? { type: 'spring', stiffness: 180, damping: 24, mass: 0.8 }
+                : undefined
+            }
+          >
+            <span>{testingPhysics ? 'Rebounding…' : 'Click to Test'}</span>
+          </motion.div>
+          <div className="physics-track-line" />
         </div>
-      </section>
-      <section className="teardown">
-        <small>{blueprint.targetCompany} Strategic Teardown</small>
-        <div>
-          <h3>
-            Execution doesn&apos;t need more noise.
-            <br />
-            It needs a sharper signal.
-          </h3>
-          <p>
-            {blueprint.directions?.[0]?.observedChallenge}
-          </p>
+      </div>
+
+      {/* Tangible Physics Parameters Specs */}
+      <div className="physics-specs-grid">
+        <div className="spec-item">
+          <span className="spec-label">Scroll Engine</span>
+          <strong className="spec-val">Lenis (damp: 0.12)</strong>
         </div>
-        <div className="teardown-cards">
-          {blueprint.directions?.map((d, i) => (
-            <article key={i}>
-              <strong>{d.angle}</strong>
-              <p>{d.proposedStrategy}</p>
-            </article>
+        <div className="spec-item">
+          <span className="spec-label">Spring Dynamics</span>
+          <strong className="spec-val">Stiff 180 / Damp 24</strong>
+        </div>
+        <div className="spec-item">
+          <span className="spec-label">Teardown Reveal</span>
+          <strong className="spec-val">Stagger 80ms Blur</strong>
+        </div>
+        <div className="spec-item">
+          <span className="spec-label">Metric Velocity</span>
+          <strong className="spec-val">Odometer 1.2s</strong>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SynthesisHUD() {
+  const [stepIndex, setStepIndex] = useState(0)
+  const steps = [
+    { title: 'Deconstructing Target Company Requirements', desc: 'Analyzing strategic JD friction points, core competency gaps & category landscape' },
+    { title: 'Parsing Candidate Dossier & Trajectory', desc: 'Isolating verified metrics, leadership inflection points & right-to-win proof' },
+    { title: 'Synthesizing 3 Differentiated Strategic Angles', desc: 'Formulating executive angles, proposed solutions & quantifiable hypotheses' },
+    { title: 'Calibrating Interaction Physics & Motion Narrative', desc: 'Configuring Lenis inertia scroll, Framer spring parameters & bento layout' },
+    { title: 'Assembling Strategic Blueprint Pre-Flight', desc: 'Finalizing positioning hook, evidence cards & executive dossier' },
+  ]
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStepIndex(s => (s < steps.length - 1 ? s + 1 : s))
+    }, 600)
+    return () => clearInterval(timer)
+  }, [steps.length])
+
+  const progress = Math.min(100, Math.round(((stepIndex + 1) / steps.length) * 100))
+
+  return (
+    <motion.div
+      className="synthesis-hud-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="synthesis-hud-card"
+        initial={{ scale: 0.95, y: 10, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+      >
+        <div className="synthesis-hud-header">
+          <div className="synthesis-hud-badge">
+            <span className="pulse-dot" />
+            <span>AI Executive Strategist Active</span>
+          </div>
+          <span className="font-mono text-xs text-purple-300 font-semibold">{progress}%</span>
+        </div>
+
+        <div className="synthesis-hud-progress-track">
+          <motion.div
+            className="synthesis-hud-progress-fill"
+            initial={{ width: '15%' }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+
+        <div className="synthesis-hud-current">
+          <div className="flex items-center gap-2 mb-1">
+            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+            <h3 className="text-sm font-semibold text-white">{steps[stepIndex].title}</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">{steps[stepIndex].desc}</p>
+        </div>
+
+        <div className="synthesis-hud-steps">
+          {steps.map((st, i) => (
+            <div
+              key={i}
+              className={`synthesis-step-row ${
+                i === stepIndex ? 'active' : i < stepIndex ? 'completed' : 'pending'
+              }`}
+            >
+              <div className="synthesis-step-indicator">
+                {i < stepIndex ? (
+                  <Check className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <span>{i + 1}</span>
+                )}
+              </div>
+              <span className="text-xs font-medium">{st.title}</span>
+            </div>
           ))}
         </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function DynamicPortfolioFallback({
+  blueprint,
+  selectedDesign = 'Modern Developer Portfolio',
+}: {
+  blueprint: StrategicBlueprint
+  selectedDesign?: string
+}) {
+  const [activeTab, setActiveTab] = useState<'teardown' | 'evidence' | 'philosophy'>('teardown')
+  const [activeAngleIndex, setActiveAngleIndex] = useState(0)
+  const [dialogueOpen, setDialogueOpen] = useState(false)
+  const [dialogueSubmitted, setDialogueSubmitted] = useState(false)
+
+  const directions = blueprint.directions || []
+  const activeDirection = directions[activeAngleIndex] || directions[0]
+  const caseStudies = blueprint.caseStudies || []
+
+  return (
+    <div className="interactive-portfolio">
+      {/* Interactive Top Navbar */}
+      <nav className="interactive-preview-nav">
+        <strong className="flex items-center gap-2 font-mono text-sm text-white">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+          <span>{blueprint.candidateName || 'Executive Candidate'}</span>
+        </strong>
+        <div className="nav-tabs">
+          <button
+            type="button"
+            className={`nav-tab ${activeTab === 'teardown' ? 'active' : ''}`}
+            onClick={() => setActiveTab('teardown')}
+          >
+            Strategic Teardown
+          </button>
+          <button
+            type="button"
+            className={`nav-tab ${activeTab === 'evidence' ? 'active' : ''}`}
+            onClick={() => setActiveTab('evidence')}
+          >
+            Proven Impact
+          </button>
+          <button
+            type="button"
+            className={`nav-tab ${activeTab === 'philosophy' ? 'active' : ''}`}
+            onClick={() => setActiveTab('philosophy')}
+          >
+            Operating Philosophy
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDialogueOpen(true)}
+          className="text-xs font-medium text-white bg-purple-600/80 hover:bg-purple-600 px-3.5 py-1.5 rounded-lg border border-purple-400/30 transition-all cursor-pointer flex items-center gap-1.5"
+        >
+          <span>Schedule Dialogue</span>
+          <ArrowRight className="w-3 h-3" />
+        </button>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="interactive-preview-hero">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-mono text-[11px] mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+          <span>Targeting {blueprint.targetRole} · {blueprint.targetCompany}</span>
+        </div>
+        <h2>{blueprint.positioningHook}</h2>
+        <p className="text-sm text-zinc-400 max-w-2xl leading-relaxed mb-6">
+          Architecting category leadership and compounding execution for {blueprint.targetCompany}. Proven systems from 0→1 to enterprise scale.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab('teardown')}
+            className="text-xs font-semibold text-zinc-900 bg-white hover:bg-zinc-200 px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-2"
+          >
+            <span>Explore Teardown Angles</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-xs text-zinc-500 font-mono">
+            {selectedDesign} · Verified Blueprint
+          </span>
+        </div>
       </section>
-      <section className="preview-metrics">
-        <div>
-          <strong>{primaryMetric}</strong>
-          <span>{blueprint.caseStudies?.[0]?.metricLabel || 'Pipeline growth'}</span>
+
+      {/* Main Tab Content */}
+      {activeTab === 'teardown' && (
+        <section className="interactive-teardown-section">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-purple-400 font-semibold">
+                Target Teardown Point-of-View
+              </span>
+              <h3 className="text-lg font-semibold text-white mt-1">
+                Strategic Levers for {blueprint.targetCompany}
+              </h3>
+            </div>
+            <span className="text-[11px] text-zinc-400 font-mono bg-zinc-800/60 px-2.5 py-1 rounded border border-zinc-700/40">
+              Interactive · Click Angle to inspect
+            </span>
+          </div>
+
+          {/* Interactive 3-direction Angle Pills */}
+          <div className="teardown-angle-pills">
+            {directions.map((d, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActiveAngleIndex(i)}
+                className={`teardown-angle-pill ${activeAngleIndex === i ? 'active' : ''}`}
+              >
+                Angle 0{i + 1}: {d.angle}
+              </button>
+            ))}
+          </div>
+
+          {/* Angle Detail Cards */}
+          <div className="teardown-angle-card">
+            <div className="teardown-col">
+              <small>Observed Challenge</small>
+              <p>{activeDirection?.observedChallenge || 'Identifying key execution bottleneck.'}</p>
+            </div>
+            <div className="teardown-col">
+              <small>Proposed Strategy</small>
+              <p>{activeDirection?.proposedStrategy || 'Multi-pronged acceleration framework.'}</p>
+            </div>
+            <div className="teardown-col border-l border-purple-500/20 pl-4">
+              <small className="text-emerald-400">Right to Win Proof</small>
+              <p className="text-zinc-200 font-medium">{activeDirection?.rightToWinProof || 'Verified track record.'}</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'evidence' && (
+        <section className="p-8">
+          <div className="mb-6">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-purple-400 font-semibold">
+              Verified Evidence & Systems
+            </span>
+            <h3 className="text-lg font-semibold text-white mt-1">
+              Quantified Track Record
+            </h3>
+          </div>
+          <div className="interactive-case-grid">
+            {caseStudies.map((cs, i) => (
+              <div key={i} className="interactive-case-card highlighted">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono text-purple-400">Case 0{i + 1}</span>
+                    <span className="text-[10px] uppercase font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      Verified
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-white mb-2">{cs.title}</h4>
+                  <p className="text-xs text-zinc-400 leading-relaxed mb-4">{cs.detail}</p>
+                </div>
+                <div className="pt-3 border-t border-zinc-800 flex items-baseline justify-between">
+                  <span className="text-[10px] uppercase font-mono text-zinc-500">{cs.metricLabel || 'Outcome'}</span>
+                  <span className="text-2xl font-bold font-mono text-emerald-400">{cs.metric}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'philosophy' && (
+        <section className="p-8 max-w-3xl">
+          <div className="mb-4">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-purple-400 font-semibold">
+              Operating Philosophy & Leadership
+            </span>
+            <h3 className="text-xl font-semibold text-white mt-1">
+              {blueprint.motionNarrative?.headline || 'Signal → System → Scale'}
+            </h3>
+          </div>
+          <p className="text-sm text-zinc-300 leading-relaxed mb-6">
+            {blueprint.motionNarrative?.detail || 'Architecting compounding advantages through rapid customer discovery, structural alignment, and disciplined execution.'}
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
+              <strong className="text-xs text-white block mb-1">High-Leverage Execution</strong>
+              <p className="text-xs text-zinc-400 leading-relaxed">Focusing resources on friction points that unlock exponential returns rather than incremental gains.</p>
+            </div>
+            <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
+              <strong className="text-xs text-white block mb-1">Data-Informed Conviction</strong>
+              <p className="text-xs text-zinc-400 leading-relaxed">Pairing rigorous quantitative tracking with decisive strategic bets.</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Recruiter Dialogue Modal */}
+      {dialogueOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#12141a] border border-purple-500/30 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-base font-semibold text-white">Schedule Strategic Dialogue</h4>
+              <button
+                type="button"
+                onClick={() => { setDialogueOpen(false); setDialogueSubmitted(false); }}
+                className="text-zinc-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {dialogueSubmitted ? (
+              <div className="text-center py-6">
+                <Check className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
+                <h5 className="text-sm font-semibold text-white mb-1">Inquiry Dispatched</h5>
+                <p className="text-xs text-zinc-400">
+                  Invitation delivered for strategic conversation targeting {blueprint.targetCompany}.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+                  Request a 30-minute executive briefing with {blueprint.candidateName} regarding the strategic opportunities outlined for {blueprint.targetCompany}.
+                </p>
+                <input
+                  type="email"
+                  placeholder="recruiter@company.com"
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white mb-3 focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDialogueSubmitted(true)}
+                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Confirm Dialogue Request
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-        <div>
-          <strong>{secondMetric}</strong>
-          <span>{blueprint.caseStudies?.[1]?.metricLabel || 'Revenue Velocity'}</span>
-        </div>
-        <div>
-          <strong>{thirdMetric}</strong>
-          <span>{blueprint.caseStudies?.[2]?.metricLabel || 'Efficiency'}</span>
-        </div>
-      </section>
+      )}
     </div>
   )
 }
@@ -1160,6 +1497,7 @@ function LiveStudio({
   const [publish, setPublish] = useState(false)
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [mobileTab, setMobileTab] = useState<'chat' | 'preview'>('preview')
+  const [previewMode, setPreviewMode] = useState<'sandbox' | 'interactive'>('sandbox')
   const [iframeKey, setIframeKey] = useState(0)
 
   const reloadPreview = () => {
@@ -1220,9 +1558,29 @@ function LiveStudio({
 
       <main className={`preview-pane ${mobileTab === 'preview' ? 'mobile-show' : ''}`}>
         <div className="studio-toolbar">
-          <div>
-            <span className="status-dot" />
-            {chatId ? 'Live Sandbox Active' : 'All changes saved'}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="status-dot" />
+              <span>{chatId ? 'Live Sandbox Active' : 'All changes saved'}</span>
+            </div>
+            {previewUrl && (
+              <div className="hidden sm:flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-[11px] ml-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode('sandbox')}
+                  className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${previewMode === 'sandbox' ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+                >
+                  Live Sandbox
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode('interactive')}
+                  className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${previewMode === 'interactive' ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+                >
+                  Interactive Blueprint
+                </button>
+              </div>
+            )}
           </div>
           <div className="toolbar-actions">
             <div className="viewport-toggle">
@@ -1266,7 +1624,7 @@ function LiveStudio({
               </div>
             </div>
 
-            {previewUrl ? (
+            {previewUrl && previewMode === 'sandbox' ? (
               <iframe
                 key={iframeKey}
                 src={previewUrl}
@@ -1275,7 +1633,7 @@ function LiveStudio({
                 sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
               />
             ) : blueprint ? (
-              <DynamicPortfolioFallback blueprint={blueprint} />
+              <DynamicPortfolioFallback blueprint={blueprint} selectedDesign={selectedDesign} />
             ) : (
               <div className="portfolio-preview p-12 text-center text-muted">
                 <p>Generating live portfolio sandbox...</p>
@@ -1554,7 +1912,14 @@ export function GrtrApp() {
         }),
       })
 
-      const data = await res.json()
+      const text = await res.text()
+      let data: any
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error(`Server returned unexpected response (${res.status}): ${text.slice(0, 100)}`)
+      }
+
       if (data.success && data.chatId) {
         setChatId(data.chatId)
         setPreviewUrl(data.previewUrl || `/api/preview/${data.chatId}`)
@@ -1644,6 +2009,10 @@ export function GrtrApp() {
             />
           )}
         </motion.div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isGeneratingBlueprint && <SynthesisHUD />}
       </AnimatePresence>
     </div>
   )

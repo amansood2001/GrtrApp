@@ -122,13 +122,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     const message = buildGenerationPrompt(blueprint, designSystem)
 
-    console.log(`Initiating generation for candidate "${blueprint.candidateName}" -> "${blueprint.targetCompany}"`)
+    console.log(`Initiating async generation for candidate "${blueprint.candidateName}" -> "${blueprint.targetCompany}"`)
 
-    const chatResponse = await v0.chats.create({
+    const chatResponse = await v0.chats.createAsync({
       message,
     })
 
-    if (chatResponse.error || !chatResponse.data?.chat?.id) {
+    const chatId = chatResponse.data?.chatId || (chatResponse.data as any)?.chat?.id || (chatResponse.data as any)?.id
+
+    if (chatResponse.error || !chatId) {
       console.error('Portfolio generation failed:', chatResponse.error)
       return NextResponse.json(
         {
@@ -139,8 +141,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       )
     }
 
-    const chatId = chatResponse.data.chat.id
-    console.log(`Successfully created portfolio chat: ${chatId}`)
+    console.log(`Successfully created async portfolio chat: ${chatId}`)
 
     return NextResponse.json({
       success: true,

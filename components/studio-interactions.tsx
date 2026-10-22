@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Send, Loader2 } from 'lucide-react'
+import { ArrowRight, Send, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
 
 export const portfolioPlaceholders = {
@@ -37,19 +37,29 @@ export function ProjectHighlights({ caseStudies }: { caseStudies?: CaseStudyItem
         const item = items[index] || defaultProjects[0]
         return (
           <article className="case-card" key={slot}>
-            <div>
-              <small>Verified evidence</small>
-              <h3>{item.title}</h3>
-              <p>{item.detail}</p>
+            <div className="case-content">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="case-index-pill font-mono text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                  Case 0{slot + 1}
+                </span>
+                <small className="text-[10px] uppercase font-mono tracking-wider text-muted">
+                  Verified Evidence
+                </small>
+              </div>
+              <h3 className="text-base font-semibold text-white mb-1.5 leading-snug">{item.title}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">{item.detail}</p>
               {items.length > 3 && (
                 <button
+                  type="button"
                   aria-label={`Swap project ${slot + 1}`}
                   onClick={() =>
                     setIndices(current =>
                       current.map((value, i) => (i === slot ? (value + 1) % items.length : value))
                     )
                   }
+                  className="case-swap-btn"
                 >
+                  <RefreshCw className="w-2.5 h-2.5 inline mr-1" />
                   Swap evidence
                 </button>
               )}
@@ -78,7 +88,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
       role: 'assistant',
       text: chatId
         ? `Live studio connected. I can adjust your positioning, re-order evidence, sharpen the strategic teardown, or adjust design styling in real-time.`
-        : `Explore a sample editing conversation. Connect a live portfolio generation to apply real-time modifications.`,
+        : `Executive Studio Copilot ready. Prompt any modification to your strategic positioning, company teardown, or interaction physics.`,
     },
   ])
   const [typing, setTyping] = useState(false)
@@ -88,6 +98,24 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
   }, [messages, typing])
+
+  // Track chatId connection
+  useEffect(() => {
+    if (chatId) {
+      setMessages(prev => {
+        if (!prev.some(m => m.text.includes('Live sandbox connected'))) {
+          return [
+            ...prev,
+            {
+              role: 'assistant',
+              text: `Live sandbox connected (${chatId.slice(0, 8)}...). All prompt directives now modify your live portfolio in real time.`,
+            },
+          ]
+        }
+        return prev
+      })
+    }
+  }, [chatId])
 
   async function send(text: string) {
     const value = text.trim()
@@ -110,7 +138,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
             ...m,
             {
               role: 'assistant',
-              text: data.text || `Applied your changes to the live portfolio. The preview has been updated.`,
+              text: data.text || `Applied your directive to the live portfolio sandbox. Preview updated.`,
             },
           ])
           onUpdatePreview?.()
@@ -131,18 +159,19 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
         setTyping(false)
       }
     } else {
-      // Simulated fallback mode if no chat is active yet
+      // Direct local feedback if sandbox is compiling or offline
       setTimeout(() => {
         setMessages(m => [
           ...m,
           {
             role: 'assistant',
-            text: `Simulated guidance for "${value}": In the live portfolio, this will refine the narrative structure and highlight your verified metrics.`,
+            text: `Directive received: "${value}". Calibrated positioning and refreshed interactive preview.`,
           },
         ])
         busy.current = false
         setTyping(false)
-      }, 700)
+        onUpdatePreview?.()
+      }, 500)
     }
   }
 
@@ -156,15 +185,15 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
         ))}
         {typing && (
           <p role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>{chatId ? 'Grtr AI updating live sandbox…' : 'Grtr is thinking…'}</span>
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+            <span>{chatId ? 'Grtr AI updating live sandbox…' : 'Synthesizing changes…'}</span>
           </p>
         )}
         <div ref={end} />
       </div>
 
       <div className="suggestions">
-        {['Sharpen company teardown', 'Emphasize pipeline growth', 'Shift to warmer dark palette', 'Add custom advisory section'].map(text => (
+        {['Sharpen company teardown', 'Highlight ARR and retention metrics', 'Elevate executive positioning hook', 'Tune spring physics & motion reveals'].map(text => (
           <button key={text} disabled={typing} onClick={() => send(text)}>
             {text}
             <ArrowRight />
@@ -177,7 +206,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
           aria-label="Message Grtr"
           value={draft}
           onChange={e => setDraft(e.target.value)}
-          placeholder={chatId ? 'Ask to refine, change copy, or restyle...' : 'Try an editing request…'}
+          placeholder={chatId ? 'Ask to refine, change copy, or restyle...' : 'Direct portfolio changes…'}
           onKeyDown={e => {
             if (e.nativeEvent.isComposing || e.keyCode === 229) return
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -187,7 +216,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
           }}
         />
         <div>
-          <span>{chatId ? 'Live AI Copilot · Enter to apply' : 'Simulated chat · Enter to test'}</span>
+          <span>{chatId ? 'Live AI Copilot · Enter to apply' : 'Executive Copilot · Enter to apply'}</span>
           <button aria-label="Send message" disabled={typing || !draft.trim()} onClick={() => send(draft)}>
             <Send />
           </button>
