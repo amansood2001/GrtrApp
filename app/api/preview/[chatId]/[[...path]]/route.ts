@@ -125,10 +125,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
       let html = await previewResponse.text()
       const prefix = `/api/preview/${chatId}`
 
-      // Rewrite /_next/ URLs to route through this preview proxy
-      html = html.replaceAll('"/_next/', `"${prefix}/_next/`)
-      html = html.replaceAll("'/_next/", `'${prefix}/_next/`)
+      // Rewrite /_next/ URLs cleanly with exactly one prefix
       html = html.replaceAll('/_next/', `${prefix}/_next/`)
+      html = html.replaceAll(new RegExp(`(${prefix})+/_next/`, 'g'), `${prefix}/_next/`)
 
       // Clean CSS reset to ensure no default blue underlines without overriding design background
       const resetSnippet = `<style>
