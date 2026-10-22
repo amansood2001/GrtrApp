@@ -129,6 +129,10 @@ export async function GET(req: NextRequest, context: RouteContext) {
       html = html.replaceAll('/_next/', `${prefix}/_next/`)
       html = html.replaceAll(new RegExp(`(${prefix})+/_next/`, 'g'), `${prefix}/_next/`)
 
+      // Rewrite /v0-runtime-dist.js and root asset scripts so they don't 404
+      html = html.replaceAll('"/v0-runtime-dist.js"', `"${prefix}/v0-runtime-dist.js"`)
+      html = html.replaceAll("'/v0-runtime-dist.js'", `'${prefix}/v0-runtime-dist.js'`)
+
       // Clean CSS reset to ensure no default blue underlines without overriding design background
       const resetSnippet = `<style>
         a { text-decoration: none; color: inherit; }
