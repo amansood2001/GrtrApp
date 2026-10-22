@@ -208,7 +208,7 @@ export interface CommunityTemplate {
   archetype: string
   category: 'Developer' | 'Executive' | 'Design'
   imageUrl: string
-  templateUrl: string
+  siteUrl: string
   description: string
   directive: string
   bestFor: string
@@ -217,52 +217,16 @@ export interface CommunityTemplate {
 
 const communityTemplates: CommunityTemplate[] = [
   {
-    id: 'OWdF1aPYmXV',
-    name: 'Retro Brutalist Portfolio',
-    archetype: 'Neo-Brutalist',
-    category: 'Developer',
-    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot%202025-12-19%20at%2011.22.59%E2%80%AFPM-CFSEdHmUiPj0mnKrqteZAVMyScePSO.png',
-    templateUrl: 'https://v0.app/templates/OWdF1aPYmXV',
-    description: 'High-contrast neo-brutalist layout with heavy borders, monochrome typography, retro computer aesthetics, and modular project blocks.',
-    directive: 'Build directly on top of the Retro Brutalist template (OWdF1aPYmXV): High-contrast neo-brutalist styling with bold monochrome borders, retro terminal aesthetics, monospace metric highlights, and strict modular grid containers.',
-    bestFor: 'Founding Engineers & Systems Architects',
-    author: 'shadcn',
-  },
-  {
     id: 'evBwFXFJcM9',
     name: 'Modern Developer Portfolio',
     archetype: 'Dark Obsidian · Smooth Motion',
     category: 'Developer',
     imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot-2026-01-01-at-11.11.58%E2%80%AFAM-75MGc9XubNCPsB6ffBLtDmtgq4sHDm.jpg',
-    templateUrl: 'https://v0.app/templates/evBwFXFJcM9',
+    siteUrl: 'https://animated-nextjs-portfolio-swart.vercel.app',
     description: 'Sleek dark developer showcase featuring glassmorphic cards, smooth animations, interactive project showcases, and tech stack badges.',
-    directive: 'Build directly on top of the Modern Developer Portfolio template (evBwFXFJcM9): Sleek obsidian theme with frosted glass cards, fluid Framer Motion reveals, interactive project displays, and polished tech badges.',
+    directive: 'Build directly upon the Modern Developer Portfolio architecture (evBwFXFJcM9): Sleek obsidian theme with frosted glass cards, fluid Framer Motion reveals, interactive project displays, and polished tech badges.',
     bestFor: 'Fullstack Engineers & Tech Leads',
-    author: 'community',
-  },
-  {
-    id: 'NFhsR5cAXJp',
-    name: 'Minimalist Editorial Portfolio',
-    archetype: 'Editorial Swiss · Clean Typography',
-    category: 'Executive',
-    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/screenshots/dpl_2pj1VzSpxBN8SG9FE6LTYFJnKAe8-zzHYM3hx33It4kXbG8FqohcS4iZwPg.jpg',
-    templateUrl: 'https://v0.app/templates/NFhsR5cAXJp',
-    description: 'Ultra-clean editorial portfolio with generous whitespace, subtle micro-interactions, serif titles, and focused project storytelling.',
-    directive: 'Build directly on top of the Minimalist Portfolio template (NFhsR5cAXJp): Ultra-clean Swiss editorial aesthetic, generous whitespace, quiet serif display typography, restrained monochrome palette, and focus on deep narrative.',
-    bestFor: 'Product Executives & Strategic Counsel',
-    author: 'shadcn',
-  },
-  {
-    id: 'mA8N4h1POSv',
-    name: 'Bento Grid Portfolio',
-    archetype: 'Bento Grid · Interactive Cards',
-    category: 'Executive',
-    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/v0-portfolio-template-theta.vercel.app_%28Desktop%20windows%29-7wF0uGsuUYhxtiiaakDJrrDHxaAZT4.png',
-    templateUrl: 'https://v0.app/templates/mA8N4h1POSv',
-    description: 'Modern bento-grid layout with live metric cards, experience timeline, interactive project popovers, and responsive layout.',
-    directive: 'Build directly on top of the Bento Portfolio template (mA8N4h1POSv): Dynamic bento-grid structure with metric stat callouts, interactive cards, career timeline, and modular content hierarchy.',
-    bestFor: 'Heads of Growth & Product Leaders',
-    author: 'theta',
+    author: 'Ahsan Javed',
   },
   {
     id: 'E3xFlIXCZi4',
@@ -270,11 +234,35 @@ const communityTemplates: CommunityTemplate[] = [
     archetype: 'Bold Typography · Metric Highlights',
     category: 'Executive',
     imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/screenshots/dpl_2mBppWzodmwGLdSRkz73xkkt97fs-Z4Y3DAAD5Y75vloWANLHK540Wbac7j.jpg',
-    templateUrl: 'https://v0.app/templates/E3xFlIXCZi4',
+    siteUrl: 'https://growthwithritesh.vercel.app',
     description: 'Bold typography-driven layout with dynamic case studies, quantified achievements, and high-impact CTA section.',
-    directive: 'Build directly on top of the Portfolio Website Design template (E3xFlIXCZi4): Bold typography-driven hero, highlighted executive metrics, strategic teardown case studies, and high-converting recruiter CTAs.',
+    directive: 'Build directly upon the Portfolio Website Design template (E3xFlIXCZi4): Bold typography-driven hero, highlighted executive metrics, strategic teardown case studies, and high-converting recruiter CTAs.',
     bestFor: 'VPs, GTM Directors & C-Suite',
-    author: 'community',
+    author: 'Ritesh Verma',
+  },
+  {
+    id: 'mA8N4h1POSv',
+    name: 'Bento Grid Portfolio',
+    archetype: 'Bento Grid · Interactive Cards',
+    category: 'Executive',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/v0-portfolio-template-theta.vercel.app_%28Desktop%20windows%29-7wF0uGsuUYhxtiiaakDJrrDHxaAZT4.png',
+    siteUrl: 'https://v0-portfolio-template-theta.vercel.app',
+    description: 'Modern bento-grid layout with live metric cards, experience timeline, interactive project popovers, and responsive layout.',
+    directive: 'Build directly upon the Bento Portfolio template (mA8N4h1POSv): Dynamic bento-grid structure with metric stat callouts, interactive cards, career timeline, and modular content hierarchy.',
+    bestFor: 'Heads of Growth & Product Leaders',
+    author: 'theta',
+  },
+  {
+    id: 'JgcWH8Dw9d3',
+    name: 'Retro Screen Developer Showcase',
+    archetype: 'Retro Hardware · Analog Scanlines',
+    category: 'Developer',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/CleanShot%202026-03-20%20at%2008.25.31%402x%20Large-wKfkKOgM07ZRk683Kq4QXRl4pLz6Hw.jpeg',
+    siteUrl: 'https://v0-old-tv-screen-website.vercel.app',
+    description: 'Tactile CRT retro monitor showcase with analog scanline aesthetics, monospace telemetry, and hardware-inspired interactive components.',
+    directive: 'Build directly upon the Retro Hardware Showcase architecture (JgcWH8Dw9d3): Vintage CRT monitor aesthetic, analog scanline filters, stark monospace displays, and tactile interactive modules.',
+    bestFor: 'Founding Engineers & Systems Architects',
+    author: 'Yadwinder Singh',
   },
   {
     id: 'dmRJapDTzFk',
@@ -282,11 +270,11 @@ const communityTemplates: CommunityTemplate[] = [
     archetype: 'High Fashion · Asymmetric Grid',
     category: 'Design',
     imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot%202025-12-29%20at%2011.01.03%E2%80%AFPM-y21XKqv59SVVgzoEOMDtBOngIvfMLl.png',
-    templateUrl: 'https://v0.app/templates/dmRJapDTzFk',
+    siteUrl: 'https://1ui.dev',
     description: 'High-end creative portfolio featuring asymmetric layouts, oversized editorial headings, and immersive visual project showcases.',
-    directive: 'Build directly on top of the Avant-Garde Designer Showcase template (dmRJapDTzFk): High-end luxury editorial with asymmetric layouts, large display serif headings, and refined visual storytelling.',
+    directive: 'Build directly upon the Avant-Garde Designer Showcase template (dmRJapDTzFk): High-end luxury editorial with asymmetric layouts, large display serif headings, and refined visual storytelling.',
     bestFor: 'Design Directors & Creative Leaders',
-    author: 'community',
+    author: '1ui',
   },
 ]
 
@@ -615,14 +603,14 @@ function InputStudio({
 
                             {/* Inspect Link */}
                             <a
-                              href={t.templateUrl}
+                              href={t.siteUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={e => e.stopPropagation()}
                               className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 hover:bg-zinc-800 backdrop-blur-md border border-white/20 hover:border-white/40 text-[9px] text-white/90 font-mono flex items-center gap-1 transition-all duration-150 shadow-md group/link"
-                              title="Inspect template in new tab"
+                              title="Open live website in new tab"
                             >
-                              <span>Preview Template</span>
+                              <span>Preview Live Site</span>
                               <ExternalLink className="w-2.5 h-2.5 text-zinc-400 group-hover/link:text-white transition-colors" />
                             </a>
                           </div>
@@ -661,12 +649,12 @@ function InputStudio({
                         </div>
                       </div>
                       <a
-                        href={activeTemplate.templateUrl}
+                        href={activeTemplate.siteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="shrink-0 px-2.5 py-1 text-[10px] font-mono rounded bg-white/5 hover:bg-white/10 border border-white/10 text-white/90 flex items-center gap-1.5 transition-colors"
                       >
-                        <span>Inspect Source</span>
+                        <span>Visit Live Website</span>
                         <ExternalLink className="w-3 h-3 text-zinc-400" />
                       </a>
                     </div>

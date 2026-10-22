@@ -6,23 +6,17 @@ export const runtime = 'nodejs'
 export const maxDuration = 120
 
 export const TEMPLATE_SPECS: Record<string, { id: string; name: string; layoutDirective: string; styleGuide: string }> = {
-  'Retro Brutalist Portfolio': {
-    id: 'OWdF1aPYmXV',
-    name: 'Retro Brutalist Portfolio',
-    layoutDirective: 'Build directly upon the Retro Brutalist template architecture (OWdF1aPYmXV). Implement bold, high-contrast monochrome neo-brutalist containers with thick 2px solid borders, retro terminal-style header tags, modular bento grids, and stark typography.',
-    styleGuide: 'Neo-brutalist, retro high-contrast borders (#ffffff, #000000), stark monospace headers, monospace metric callouts, and clean modular content blocks.',
-  },
   'Modern Developer Portfolio': {
     id: 'evBwFXFJcM9',
     name: 'Modern Developer Portfolio',
     layoutDirective: 'Build directly upon the Modern Developer Portfolio template architecture (evBwFXFJcM9). Implement sleek obsidian dark glassmorphism, fluid interactive project cards, smooth spring physics, ambient radial glows, and tech stack badges.',
     styleGuide: 'Deep obsidian backdrop (#08090a), subtle violet/indigo ambient aura (#8b5cf6), frosted glass cards with 1px border highlights, monospace metrics, and smooth Framer Motion reveals.',
   },
-  'Minimalist Editorial Portfolio': {
-    id: 'NFhsR5cAXJp',
-    name: 'Minimalist Editorial Portfolio',
-    layoutDirective: 'Build directly upon the Minimalist Portfolio template architecture (NFhsR5cAXJp). Implement an ultra-clean Swiss editorial layout, generous magazine whitespace, quiet serif display headlines, restrained monochrome palette, and focused case-study narrative pacing.',
-    styleGuide: 'Swiss editorial minimalism, pure grayscale (#09090b, #f4f4f5), quiet serif display typography, generous padding, and razor-thin 1px dividing rules.',
+  'Executive Impact Showcase': {
+    id: 'E3xFlIXCZi4',
+    name: 'Executive Impact Showcase',
+    layoutDirective: 'Build directly upon the Portfolio Website Design template architecture (E3xFlIXCZi4). Implement bold executive headline positioning, prominent quantified ROI metric callouts, interactive 3-direction teardown tabs, and recruiter conversion CTAs.',
+    styleGuide: 'High-impact executive presence, commanding typography, high-contrast metric badges, dark mode with crisp emerald/indigo accents.',
   },
   'Bento Grid Portfolio': {
     id: 'mA8N4h1POSv',
@@ -30,11 +24,11 @@ export const TEMPLATE_SPECS: Record<string, { id: string; name: string; layoutDi
     layoutDirective: 'Build directly upon the Bento Portfolio Template architecture (mA8N4h1POSv). Implement an asymmetric bento grid layout with dynamic metric counters, modular timeline milestones, interactive expandable project cards, and sticky navigation.',
     styleGuide: 'Bento-box modular layout, charcoal surfaces with rounded-2xl radii, soft inner borders, prominent stat chips, and high information density.',
   },
-  'Executive Impact Showcase': {
-    id: 'E3xFlIXCZi4',
-    name: 'Executive Impact Showcase',
-    layoutDirective: 'Build directly upon the Portfolio Website Design template architecture (E3xFlIXCZi4). Implement bold executive headline positioning, prominent quantified ROI metric callouts, interactive 3-direction teardown tabs, and recruiter conversion CTAs.',
-    styleGuide: 'High-impact executive presence, commanding typography, high-contrast metric badges, dark mode with crisp emerald/indigo accents.',
+  'Retro Screen Developer Showcase': {
+    id: 'JgcWH8Dw9d3',
+    name: 'Retro Screen Developer Showcase',
+    layoutDirective: 'Build directly upon the Retro Hardware Showcase architecture (JgcWH8Dw9d3). Implement a vintage CRT monitor aesthetic, analog scanline filters, stark monospace displays, and tactile interactive modules.',
+    styleGuide: 'Vintage CRT display, analog scanline textures, green/amber phosphor monochrome accents, monospace metrics, and tactile toggle buttons.',
   },
   'Avant-Garde Creative Portfolio': {
     id: 'dmRJapDTzFk',
