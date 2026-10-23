@@ -102,13 +102,16 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
   // Track chatId connection
   useEffect(() => {
     if (chatId) {
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://grtr-woad.vercel.app'
+      const liveUrl = `${origin}/api/preview/${chatId}`
+
       setMessages(prev => {
         if (!prev.some(m => m.text.includes('Live sandbox connected'))) {
           return [
             ...prev,
             {
               role: 'assistant',
-              text: `Live sandbox connected (${chatId.slice(0, 8)}...). All prompt directives now modify your live portfolio in real time.`,
+              text: `🚀 Live sandbox connected!\n\nPublic recruiter preview: ${liveUrl}\n\nAll prompt directives now modify your live portfolio in real time.`,
             },
           ]
         }
