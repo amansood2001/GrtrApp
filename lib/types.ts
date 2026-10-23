@@ -69,6 +69,8 @@ export interface StrategicBlueprint {
   skills?: Record<string, string[]>
   directions: TeardownDirection[]
   caseStudies: CaseStudyItem[]
+  v0GenerationPrompt?: string
+  selectedDirectionIndex?: number
   motionNarrative: {
     headline: string
     detail: string

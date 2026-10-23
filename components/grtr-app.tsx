@@ -217,6 +217,18 @@ export interface CommunityTemplate {
 
 const communityTemplates: CommunityTemplate[] = [
   {
+    id: 'RKiDa7imLjw',
+    name: 'COMPUTE — AI Platform Template',
+    archetype: 'Dark Glass · High-Tech Velocity',
+    category: 'Developer',
+    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot-2026-01-01-at-11.11.58%E2%80%AFAM-75MGc9XubNCPsB6ffBLtDmtgq4sHDm.jpg',
+    siteUrl: 'https://compute-the-platform-to-build-ship-ai-agents-k2gt4ri9.v0.build',
+    description: 'High-velocity AI agent platform template featuring deep obsidian glass, live interactive telemetry controls, and sleek modern typography.',
+    directive: 'Seed workspace chat duplicate from RKiDa7imLjw',
+    bestFor: 'Founding GTM, Product Leads & Systems Architects',
+    author: 'Compute (Workspace Verified)',
+  },
+  {
     id: 'evBwFXFJcM9',
     name: 'Modern Developer Portfolio',
     archetype: 'Dark Obsidian · Smooth Motion',
@@ -779,7 +791,7 @@ function InputStudio({
 interface BlueprintProps {
   blueprint: StrategicBlueprint
   onBack: () => void
-  onBuild: () => void
+  onBuild: (selectedDirectionIndex?: number) => void
   isBuildingPortfolio: boolean
   onUpdateHook: (newHook: string) => void
 }
@@ -904,7 +916,7 @@ function Blueprint({
           <span>Strategy is fully editable in Live Studio</span>
           <Button
             className="primary-cta"
-            onClick={onBuild}
+            onClick={() => onBuild(direction)}
             disabled={isBuildingPortfolio}
           >
             {isBuildingPortfolio ? (
@@ -1498,9 +1510,23 @@ function LiveStudio({
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [mobileTab, setMobileTab] = useState<'chat' | 'preview'>('preview')
   const [iframeKey, setIframeKey] = useState(0)
+  const [copiedLink, setCopiedLink] = useState(false)
 
   const reloadPreview = () => {
     setIframeKey(k => k + 1)
+  }
+
+  const liveShareUrl = chatId
+    ? typeof window !== 'undefined'
+      ? `${window.location.origin}/api/preview/${chatId}`
+      : `https://grtr-woad.vercel.app/api/preview/${chatId}`
+    : ''
+
+  const handleCopyLiveLink = () => {
+    if (!liveShareUrl) return
+    navigator.clipboard.writeText(liveShareUrl)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2000)
   }
 
   const roleText = blueprint?.targetRole || 'Executive Candidate'
@@ -1562,6 +1588,29 @@ function LiveStudio({
               <span className="status-dot" />
               <span>{chatId ? 'Live Sandbox Active' : 'All changes saved'}</span>
             </div>
+            {chatId && (
+              <div className="hidden sm:flex items-center gap-1.5 ml-2">
+                <button
+                  type="button"
+                  onClick={handleCopyLiveLink}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer"
+                  title="Copy shareable Vercel link"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? 'Copied Link!' : 'Copy Link'}</span>
+                </button>
+                <a
+                  href={liveShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition no-underline"
+                  title="Open live preview in full tab"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open Tab ↗</span>
+                </a>
+              </div>
+            )}
           </div>
           <div className="toolbar-actions">
             <div className="viewport-toggle">
@@ -1595,14 +1644,30 @@ function LiveStudio({
             className={`preview-frame ${viewport}`}
             style={{ width: viewport === 'mobile' ? 375 : '100%', minHeight: '680px' }}
           >
-            <div className="browser-bar">
-              <span />
-              <span />
-              <span />
-              <div>
-                grtr.app/p/{blueprint?.candidateName?.toLowerCase().replace(/\s+/g, '') || 'candidate'}/
-                {blueprint?.targetCompany?.toLowerCase().replace(/\s+/g, '') || 'role'}
+            <div className="browser-bar flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span />
+                <span />
+                <span />
               </div>
+              <a
+                href={liveShareUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-[11px] text-zinc-400 hover:text-zinc-200 transition font-mono max-w-[70%] truncate no-underline"
+                title="Click to open full live site"
+              >
+                <span>{liveShareUrl ? liveShareUrl.replace(/^https?:\/\//, '') : `grtr.app/p/${blueprint?.candidateName?.toLowerCase().replace(/\s+/g, '') || 'candidate'}/${blueprint?.targetCompany?.toLowerCase().replace(/\s+/g, '') || 'role'}`}</span>
+                <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
+              <button
+                type="button"
+                onClick={handleCopyLiveLink}
+                className="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/5 transition cursor-pointer"
+                title="Copy live link"
+              >
+                {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
             </div>
 
             {previewUrl ? (
@@ -1862,7 +1927,14 @@ export function GrtrApp() {
         }),
       })
 
-      const data = await res.json()
+      const text = await res.text()
+      let data: any
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error(`Server returned unexpected response (${res.status}): ${text.slice(0, 100)}`)
+      }
+
       if (data.success && data.blueprint) {
         setBlueprint(data.blueprint)
         setActive(2) // Advance to Stage 2: Blueprint
@@ -1877,7 +1949,7 @@ export function GrtrApp() {
   }
 
   // Handler: Build Portfolio Engine (Stage 2)
-  const handleBuildPortfolio = async () => {
+  const handleBuildPortfolio = async (selectedDirectionIndex: number = 0) => {
     if (!blueprint) return
 
     try {
@@ -1890,6 +1962,7 @@ export function GrtrApp() {
         body: JSON.stringify({
           blueprint,
           designSystem: selectedDesign,
+          selectedDirectionIndex,
         }),
       })
 
@@ -1920,10 +1993,14 @@ export function GrtrApp() {
 
         setActive(3) // Advance to Stage 3: Live Studio
       } else {
-        alert(data.error || 'Portfolio generation failed')
+        const errorDetail = data.error || 'Portfolio generation failed.'
+        setErrorMessage(errorDetail)
+        alert(errorDetail)
       }
     } catch (err: unknown) {
-      alert('Build failed: ' + (err instanceof Error ? err.message : String(err)))
+      const msg = err instanceof Error ? err.message : String(err)
+      setErrorMessage(msg)
+      alert('Build failed: ' + msg)
     } finally {
       setIsBuildingPortfolio(false)
     }
