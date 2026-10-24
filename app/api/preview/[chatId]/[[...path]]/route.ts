@@ -476,11 +476,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
           'Cache-Control': 'no-store, max-age=0',
         },
       })
-      response.cookies.set('v0_preview_chat', chatId, {
-        path: '/',
-        sameSite: 'lax',
-        maxAge: 3600,
-      })
       return response
     }
 

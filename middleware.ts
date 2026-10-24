@@ -3,11 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 export function middleware(req: NextRequest) {
   const referer = req.headers.get('referer') || ''
   const previewMatch = referer.match(/\/api\/preview\/([a-zA-Z0-9_-]+)/)
-  
-  // Use chatId from referer or fallback to preview session cookie
-  const chatId = previewMatch ? previewMatch[1] : req.cookies.get('v0_preview_chat')?.value
 
-  if (chatId) {
+  // ONLY proxy assets when the request strictly originates from an active /api/preview/[chatId] iframe
+  if (previewMatch) {
+    const chatId = previewMatch[1]
     const pathname = req.nextUrl.pathname
 
     if (pathname.startsWith('/_next/') || pathname === '/v0-runtime-dist.js') {
@@ -17,12 +16,22 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.next()
+  // Pass through cleanly for the main Grtr app
+  const response = NextResponse.next()
+
+  // Cleanse any poisoned preview cookies from the client browser
+  if (req.cookies.has('v0_preview_chat')) {
+    response.cookies.delete('v0_preview_chat')
+  }
+
+  return response
 }
 
 export const config = {
   matcher: [
     '/_next/:path*',
     '/v0-runtime-dist.js',
+    '/',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }

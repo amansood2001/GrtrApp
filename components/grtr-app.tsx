@@ -146,9 +146,9 @@ function UploadZone({ title, subtitle, file, loading, onFileSelect, onClear }: U
       <div className="upload-icon">
         {loading ? <Loader2 className="w-4 h-4 animate-spin text-purple-400" /> : <Upload />}
       </div>
-      <div>
-        <strong>{title}</strong>
-        <span>{subtitle}</span>
+      <div className="flex flex-col gap-0.5">
+        <strong className="text-xs font-medium text-white">{title}</strong>
+        <span className="text-[11px] text-zinc-400 font-mono">{subtitle}</span>
       </div>
       {file ? (
         <div className="file-chip">
@@ -670,12 +670,12 @@ function InputStudio({
                 onChange={e => setJobDescription(e.target.value)}
                 placeholder="Paste the target job description, requirements, or role brief..."
               />
-              <div className="input-meta">
-                <span>
-                  <Check />
-                  {jobDescription.trim().length > 15 ? 'Target role signals active' : 'Enter target role & company requirements'}
+              <div className="input-meta flex items-center justify-between text-xs text-zinc-400 pt-1.5">
+                <span className="flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-zinc-500" />
+                  <span>{jobDescription.trim().length > 15 ? 'Target role signals active' : 'Enter target role & company requirements'}</span>
                 </span>
-                <span>{jobDescription.length.toLocaleString()} characters</span>
+                <span className="font-mono text-[10px] text-zinc-500">{jobDescription.length.toLocaleString()} characters</span>
               </div>
             </div>
           ) : (
@@ -862,9 +862,9 @@ function InputStudio({
                           className={`curated-mood-card ${isSelected ? 'selected' : ''}`}
                         >
                           <div className="flex justify-between items-start">
-                            <div>
-                              <strong className="text-xs text-white block">{m.name}</strong>
-                              <small className="text-[9px] text-muted block font-mono mt-0.5">{m.tag}</small>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs font-semibold text-white leading-tight">{m.name}</span>
+                              <span className="text-[10px] text-zinc-400 font-mono tracking-normal leading-tight">{m.tag}</span>
                             </div>
                             {isSelected && <Check className="w-3.5 h-3.5 text-purple-400" />}
                           </div>
