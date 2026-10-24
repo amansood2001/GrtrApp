@@ -254,7 +254,7 @@ function ProgressiveAssetKit({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer select-none"
+        className="w-full p-3.5 flex items-center justify-between text-left bg-transparent text-white border-0 hover:bg-white/[0.03] transition-colors cursor-pointer select-none"
       >
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
@@ -661,44 +661,33 @@ function InputStudio({
             </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            {jdMode === 'text' ? (
-              <motion.div
-                key="text"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-              >
-                <textarea
-                  className="jd-textarea"
-                  aria-label="Job description"
-                  value={jobDescription}
-                  onChange={e => setJobDescription(e.target.value)}
-                  placeholder="Paste the target job description, requirements, or role brief..."
-                />
-                <div className="input-meta">
-                  <span>
-                    <Check />
-                    {jobDescription.trim().length > 15 ? 'Target role signals active' : 'Enter target role & company requirements'}
-                  </span>
-                  <span>{jobDescription.length.toLocaleString()} characters</span>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="file"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <UploadZone
-                  title="Upload job description"
-                  subtitle="PDF, DOCX or TXT · Max 10MB"
-                  loading={parsingJd}
-                  onFileSelect={handleJdUpload}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {jdMode === 'text' ? (
+            <div>
+              <textarea
+                className="jd-textarea"
+                aria-label="Job description"
+                value={jobDescription}
+                onChange={e => setJobDescription(e.target.value)}
+                placeholder="Paste the target job description, requirements, or role brief..."
+              />
+              <div className="input-meta">
+                <span>
+                  <Check />
+                  {jobDescription.trim().length > 15 ? 'Target role signals active' : 'Enter target role & company requirements'}
+                </span>
+                <span>{jobDescription.length.toLocaleString()} characters</span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <UploadZone
+                title="Upload job description"
+                subtitle="PDF, DOCX or TXT · Max 10MB"
+                loading={parsingJd}
+                onFileSelect={handleJdUpload}
+              />
+            </div>
+          )}
 
           {/* Tier 2: Progressive Asset Kit */}
           <ProgressiveAssetKit assets={userProvidedAssets} onChange={setUserProvidedAssets} />
@@ -728,14 +717,7 @@ function InputStudio({
               </button>
             ))}
           </div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={designTab}
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
-              className="design-content"
-            >
+          <div className="design-content">
 
               {designTab === 'templates' && (
                 <>
@@ -942,8 +924,7 @@ function InputStudio({
                   </div>
                 </div>
               )}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </section>
       </div>
 
