@@ -284,12 +284,104 @@ export async function GET(req: NextRequest, context: RouteContext) {
     }
 
     // Proxy the request through v0's official preview handler
+    // Point fallbackUrl back to our internal proxy route so the iframe never navigates to external v0 domains
+    const selfProxyUrl = new URL(`/api/preview/${chatId}`, req.url).toString()
     const previewResponse = await fetchPreview({
       request: req,
       preview: previewRes.data,
       path,
-      fallbackUrl: previewRes.data.url,
+      fallbackUrl: selfProxyUrl,
     })
+
+    // If v0 returns a redirect (e.g. 302/307 while the sandbox compiles or provisions),
+    // NEVER let the iframe redirect directly to v0.app (which blocks iframes via CSP frame-ancestors).
+    // Instead, return our auto-refreshing compilation loader.
+    if (previewResponse.status >= 300 && previewResponse.status < 400) {
+      const compilingHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="3">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assembling Live Sandbox · Grtr</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #08090a;
+      color: #f4f4f5;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .loader-card {
+      background: linear-gradient(145deg, #131418, #0b0c0e);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #8b5cf6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 24px;
+    }
+    h2 { font-size: 19px; font-weight: 600; margin: 0 0 8px; color: #fff; }
+    p { font-size: 13px; line-height: 1.5; color: #a1a1aa; margin: 0 0 24px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      padding: 6px 14px;
+      border-radius: 999px;
+    }
+    .pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #8b5cf6;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
+  </style>
+</head>
+<body>
+  <div class="loader-card">
+    <div class="spinner"></div>
+    <h2>Compiling Live Portfolio Sandbox</h2>
+    <p>Assembling React client components, design system tokens & interactive widgets. Auto-refreshing...</p>
+    <div class="badge">
+      <span class="pulse"></span>
+      <span>Provisioning sandbox · Auto-refreshing in 3s</span>
+    </div>
+  </div>
+</body>
+</html>`
+      return new NextResponse(compilingHtml, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      })
+    }
 
     const contentType = previewResponse.headers.get('content-type') || ''
 
@@ -434,7 +526,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       request: req,
       preview: previewRes.data,
       path,
-      fallbackUrl: previewRes.data.url,
+      fallbackUrl: new URL(`/api/preview/${chatId}`, req.url).toString(),
     })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Preview error'
