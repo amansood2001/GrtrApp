@@ -40,50 +40,7 @@ CRITICAL ADAPTATION DIRECTIVES:
 7. Output complete, functional Next.js React client code in app/page.tsx.`
 }
 
-function formatCandidateDataSpecification(blueprint: StrategicBlueprint, selectedDirectionIndex: number = 0): string {
-  const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
-  const cleanEmail = `${blueprint.candidateName.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
-
-  return `
-### MANDATORY AUTHENTIC CONTENT & DATA SPECIFICATION (MUST BE RENDERED IN CODE)
-v0 frontend engineer: You MUST incorporate the candidate's authentic data and exact figures below into the components. DO NOT invent placeholder companies or omit these numbers.
-
-1. CANDIDATE PROFILE:
-- Name: ${blueprint.candidateName}
-- Target Role: ${blueprint.targetRole} at ${blueprint.targetCompany}
-- Core Positioning: "${blueprint.positioningHook}"
-- Executive Narrative: "${blueprint.positioningSubtitle || ''}"
-- Verified Recruiter Contact: ${cleanEmail} (render as direct mailto: link in contact modal. NEVER generate fake @${blueprint.targetCompany.toLowerCase().replace(/\s+/g, '')}.com emails!)
-
-2. VERIFIED HEADLINE METRICS (MUST be prominently featured with high-contrast bold values):
-${blueprint.stats?.map(s => `- ${s.value} ${s.label} (${s.note || ''})`).join('\n') || '- $1M+ Demand Pipeline\n- +40% Funnel Conversion\n- 500+ Partner Distribution Network\n- 10+ International Markets Expanded'}
-
-3. STRATEGIC PITCH FOR ${blueprint.targetCompany.toUpperCase()} (Problem, Solution & Right-to-Win):
-- Strategic Focus Angle: "${activeDirection?.angle || 'Distribution & Enterprise Scale'}"
-- Observed Company Problem: "${activeDirection?.observedChallenge || ''}"
-- Operator Strategy: "${activeDirection?.proposedStrategy || ''}"
-- Candidate Right-to-Win Proof: "${activeDirection?.rightToWinProof || ''}"
-
-4. 3 HIGHLIGHTED PROOF CASES (Render as deep-dive interactive proof cards with expandable or modal details):
-${blueprint.caseStudies?.map((cs, idx) => `Case 0${idx + 1}:
-  - Title: "${cs.title}"
-  - Metric / Impact: "${cs.metric} ${cs.metricLabel || ''}"
-  - Narrative: "${cs.detail}"`).join('\n\n')}
-
-5. AUTHENTIC CAREER TRACK RECORD (Render with interactive role tabs or clickable stops):
-${blueprint.roles?.map(r => `- ${r.year}: ${r.title} at ${r.company} (${r.location || ''})
-  Impact: ${r.summary}
-  Key Wins: ${r.outcomes?.join('; ') || ''}`).join('\n')}
-
-6. CORE CAPABILITIES & SKILLS:
-${blueprint.skills ? JSON.stringify(blueprint.skills, null, 2) : ''}
-
-CRITICAL VISUAL DESIGN & ACCESSIBILITY REQUIREMENTS:
-- HIGH CONTRAST TYPOGRAPHY: Ensure body and title text is dark, crisp, and high-contrast (e.g. text-[#0a192f] on bg-[#f8fafc] or bg-white). NEVER render low-contrast white/light-gray text on light card surfaces!
-- COMPLETE NEXT.JS CLIENT CODE: Output a single, complete, fully working Next.js React client component ('use client') with interactive state management (useState) for the contact dialog, active tabs, and expandable proof cases.`
-}
-
-// Master Creative Director Synthesizer powered by OpenAI
+// Master First-Person Prompt Synthesizer powered by OpenAI
 async function synthesizeV0Prompt(
   blueprint: StrategicBlueprint,
   designSystem: string,
@@ -96,37 +53,29 @@ async function synthesizeV0Prompt(
 
   const openai = new OpenAI({ apiKey })
   const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
-  const brand = blueprint.companyBrand || {
-    primaryColor: '#0b63e5',
-    accentColor: '#10b981',
-    surfaceColor: '#faf9f6',
-    textColor: '#0a192f',
-  }
+  const cleanEmail = `${blueprint.candidateName.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
 
-  const systemPrompt = `You are an elite Principal Creative Director and Executive Recruiter writing a natural language design brief and build prompt for the v0 AI frontend engineer.
+  const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface to have it build your executive career portfolio.
 
-Your goal is to write the creative vision, design philosophy, signature bespoke artifact concept, layout architecture, and visual pacing for an extraordinary executive career portfolio.
+CRITICAL VOICE & PERSONA INSTRUCTIONS:
+- Write strictly in the FIRST PERSON ("I", "me", "my") directly addressing v0 as "you".
+- Opening line must be natural and direct, exactly like an executive talking to an elite designer:
+  "Build an extraordinary, bespoke executive career portfolio for me. My name is ${blueprint.candidateName}, and I'm positioning myself for the ${blueprint.targetRole} role at ${blueprint.targetCompany}..."
+- NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
+- Talk to v0 with authority, taste, and clarity.
+- DO NOT over-specify or micromanage hex codes, pixel dimensions, or rigid borders. Give v0 creative room to exercise its design intelligence, while clearly setting the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
+- NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
+- INCLUDE A DEDICATED SECTION for Motion Design, Physics & Micro-Interactions (smooth scroll reveals, tactile hover feedback, snappy tabs, interactive counters).
+- ABSOLUTE DATA INTEGRITY: You MUST preserve all exact numbers and metrics from my background (e.g. ${blueprint.stats?.map(s => s.value).join(', ') || '$1M+, +40%, 500+'}), authentic companies (${blueprint.roles?.map(r => r.company).join(', ') || 'SeekLab Inc, Ionic Wealth by AngelOne'}), verified email (${cleanEmail}), and spotlighted proof cases.
 
-CRITICAL INSTRUCTIONS:
-1. Embody the chosen Aesthetic Directive / Design System (${designSystem}):
-   - Define the exact visual tone, material textures, borders, and motion physics that represent this design system.
-   - For Microsoft Fluent: subtle acrylic/glass surfaces, soft elevation shadows, crisp system typography, purposeful accent colors.
-   - For Warm Editorial Serif: elegant high-contrast Playfair/Georgia display serif typography, generous whitespace, warm paper backdrop (#faf9f6), editorial pull-quotes.
-   - For Minimal High-Contrast: stark typographic hierarchy, precision grid, mono metric readouts, clean division lines.
-   - For Bento Grid: modular rounded-2xl cards, information-dense widgets, tactile toggle chips.
-2. Conceive a SIGNATURE BESPOKE INTERACTIVE ARTIFACT specifically for ${blueprint.targetCompany}:
-   - For a B2B sales/GTM role at CleverTap (AI customer engagement): a live retention telemetry card, customer journey signal board, or enterprise pipeline matrix.
-   - For a product/engineering role: an interactive architecture console or live metric bench.
-   - For a fintech role: an asset allocation radar or trade velocity console.
-3. Design the layout flow dynamically to showcase the candidate's unique strengths:
-   - Dynamic Hero with display headline and the signature bespoke artifact
-   - High-contrast quantified metrics strip
-   - Strategic deep-dive (Company Challenge, Operator Strategy, Right-to-Win)
-   - 3 Highlighted Proof Cards with interactive expansion
-   - Stateful Career Track Record with interactive switcher
-   - Priority Contact Modal with verified email (never hallucinate fake company emails)
-
-Output ONLY the creative director briefing in plain text/markdown for v0. DO NOT output React code, JSX, or code blocks.`
+STRUCTURE OF YOUR PROMPT:
+1. First-Person Opening & Executive Positioning Thesis
+2. My Strategic Operator Thesis for ${blueprint.targetCompany} (The Commercial Opportunity, My 3-Step Playbook, My Right-to-Win)
+3. Verified Metrics & 3 Spotlighted Proof Cases (with numbers and impact)
+4. Authentic Career Track Record & Domain Strengths (written in natural prose)
+5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
+6. Motion Design, Physics & Micro-Interactions
+7. Direct Contact Modal (mailto:${cleanEmail})`
 
   const userContext = {
     targetCompany: blueprint.targetCompany,
@@ -135,19 +84,19 @@ Output ONLY the creative director briefing in plain text/markdown for v0. DO NOT
     positioningHook: blueprint.positioningHook,
     positioningSubtitle: blueprint.positioningSubtitle,
     aestheticDirective: designSystem,
-    palette: brand,
     strategicProblemAndRightToWin: activeDirection,
     highlightedProofCases: blueprint.caseStudies,
     careerHistory: blueprint.roles,
     headlineStats: blueprint.stats,
     skills: blueprint.skills,
+    cleanEmail,
   }
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Write the creative director brief for this candidate:\n${JSON.stringify(userContext, null, 2)}` }
+      { role: 'user', content: `Generate the first-person v0 build prompt based on my authentic background:\n${JSON.stringify(userContext, null, 2)}` }
     ],
     temperature: 0.7,
   })
@@ -209,25 +158,22 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       })
     }
 
-    // Default Flow: Master Creative Director Synthesizer (OpenAI) writes the bespoke prompt for v0
-    console.log(`[Creative Director] Synthesizing bespoke build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}"...`)
+    // Default Flow: Master First-Person Synthesizer (OpenAI) writes the bespoke prompt for v0
+    console.log(`[Prompt Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}"...`)
     const startTime = Date.now()
-    const creativeBrief = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex)
-    const dataSpec = formatCandidateDataSpecification(blueprint, selectedDirectionIndex)
-    const message = `${creativeBrief}\n\n---\n\n${dataSpec}`
-    console.log(`[Creative Director] Prompt synthesized in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
+    const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex)
+    console.log(`[Prompt Synthesizer] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
 
     let chatResponse: any
     try {
-      // First attempt synchronous creation so sandbox compiles before returning to studio
-      chatResponse = await v0.chats.create({
+      chatResponse = await v0.chats.createAsync({
         message,
       })
-    } catch (syncErr) {
-      console.warn('v0.chats.create timed out or failed, falling back to createAsync:', syncErr)
-      chatResponse = await v0.chats.createAsync({
+    } catch (asyncErr) {
+      console.warn('v0.chats.createAsync failed, attempting synchronous fallback:', asyncErr)
+      chatResponse = await v0.chats.create({
         message,
       })
     }

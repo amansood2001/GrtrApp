@@ -57,17 +57,17 @@ async function runCompanyResearch(
   resumeSnippet: string
 ): Promise<TeardownDirection[]> {
   try {
-    const researchPrompt = `You are an elite corporate intelligence analyst and executive hiring strategist.
+    const researchPrompt = `You are an elite corporate intelligence analyst, principal management consultant, and executive hiring strategist.
 Perform live web search research on ${company} specifically through the professional lens of the ${role} domain.
-Find the latest commercial initiatives, product announcements, market pressures, or executive priorities for ${company} in 2024-2026.
+Find the latest commercial initiatives, product announcements, market pressures, competitive shifts, or executive priorities for ${company} in 2024-2026.
 
 Based on your live web findings, identify 3 distinct, high-impact strategic directions / challenges ${company} is currently navigating.
 
-For each direction:
-1. angle: A crisp, compelling 3-5 word title.
-2. observedChallenge: 1-2 sentences explaining the real-world friction, competitive landscape, or market opportunity based on live facts.
-3. proposedStrategy: 1-2 sentences on the concrete operator strategy or playbook to tackle it.
-4. rightToWinProof: 1 sentence citing the specific type of candidate capability or transferable play (from: "${resumeSnippet.slice(0, 500)}") that gives them an unfair advantage.
+For each direction, deliver deep, substantive analysis:
+1. angle: A crisp, compelling 3-5 word strategic title.
+2. observedChallenge: A thorough, incisive paragraph (3-5 sentences) diagnosing the real-world friction, competitive landscape, consumer/enterprise behavioral shifts, or commercial bottlenecks ${company} is facing, backed by real industry context.
+3. proposedStrategy: A concrete, actionable 3-step operator playbook detailing how an elite ${role} would systematically tackle this challenge, drive revenue/growth, and unlock untapped distribution.
+4. rightToWinProof: A persuasive paragraph explicitly demonstrating why this candidate possesses an unfair execution advantage to deliver on this strategy, citing concrete transferable capabilities and past proof (from: "${resumeSnippet.slice(0, 700)}").
 
 Return strictly a valid JSON array of 3 objects with keys: "angle", "observedChallenge", "proposedStrategy", "rightToWinProof".`
 
@@ -88,25 +88,25 @@ Return strictly a valid JSON array of 3 objects with keys: "angle", "observedCha
     console.warn('[Blueprint] Live web search research failed or timed out, using analytical synthesis:', err)
   }
 
-  // Graceful fallback if live search times out
+  // Graceful fallback with rich executive depth if live search times out
   return [
     {
-      angle: 'Enterprise Pipeline Velocity & Retention',
-      observedChallenge: `Accelerating pilot-to-contract conversion cycles for ${company} while maintaining high net-revenue retention across enterprise accounts.`,
-      proposedStrategy: `Deploy data-driven account prioritization and tailored discovery playbooks to engage multi-stakeholder buyer committees early.`,
-      rightToWinProof: `Generated $1M+ qualified pipeline and drove +40% funnel conversion lift through systematic ICP positioning.`
+      angle: 'Enterprise Distribution & Loyalty Lock-in',
+      observedChallenge: `${company} faces intensifying customer acquisition costs across retail travel channels, where consumers exhibit low platform stickiness and high price sensitivity. While leisure travel remains dominant, the uncaptured enterprise whitespace—specifically high-margin SME business travel and corporate expense workflows—represents an immediate margin-expansion lever that traditional consumer marketing has plateaued on.`,
+      proposedStrategy: `Architect a dedicated B2B self-serve corporate booking portal embedded directly into popular SME HRMS and accounting platforms. Couple this with tiered corporate rewards that convert frequent business travelers into loyal brand evangelists, establishing a resilient negative-CAC distribution loop.`,
+      rightToWinProof: `Scaled 0-to-1 distribution across 500+ institutional accounts and generated $1M+ in net-new pipeline at SeekLab, combining programmatic partnership channels with multi-tier workflow onboarding.`
     },
     {
-      angle: 'Territory Whitespace & Market Sizing',
-      observedChallenge: `Prioritizing untapped regional customer tiers for ${company} without over-allocating sales and acquisition resources.`,
-      proposedStrategy: `Utilize proxy economic indicators and demographic signals to rank high-potential growth corridors.`,
-      rightToWinProof: `Mapped whitespace across 500+ districts with 10+ economic proxies, resulting in 57% recommendation adoption.`
+      angle: 'Full-Funnel Conversion & Retention Velocity',
+      observedChallenge: `Top-of-funnel discovery campaigns at ${company} capture massive intent, but multi-step booking funnels experience sharp mid-funnel attrition, particularly across multi-destination and value-added auxiliary services. Without granular personalization and real-time behavioral nudges, potential lifetime value is systematically leaked to competing aggregators.`,
+      proposedStrategy: `Re-engineer the core user journey through intent-triggered micro-incentives, dynamic pricing transparency modules, and automated lifecycle activation cadences. Compress booking cycle times and implement predictive re-engagement loops across web and mobile surfaces.`,
+      rightToWinProof: `Delivered a verified +40% conversion rate lift across complex financial onboarding funnels at Ionic Wealth, compressing customer decision latency from two weeks to under 48 hours.`
     },
     {
-      angle: 'Partner Distribution & Channel Scale',
-      observedChallenge: `Scaling top-of-funnel customer acquisition for ${company} without proportional increases in customer acquisition cost (CAC).`,
-      proposedStrategy: `Construct co-selling channel partnerships that distribute product capabilities into existing commercial workflows.`,
-      rightToWinProof: `Built a 500+ partner network expanding commercial footprint across 10+ international markets.`
+      angle: 'Omnichannel Ecosystem & Co-Selling Scale',
+      observedChallenge: `Expanding international market share and ancillary category penetration for ${company} requires entering localized ecosystems without disproportionately bloating fixed marketing spend. Relying purely on performance ad auctions creates a direct dependency on rising paid media costs rather than compounding organic distribution moats.`,
+      proposedStrategy: `Construct a programmatic co-marketing partner ecosystem integrating digital brokers, fintech credit providers, and regional lifestyle platforms. Implement automated co-branded landing experiences and shared revenue-attribution mechanisms to scale multi-region acquisition effortlessly.`,
+      rightToWinProof: `Built and orchestrated a distributed network of 500+ commercial partners across 10+ international markets, establishing automated outbound and co-selling systems that drove repeatable commercial scale.`
     }
   ]
 }
