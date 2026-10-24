@@ -134,7 +134,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
   try {
     const {
       blueprint,
-      designSystem = 'Microsoft Fluent 2',
+      designSystem = 'Minimal Monochrome',
       selectedDirectionIndex = 0,
       resumeText = '',
       jobDescription = '',

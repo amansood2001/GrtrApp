@@ -126,7 +126,7 @@ TARGET JOB DESCRIPTION:
 ${jobDescription.slice(0, 4000)}
 \"\"\"
 
-DESIGN FOUNDATION SELECTED: ${designSystem || 'Microsoft Fluent 2'}
+DESIGN FOUNDATION SELECTED: ${designSystem || 'Minimal Monochrome'}
 
 Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) with this exact schema:
 {
@@ -223,7 +223,7 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
   "fitStats": {
     "roleFit": "Exceptional",
     "evidenceCoverage": "9 / 10",
-    "designFoundation": "${designSystem || 'Microsoft Fluent 2'}"
+    "designFoundation": "${designSystem || 'Minimal Monochrome'}"
   }
 }`
 }
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BlueprintResp
     const body = await req.json()
     const resumeText: string = body.resumeText || ''
     const jobDescription: string = body.jobDescription || ''
-    const designSystem: string = body.designSystem || 'Microsoft Fluent 2'
+    const designSystem: string = body.designSystem || 'Minimal Monochrome'
 
     if (!resumeText || !jobDescription) {
       return NextResponse.json(

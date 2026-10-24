@@ -20,14 +20,6 @@ const views = [
   { id: 4, short: 'Analytics', label: 'Portfolio Hub', icon: BarChart3 },
 ]
 
-const designSystems = [
-  { name: 'Material 3', maker: 'Google', mark: 'G', color: '#4285F4' },
-  { name: 'Carbon', maker: 'IBM', mark: 'IB', color: '#8A3FFC' },
-  { name: 'Fluent', maker: 'Microsoft', mark: 'M', color: '#2D7DFF' },
-  { name: 'Cloudscape', maker: 'AWS', mark: 'A', color: '#FF9900' },
-  { name: 'Primer', maker: 'GitHub', mark: 'GH', color: '#F0F6FC' },
-]
-
 function Header({
   active,
   setActive,
@@ -339,7 +331,7 @@ function InputStudio({
   error,
 }: InputStudioProps) {
   const [jdMode, setJdMode] = useState<'text' | 'file'>('text')
-  const [designTab, setDesignTab] = useState('systems')
+  const [designTab, setDesignTab] = useState('moods')
   const [templateFilter, setTemplateFilter] = useState('All')
   const [templateSearch, setTemplateSearch] = useState('')
   const [parsingCv, setParsingCv] = useState(false)
@@ -512,9 +504,8 @@ function InputStudio({
           </div>
           <div className="design-tabs" role="tablist">
             {[
-              ['systems', 'Systems'],
-              ['templates', 'Templates'],
               ['moods', 'Moods'],
+              ['templates', 'Templates'],
               ['custom', 'Custom'],
             ].map(([id, label]) => (
               <button
@@ -536,26 +527,6 @@ function InputStudio({
               exit={{ opacity: 0, x: -8 }}
               className="design-content"
             >
-              {designTab === 'systems' && (
-                <div className="system-grid">
-                  {designSystems.map(d => (
-                    <button
-                      key={d.name}
-                      onClick={() => setSelectedDesign(d.name)}
-                      className={`design-card ${selectedDesign === d.name ? 'selected beam' : ''}`}
-                    >
-                      <span className="system-logo" style={{ '--logo-color': d.color } as React.CSSProperties}>
-                        {d.mark}
-                      </span>
-                      <span>
-                        <strong>{d.name}</strong>
-                        <small>{d.maker} design system</small>
-                      </span>
-                      {selectedDesign === d.name && <Check className="selected-check" />}
-                    </button>
-                  ))}
-                </div>
-              )}
 
               {designTab === 'templates' && (
                 <>
@@ -1886,7 +1857,7 @@ export function GrtrApp() {
   const [resumeText, setResumeText] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
   const [jobDescription, setJobDescription] = useState('')
-  const [selectedDesign, setSelectedDesign] = useState('Modern Developer Portfolio')
+  const [selectedDesign, setSelectedDesign] = useState('Minimal Monochrome')
 
   // Pipeline State
   const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
