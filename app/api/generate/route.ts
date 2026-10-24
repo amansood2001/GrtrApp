@@ -81,10 +81,14 @@ DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain (e.g. for fintech: live ticker pulses or balance ledgers; for travel: route maps or flight cursors; for devtools: terminal readouts or deployment pipelines; for data/AI: telemetry graphs or model simulators).
 - Instruct v0 to incorporate these domain-specific delight touches into the user experience.
 
-MOTION DESIGN & SANDBOX STABILITY:
-- Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
-- Instruct v0 to implement the complete Next.js React client component ('use client') using standard React hooks (useState) and Tailwind CSS classes for all styling and interactions, ensuring the code compiles and renders smoothly in the sandbox without unimported third-party packages.
-- Keep motion restrained, snappy, and executive—feeling like a high-end application (e.g. Linear, Stripe, or Vercel).
+MOTION DESIGN & INTERACTION PHYSICS (INTELLIGENTLY TAILORED VIA CV & JD):
+- Analyze the unique intersection of my work style, domain, and seniority from my Full CV against the target company's culture, product caliber, and technical expectations in the Job Description.
+- Based on that analysis, dynamically determine the most fitting motion physics, interaction rhythm, and visual transitions for this specific profile:
+  * Decide how interactive elements should physically feel and respond (e.g. transition pacing, hover feedback, tab switching dynamics, and visual state changes) so the interactive feel authentically mirrors how an elite operator in this specific discipline works.
+  * Explicitly instruct v0 on this bespoke visual rhythm and motion style in Section 7.
+- CRITICAL SANDBOX STABILITY & FIRST-PAINT RULE:
+  * Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
+  * Instruct v0 to implement all motion and micro-interactions using standard Tailwind CSS classes (e.g. transition-all, hover:-translate-y-1, active:scale-95) and standard React hooks (useState) so it compiles and animates cleanly in the sandbox without unimported third-party packages.
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Executive Positioning Thesis
@@ -93,7 +97,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
 6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany}
-7. Motion Design, Snappy Interactivity & First-Paint Visibility
+7. Motion Design, Tailored Physics & Visual Effects (bespoke animation pacing and visual transitions dynamically derived from my profile and the JD, with immediate first-paint visibility)
 8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
   const userContext = {
