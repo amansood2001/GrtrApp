@@ -96,6 +96,17 @@ export interface BlueprintResponse {
   error?: string
 }
 
+export interface UserProvidedAssets {
+  avatarUrl?: string
+  projectImages?: string[]
+  preferredSocials?: {
+    linkedin?: string
+    github?: string
+    portfolio?: string
+    email?: string
+  }
+}
+
 export interface GenerateResponse {
   success: boolean
   chatId?: string

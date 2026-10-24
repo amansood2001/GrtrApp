@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Send, Loader2, RefreshCw, CheckCircle2, ExternalLink, Copy } from 'lucide-react'
+import { ArrowRight, Send, Loader2, RefreshCw, CheckCircle2, ExternalLink, Copy, Paperclip, X, Image as ImageIcon } from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
 
 export const portfolioPlaceholders = {
@@ -81,13 +81,21 @@ interface StudioChatProps {
   contextLabel?: string
 }
 
+export interface ChatAttachment {
+  url: string
+  name: string
+  contentType: string
+}
+
 export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChatProps) {
   const [draft, setDraft] = useState('')
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string; attachedFiles?: string[] }[]>([
     {
       role: 'assistant',
       text: chatId
-        ? `Live studio connected. I can adjust your positioning, re-order evidence, sharpen the strategic teardown, or adjust design styling in real-time.`
+        ? `Live studio connected. I can adjust your positioning, re-order evidence, sharpen the strategic teardown, or swap in custom assets in real-time.`
         : `Executive Studio Copilot ready. Prompt any modification to your strategic positioning, company teardown, or interaction physics.`,
     },
   ])
@@ -98,6 +106,42 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
   }, [messages, typing])
+
+  const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    Array.from(files).forEach(file => {
+      if (file.size > 8 * 1024 * 1024) {
+        alert(`File ${file.name} exceeds 8MB limit.`)
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const result = ev.target?.result as string
+        if (result) {
+          setAttachments(prev => [
+            ...prev,
+            {
+              url: result,
+              name: file.name,
+              contentType: file.type || 'image/png',
+            },
+          ])
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index))
+  }
 
   // Track chatId connection
   useEffect(() => {
@@ -111,7 +155,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
             ...prev,
             {
               role: 'assistant',
-              text: `🚀 Live sandbox connected!\n\nPublic recruiter preview: ${liveUrl}\n\nAll prompt directives now modify your live portfolio in real time.`,
+              text: `🚀 Live sandbox connected!\n\nPublic recruiter preview: ${liveUrl}\n\nAll prompt directives and attached assets now modify your live portfolio in real time.`,
             },
           ]
         }
@@ -121,11 +165,21 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
   }, [chatId])
 
   async function send(text: string) {
-    const value = text.trim()
+    const currentAttachments = [...attachments]
+    const value = text.trim() || (currentAttachments.length > 0 ? 'Please integrate and swap the attached asset(s) into the portfolio layout.' : '')
     if (!value || busy.current) return
     busy.current = true
-    setMessages(m => [...m, { role: 'user', text: value }])
+
+    setMessages(m => [
+      ...m,
+      {
+        role: 'user',
+        text: value,
+        attachedFiles: currentAttachments.map(a => a.name),
+      },
+    ])
     setDraft('')
+    setAttachments([])
     setTyping(true)
 
     if (chatId) {
@@ -133,7 +187,12 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chatId, message: value, contextLabel }),
+          body: JSON.stringify({
+            chatId,
+            message: value,
+            contextLabel,
+            attachments: currentAttachments,
+          }),
         })
         const data = await res.json()
         if (data.success) {
@@ -218,6 +277,16 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
       <div className="messages" role="log" aria-label="Studio chat history" aria-live="polite">
         {messages.map((m, i) => (
           <div key={i} className={m.role === 'user' ? 'user-message' : 'ai-message'}>
+            {m.attachedFiles && m.attachedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {m.attachedFiles.map((name, fIdx) => (
+                  <span key={fIdx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono">
+                    <Paperclip className="w-2.5 h-2.5" />
+                    <span>{name}</span>
+                  </span>
+                ))}
+              </div>
+            )}
             {renderMessageContent(m.text)}
           </div>
         ))}
@@ -246,11 +315,43 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
       </div>
 
       <div className="chat-composer">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileAttach}
+          accept="image/*,.png,.jpg,.jpeg,.webp,.svg,.pdf"
+          className="hidden"
+          multiple
+        />
+
+        {attachments.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 p-2 bg-zinc-900/90 border-b border-white/10 rounded-t-lg">
+            {attachments.map((att, idx) => (
+              <div key={idx} className="flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] px-2 py-1 rounded-md">
+                {att.contentType.startsWith('image/') ? (
+                  <img src={att.url} alt={att.name} className="w-4 h-4 object-cover rounded" />
+                ) : (
+                  <Paperclip className="w-3 h-3 text-purple-400" />
+                )}
+                <span className="max-w-[120px] truncate">{att.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(idx)}
+                  className="hover:text-white ml-0.5 cursor-pointer"
+                  title="Remove attachment"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <textarea
           aria-label="Message Grtr"
           value={draft}
           onChange={e => setDraft(e.target.value)}
-          placeholder={chatId ? 'Ask to refine, change copy, or restyle...' : 'Direct portfolio changes…'}
+          placeholder={chatId ? 'Ask to refine copy, restyle, or swap in attached assets...' : 'Direct portfolio changes…'}
           onKeyDown={e => {
             if (e.nativeEvent.isComposing || e.keyCode === 229) return
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -259,10 +360,29 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
             }
           }}
         />
-        <div>
-          <span>{chatId ? 'Live AI Copilot · Enter to apply' : 'Executive Copilot · Enter to apply'}</span>
-          <button aria-label="Send message" disabled={typing || !draft.trim()} onClick={() => send(draft)}>
-            <Send />
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1 px-2 py-1 text-[11px] rounded bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer border border-white/10"
+              title="Attach screenshot or graphic to swap into portfolio"
+            >
+              <Paperclip className="w-3 h-3 text-purple-400" />
+              <span>Attach Asset</span>
+            </button>
+            <span className="text-[10px] text-zinc-400 hidden sm:inline">
+              {chatId ? 'Live Sandbox Connected' : 'Ready'}
+            </span>
+          </div>
+
+          <button
+            aria-label="Send message"
+            disabled={typing || (!draft.trim() && attachments.length === 0)}
+            onClick={() => send(draft)}
+            className="p-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition cursor-pointer"
+          >
+            <Send className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

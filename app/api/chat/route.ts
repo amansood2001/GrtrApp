@@ -6,7 +6,7 @@ export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatId, message, contextLabel } = await req.json()
+    const { chatId, message, contextLabel, attachments } = await req.json()
 
     if (!chatId || !message) {
       return NextResponse.json(
@@ -42,9 +42,9 @@ Here is your public, recruiter-ready portfolio link:
       })
     }
 
-    console.log(`Sending async message to portfolio chat ${chatId}: "${message.slice(0, 50)}..."`)
+    console.log(`Sending async message to portfolio chat ${chatId}: "${message.slice(0, 50)}..." (attachments: ${attachments?.length || 0})`)
 
-    const enhancedMessage = `${message}
+    let enhancedMessage = `${message}
 
 CRITICAL STYLING & FRONTEND RULES (MANDATORY):
 - Use clean Tailwind CSS utility classes for ALL components.
@@ -54,9 +54,16 @@ CRITICAL STYLING & FRONTEND RULES (MANDATORY):
 - Surface cards MUST be dark glassmorphism: bg-zinc-900/60 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-md.
 - Monospace metrics in text-3xl font-bold font-mono text-emerald-400.`
 
+    if (attachments && attachments.length > 0) {
+      enhancedMessage += `\n\nUSER ATTACHED ASSET OVERRIDES TO INTEGRATE:
+${attachments.map((a: any, i: number) => `Asset ${i + 1} (${a.name || 'custom asset'}): Replace the target slot, photo, or mock component with this exact user-provided asset.`).join('\n')}
+Surgically integrate these user assets into the relevant component slots.`
+    }
+
     const res = await v0.messages.sendAsync({
       chatId,
       message: enhancedMessage,
+      attachments: attachments && attachments.length > 0 ? attachments : undefined,
     })
 
     if (res.error) {

@@ -2,16 +2,17 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import {
-  ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, CircleUserRound,
+  ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, ChevronDown, CircleUserRound,
   Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2, LayoutDashboard,
   Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
-  Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw
+  Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw,
+  Trash2, Image as ImageIcon
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { CareerSignal } from './career-signal'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
 import { Button } from '@/components/ui/button'
-import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
+import type { StrategicBlueprint, CaseStudyItem, UserProvidedAssets } from '@/lib/types'
 
 const views = [
   { id: 1, short: 'Input', label: 'Input Studio', icon: FileText },
@@ -180,6 +181,243 @@ function UploadZone({ title, subtitle, file, loading, onFileSelect, onClear }: U
   )
 }
 
+function ProgressiveAssetKit({
+  assets,
+  onChange,
+}: {
+  assets: UserProvidedAssets
+  onChange: (updated: UserProvidedAssets) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const projectInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      onChange({ ...assets, avatarUrl: ev.target?.result as string })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleProjectImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    const currentImages = assets.projectImages || []
+    const remainingSlots = Math.max(0, 3 - currentImages.length)
+    const filesToRead = files.slice(0, remainingSlots)
+
+    filesToRead.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const result = ev.target?.result as string
+        if (result) {
+          onChange({
+            ...assets,
+            projectImages: [...(assets.projectImages || []), result].slice(0, 3),
+          })
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeProjectImage = (index: number) => {
+    const updated = (assets.projectImages || []).filter((_, i) => i !== index)
+    onChange({ ...assets, projectImages: updated })
+  }
+
+  const handleSocialChange = (field: 'linkedin' | 'github' | 'portfolio' | 'email', val: string) => {
+    onChange({
+      ...assets,
+      preferredSocials: {
+        ...(assets.preferredSocials || {}),
+        [field]: val,
+      },
+    })
+  }
+
+  const hasAnyAsset = Boolean(
+    assets.avatarUrl ||
+    (assets.projectImages && assets.projectImages.length > 0) ||
+    assets.preferredSocials?.linkedin ||
+    assets.preferredSocials?.github ||
+    assets.preferredSocials?.portfolio ||
+    assets.preferredSocials?.email
+  )
+
+  return (
+    <div className="mt-4 rounded-xl border border-white/10 bg-zinc-950/60 overflow-hidden transition-all duration-200">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <ImageIcon className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-white">Progressive Asset Kit</span>
+              <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                Optional · Tier 2
+              </span>
+              {hasAnyAsset && (
+                <span className="text-[9px] font-mono text-emerald-400 flex items-center gap-1">
+                  <Check className="w-2.5 h-2.5" /> Active Overrides
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-zinc-400 mt-0.5">
+              Add your real photo, project screenshots, or verified links to override template placeholders.
+            </p>
+          </div>
+        </div>
+        <ChevronRight className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="p-4 pt-2 border-t border-white/5 space-y-4 bg-zinc-950/80">
+          {/* Avatar Upload */}
+          <div>
+            <label className="text-[11px] font-medium text-zinc-300 block mb-1.5">
+              Profile Photo / Headshot
+            </label>
+            <input
+              type="file"
+              ref={avatarInputRef}
+              onChange={handleAvatarUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            {assets.avatarUrl ? (
+              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-zinc-900 border border-white/10">
+                <img
+                  src={assets.avatarUrl}
+                  alt="Headshot Preview"
+                  className="w-10 h-10 rounded-full object-cover border border-purple-500/40"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs text-white block truncate">Custom headshot loaded</span>
+                  <span className="text-[10px] text-emerald-400 font-mono">Will override template avatar</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...assets, avatarUrl: undefined })}
+                  className="p-1 text-zinc-400 hover:text-red-400 transition cursor-pointer"
+                  title="Remove headshot"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="w-full py-2.5 px-3 rounded-lg border border-dashed border-white/15 hover:border-purple-500/40 bg-zinc-900/40 hover:bg-zinc-900/70 text-zinc-400 hover:text-white transition flex items-center justify-center gap-2 text-xs cursor-pointer"
+              >
+                <CircleUserRound className="w-4 h-4 text-purple-400" />
+                <span>Upload portrait or headshot (PNG/JPG)</span>
+              </button>
+            )}
+          </div>
+
+          {/* Project Media */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-medium text-zinc-300">
+                Project Screenshots or Work Renders
+              </label>
+              <span className="text-[10px] font-mono text-zinc-500">
+                {(assets.projectImages || []).length} / 3 slots
+              </span>
+            </div>
+
+            <input
+              type="file"
+              ref={projectInputRef}
+              onChange={handleProjectImagesUpload}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
+
+            <div className="grid grid-cols-3 gap-2">
+              {(assets.projectImages || []).map((img, idx) => (
+                <div key={idx} className="relative group aspect-video rounded-lg overflow-hidden border border-white/10 bg-zinc-900">
+                  <img src={img} alt={`Project ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeProjectImage(idx)}
+                    className="absolute top-1 right-1 p-1 rounded-full bg-black/70 text-white/80 hover:text-red-400 opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  <span className="absolute bottom-1 left-1 px-1 py-0.5 rounded bg-black/60 text-[8px] font-mono text-zinc-300">
+                    Slot {idx + 1}
+                  </span>
+                </div>
+              ))}
+
+              {(assets.projectImages || []).length < 3 && (
+                <button
+                  type="button"
+                  onClick={() => projectInputRef.current?.click()}
+                  className="aspect-video rounded-lg border border-dashed border-white/15 hover:border-purple-500/40 bg-zinc-900/40 hover:bg-zinc-900/70 text-zinc-400 hover:text-white transition flex flex-col items-center justify-center gap-1 text-[11px] cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-purple-400" />
+                  <span>Add image</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Verified Social & Contact Links */}
+          <div>
+            <label className="text-[11px] font-medium text-zinc-300 block mb-1.5">
+              Verified Contact & Profile Channels
+            </label>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <input
+                type="text"
+                placeholder="LinkedIn URL (e.g. linkedin.com/in/...)"
+                value={assets.preferredSocials?.linkedin || ''}
+                onChange={e => handleSocialChange('linkedin', e.target.value)}
+                className="px-2.5 py-1.5 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-600 text-xs focus:outline-none focus:border-purple-500/50"
+              />
+              <input
+                type="text"
+                placeholder="GitHub URL (e.g. github.com/...)"
+                value={assets.preferredSocials?.github || ''}
+                onChange={e => handleSocialChange('github', e.target.value)}
+                className="px-2.5 py-1.5 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-600 text-xs focus:outline-none focus:border-purple-500/50"
+              />
+              <input
+                type="text"
+                placeholder="Portfolio / Site URL"
+                value={assets.preferredSocials?.portfolio || ''}
+                onChange={e => handleSocialChange('portfolio', e.target.value)}
+                className="px-2.5 py-1.5 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-600 text-xs focus:outline-none focus:border-purple-500/50"
+              />
+              <input
+                type="email"
+                placeholder="Contact Email"
+                value={assets.preferredSocials?.email || ''}
+                onChange={e => handleSocialChange('email', e.target.value)}
+                className="px-2.5 py-1.5 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-600 text-xs focus:outline-none focus:border-purple-500/50"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface InputStudioProps {
   resumeText: string
   resumeFileName: string
@@ -192,6 +430,8 @@ interface InputStudioProps {
   onGenerate: () => void
   isGeneratingBlueprint: boolean
   error?: string | null
+  userProvidedAssets: UserProvidedAssets
+  setUserProvidedAssets: React.Dispatch<React.SetStateAction<UserProvidedAssets>>
 }
 
 export interface CommunityTemplate {
@@ -293,6 +533,8 @@ function InputStudio({
   onGenerate,
   isGeneratingBlueprint,
   error,
+  userProvidedAssets,
+  setUserProvidedAssets,
 }: InputStudioProps) {
   const [jdMode, setJdMode] = useState<'text' | 'file'>('text')
   const [designTab, setDesignTab] = useState('moods')
@@ -457,6 +699,9 @@ function InputStudio({
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Tier 2: Progressive Asset Kit */}
+          <ProgressiveAssetKit assets={userProvidedAssets} onChange={setUserProvidedAssets} />
         </section>
 
         <section className="panel design-panel">
@@ -1837,6 +2082,18 @@ export function GrtrApp() {
   const [jobDescription, setJobDescription] = useState('')
   const [selectedDesign, setSelectedDesign] = useState('Minimal Monochrome')
 
+  // Tier 2: Progressive Asset Kit State
+  const [userProvidedAssets, setUserProvidedAssets] = useState<UserProvidedAssets>({
+    avatarUrl: undefined,
+    projectImages: [],
+    preferredSocials: {
+      linkedin: '',
+      github: '',
+      portfolio: '',
+      email: '',
+    },
+  })
+
   // Pipeline State
   const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
   const [isBuildingPortfolio, setIsBuildingPortfolio] = useState(false)
@@ -1914,6 +2171,7 @@ export function GrtrApp() {
           selectedDirectionIndex,
           resumeText,
           jobDescription,
+          userProvidedAssets,
         }),
       })
 
@@ -1992,6 +2250,8 @@ export function GrtrApp() {
               onGenerate={handleGenerateBlueprint}
               isGeneratingBlueprint={isGeneratingBlueprint}
               error={errorMessage}
+              userProvidedAssets={userProvidedAssets}
+              setUserProvidedAssets={setUserProvidedAssets}
             />
           )}
           {active === 2 && blueprint && (
