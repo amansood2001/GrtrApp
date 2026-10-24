@@ -17,96 +17,128 @@ function cleanJsonString(raw: string): string {
 
 // Extract basic target company & role metadata from JD
 function extractTargetMetadata(jobDescription: string): { company: string; role: string } {
-  let company = 'Target Enterprise'
-  let role = 'Growth Executive'
+  let company = ''
+  let role = ''
 
-  const matchAs = jobDescription.match(/(?:as\s+(?:a|an)\s+)([\w\s/]+?)\s+at\s+([\w\s&]+?)(?:[,.\n]|$)/i)
-  if (matchAs) {
-    role = matchAs[1].trim()
-    company = matchAs[2].trim()
-    return { company, role }
+  // 1. Check explicit "Company: ..." and "Role: / Position: / Title: ..." key-value headers
+  const companyMatch = jobDescription.match(/(?:Company|Organization|Employer):\s*([^\n\r,]+)/i)
+  if (companyMatch) {
+    company = companyMatch[1].trim()
   }
 
-  const jdLower = jobDescription.toLowerCase()
-  if (jdLower.includes('clevertap')) {
-    company = 'CleverTap'
-    role = jdLower.includes('sales intern') ? 'Sales Intern' : jdLower.includes('sales') ? 'Sales Executive' : 'Growth Specialist'
-  } else if (jdLower.includes('makemytrip')) {
-    company = 'MakeMyTrip'
-    role = 'Marketing Manager, Brand & Performance Growth'
-  } else if (jdLower.includes('linkedin')) {
-    company = 'LinkedIn'
-    role = jdLower.includes('data') ? 'Data Scientist' : jdLower.includes('marketing') ? 'Product Marketing Manager' : 'Enterprise Account Executive'
-  } else {
-    const lines = jobDescription.split('\n').map(l => l.trim()).filter(Boolean)
-    if (lines.length > 0 && (lines[0].includes('—') || lines[0].includes('-'))) {
-      const parts = lines[0].split(/[-—]/)
-      role = parts[0]?.trim() || role
-      company = parts[1]?.trim() || company
+  const roleMatch = jobDescription.match(/(?:Role|Position|Job Title|Title):\s*([^\n\r,]+)/i)
+  if (roleMatch) {
+    role = roleMatch[1].trim()
+  }
+
+  // 2. Check "as a/an [Role] at [Company]"
+  if (!role || !company) {
+    const matchAs = jobDescription.match(/(?:as\s+(?:a|an)\s+)([\w\s/]+?)\s+at\s+([\w\s&]+?)(?:[,.\n]|$)/i)
+    if (matchAs) {
+      if (!role) role = matchAs[1].trim()
+      if (!company) company = matchAs[2].trim()
     }
   }
 
-  return { company, role }
+  // 3. Check first line with hyphen / dash: e.g. "Founding Principal - Aether Labs" or "Aether Labs - Systems Architect"
+  if (!role || !company) {
+    const lines = jobDescription.split('\n').map(l => l.trim()).filter(Boolean)
+    if (lines.length > 0 && (lines[0].includes('—') || lines[0].includes('-') || lines[0].includes('|'))) {
+      const parts = lines[0].split(/[-—|]/)
+      if (parts.length >= 2) {
+        if (!role) role = parts[0]?.trim() || ''
+        if (!company) company = parts[1]?.trim() || ''
+      }
+    }
+  }
+
+  return {
+    company: company || 'Target Company',
+    role: role || 'Target Role'
+  }
 }
 
-// Thread 1: Company Intelligence Agent with Live Web Search
+// Thread 1: Company Intelligence & Strategic Teardown Agent (100% Dynamic from JD + CV)
 async function runCompanyResearch(
   openai: OpenAI,
   company: string,
   role: string,
-  resumeSnippet: string
+  resumeSnippet: string,
+  jobDescriptionSnippet: string
 ): Promise<TeardownDirection[]> {
   try {
     const researchPrompt = `You are an elite corporate intelligence analyst, principal management consultant, and executive hiring strategist.
-Perform live web search research on ${company} specifically through the professional lens of the ${role} domain.
-Find the latest commercial initiatives, product announcements, market pressures, competitive shifts, or executive priorities for ${company} in 2024-2026.
+Analyze the target company "${company}", the target role "${role}", and the candidate's actual CV credentials.
 
-Based on your live web findings, identify 3 distinct, high-impact strategic directions / challenges ${company} is currently navigating.
+TARGET JOB CONTEXT:
+\"\"\"
+${jobDescriptionSnippet.slice(0, 3000)}
+\"\"\"
+
+CANDIDATE CV / CREDENTIALS:
+\"\"\"
+${resumeSnippet.slice(0, 3000)}
+\"\"\"
+
+Formulate exactly 3 distinct, high-impact strategic directions / company teardowns that ${company} is navigating right now for this ${role} domain.
+EVERY field must be 100% bespoke and synthesized strictly from the target company's business model and the candidate's actual CV achievements.
+DO NOT use generic travel, marketing, or placeholder examples unless the CV and JD are explicitly about travel or marketing.
 
 For each direction, deliver deep, substantive analysis:
-1. angle: A crisp, compelling 3-5 word strategic title.
-2. observedChallenge: A thorough, incisive paragraph (3-5 sentences) diagnosing the real-world friction, competitive landscape, consumer/enterprise behavioral shifts, or commercial bottlenecks ${company} is facing, backed by real industry context.
-3. proposedStrategy: A concrete, actionable 3-step operator playbook detailing how an elite ${role} would systematically tackle this challenge, drive revenue/growth, and unlock untapped distribution.
-4. rightToWinProof: A persuasive paragraph explicitly demonstrating why this candidate possesses an unfair execution advantage to deliver on this strategy, citing concrete transferable capabilities and past proof (from: "${resumeSnippet.slice(0, 700)}").
+1. angle: A crisp, compelling 3-5 word strategic title (e.g., "Deterministic Consensus Latency Optimization", "Enterprise Model Observability Moat", etc.).
+2. observedChallenge: A thorough, incisive paragraph (3-4 sentences) diagnosing the real-world friction, architectural/commercial bottlenecks, or competitive landscape ${company} faces in this specific space.
+3. proposedStrategy: A concrete, actionable 3-step operator playbook detailing how an elite ${role} would systematically tackle this challenge, deliver enterprise velocity, and solve the bottleneck.
+4. rightToWinProof: A persuasive paragraph explicitly demonstrating why THIS specific candidate possesses an unfair execution advantage to deliver on this strategy, citing concrete transferable capabilities, quantified metrics, and named systems/companies from their CV.
 
-Return strictly a valid JSON array of 3 objects with keys: "angle", "observedChallenge", "proposedStrategy", "rightToWinProof".`
+Return strictly a valid JSON object with the key "directions" containing an array of 3 objects with keys: "angle", "observedChallenge", "proposedStrategy", "rightToWinProof".`
 
-    const response = await openai.responses.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o',
-      tools: [{ type: 'web_search_preview' }],
-      input: researchPrompt,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an elite corporate intelligence analyst and executive hiring strategist. You output strictly valid JSON conforming to the requested schema, grounded 100% in the supplied CV and JD without hallucinating or using hardcoded defaults.'
+        },
+        {
+          role: 'user',
+          content: researchPrompt
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.7,
     })
 
-    const rawText = response.output_text || ''
+    const rawText = response.choices[0]?.message?.content || ''
     const cleaned = cleanJsonString(rawText)
     const parsed = JSON.parse(cleaned)
 
-    if (Array.isArray(parsed) && parsed.length >= 2) {
-      return parsed.slice(0, 3) as TeardownDirection[]
+    const list = Array.isArray(parsed) ? parsed : parsed.directions || parsed.data || []
+    if (Array.isArray(list) && list.length >= 2) {
+      return list.slice(0, 3) as TeardownDirection[]
     }
   } catch (err) {
-    console.warn('[Blueprint] Live web search research failed or timed out, using analytical synthesis:', err)
+    console.warn('[Blueprint] Live strategic synthesis encountered an issue:', err)
   }
 
-  // Graceful fallback with rich executive depth if live search times out
+  // Pure dynamic fallback constructed directly from the provided role and company without ANY hardcoded SeekLab/MakeMyTrip strings
   return [
     {
-      angle: 'Enterprise Distribution & Loyalty Lock-in',
-      observedChallenge: `${company} faces intensifying customer acquisition costs across retail travel channels, where consumers exhibit low platform stickiness and high price sensitivity. While leisure travel remains dominant, the uncaptured enterprise whitespace—specifically high-margin SME business travel and corporate expense workflows—represents an immediate margin-expansion lever that traditional consumer marketing has plateaued on.`,
-      proposedStrategy: `Architect a dedicated B2B self-serve corporate booking portal embedded directly into popular SME HRMS and accounting platforms. Couple this with tiered corporate rewards that convert frequent business travelers into loyal brand evangelists, establishing a resilient negative-CAC distribution loop.`,
-      rightToWinProof: `Scaled 0-to-1 distribution across 500+ institutional accounts and generated $1M+ in net-new pipeline at SeekLab, combining programmatic partnership channels with multi-tier workflow onboarding.`
+      angle: `Core Architectural Scaling & Moats at ${company}`,
+      observedChallenge: `${company} operates at the frontier of high-throughput performance requirements where standard off-the-shelf paradigms introduce unacceptable latency, operational overhead, and scalability limits. As user demand and integration complexity compound, maintaining sub-millisecond reliability while driving capital efficiency represents an existential infrastructure milestone.`,
+      proposedStrategy: `1. Re-architect critical path data flow to eliminate non-deterministic bottlenecks. 2. Implement automated telemetry and self-healing distributed failovers. 3. Establish hardened benchmarking suites to continuously guard performance SLAs.`,
+      rightToWinProof: `Brings verified track record of scaling high-complexity, mission-critical systems under severe reliability constraints, as demonstrated by measurable production milestones highlighted in the candidate's CV.`
     },
     {
-      angle: 'Full-Funnel Conversion & Retention Velocity',
-      observedChallenge: `Top-of-funnel discovery campaigns at ${company} capture massive intent, but multi-step booking funnels experience sharp mid-funnel attrition, particularly across multi-destination and value-added auxiliary services. Without granular personalization and real-time behavioral nudges, potential lifetime value is systematically leaked to competing aggregators.`,
-      proposedStrategy: `Re-engineer the core user journey through intent-triggered micro-incentives, dynamic pricing transparency modules, and automated lifecycle activation cadences. Compress booking cycle times and implement predictive re-engagement loops across web and mobile surfaces.`,
-      rightToWinProof: `Delivered a verified +40% conversion rate lift across complex financial onboarding funnels at Ionic Wealth, compressing customer decision latency from two weeks to under 48 hours.`
+      angle: `Platform Reliability & Enterprise Integration Velocity`,
+      observedChallenge: `Accelerating institutional adoption for ${company} requires hardening interface boundaries and mitigating upstream dependency volatility. Without granular observability and robust deterministic guarantees, production deployments risk cascading failures and degraded partner trust.`,
+      proposedStrategy: `1. Isolate failure domains using asynchronous micro-queues and circuit breakers. 2. Establish rigorous automated contract testing for all internal and external APIs. 3. Compress developer iteration cycles with reproducible staging environments.`,
+      rightToWinProof: `Demonstrated experience diagnosing multi-layered systems friction and architecting resilient distributed primitives that unlock enterprise-grade execution velocity.`
     },
     {
-      angle: 'Omnichannel Ecosystem & Co-Selling Scale',
-      observedChallenge: `Expanding international market share and ancillary category penetration for ${company} requires entering localized ecosystems without disproportionately bloating fixed marketing spend. Relying purely on performance ad auctions creates a direct dependency on rising paid media costs rather than compounding organic distribution moats.`,
-      proposedStrategy: `Construct a programmatic co-marketing partner ecosystem integrating digital brokers, fintech credit providers, and regional lifestyle platforms. Implement automated co-branded landing experiences and shared revenue-attribution mechanisms to scale multi-region acquisition effortlessly.`,
-      rightToWinProof: `Built and orchestrated a distributed network of 500+ commercial partners across 10+ international markets, establishing automated outbound and co-selling systems that drove repeatable commercial scale.`
+      angle: `Zero-to-One Product & Technical Infrastructure Moats`,
+      observedChallenge: `Translating cutting-edge architectural vision into robust, long-term commercial software requires bridging foundational engineering rigor with real-world product velocity. Rapid feature expansion without foundational modularity introduces technical debt that decelerates future platform evolution.`,
+      proposedStrategy: `1. Establish modular architectural standards that decouple core primitives from application logic. 2. Standardize developer toolchains to maximize engineering leverage. 3. Deploy automated security, compliance, and regression verification across every release pipeline.`,
+      rightToWinProof: `Proven ability to lead technical architecture from inception through hyper-scale adoption, transforming complex engineering requirements into competitive product moats.`
     }
   ]
 }
@@ -134,30 +166,30 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
   "candidateName": "<Candidate full name extracted from CV>",
   "targetRole": "<Target role title from JD>",
   "targetCompany": "<Target company name from JD>",
-  "positioningHook": "<CRITICAL: Unforgettable 4 to 7 word editorial display headline with ONE focal word surrounded by asterisks for brand emphasis. Examples: 'Growth that *moves* people.', 'Finding the *signal* in the scale.', 'Turning buyer signals into enterprise *pipeline*.'. Never a paragraph.>",
-  "positioningSubtitle": "<Crisp 1-2 sentence executive thesis explaining how the candidate translates insight into demand and commercial velocity for the target company.>",
+  "positioningHook": "<CRITICAL: Unforgettable 4 to 7 word editorial display headline capturing the candidate's core domain mastery with ONE focal word surrounded by asterisks for brand emphasis (e.g. 'Engineering systems that *endure*.', 'Finding the *signal* in the scale.'). Derived 100% from candidate's actual CV and target role. Never a paragraph.>",
+  "positioningSubtitle": "<Crisp 1-2 sentence executive thesis explaining how the candidate translates expertise into foundational value, operational velocity, or commercial impact for the target company. Derived 100% from candidate's CV and target role.>",
   "companyBrand": {
-    "primaryColor": "<Authentic primary hex brand color for target company, e.g. MakeMyTrip is '#e41d24', CleverTap is '#0b63e5', LinkedIn is '#0a66c2', Stripe is '#635bff', etc.>",
-    "accentColor": "<Secondary accent hex, e.g. '#10b981', '#f1ca70', '#0a192f', or '#ff5722'>",
+    "primaryColor": "<Authentic primary hex brand color for target company, e.g. '#635bff', '#0052cc', '#0f172a', etc.>",
+    "accentColor": "<Secondary accent hex, e.g. '#10b981', '#f59e0b', '#3b82f6', or '#6366f1'>",
     "surfaceColor": "<Canvas surface hex: '#faf9f6' for warm editorial paper, '#f8fafc' for crisp neutral, '#0b0f19' for deep midnight>",
     "textColor": "<Main text hex color: '#0a192f' on light surfaces, '#f8fafc' on dark surfaces>",
     "metaphor": "<1 sentence on how the candidate's craft connects to the company's product>"
   },
   "stats": [
-    { "value": "<Headline stat 1 from CV, e.g. '$1M+', '+40%'>", "label": "<Short 2-3 word label>", "note": "<Short context note>" },
-    { "value": "<Stat 2>", "label": "<Label 2>", "note": "<Note 2>" },
-    { "value": "<Stat 3>", "label": "<Label 3>", "note": "<Note 3>" },
-    { "value": "<Stat 4>", "label": "<Label 4>", "note": "<Note 4>" }
+    { "value": "<Headline stat 1 from CV>", "label": "<Short 2-3 word label>", "note": "<Short context note>" },
+    { "value": "<Stat 2 from CV>", "label": "<Label 2>", "note": "<Note 2>" },
+    { "value": "<Stat 3 from CV>", "label": "<Label 3>", "note": "<Note 3>" },
+    { "value": "<Stat 4 from CV>", "label": "<Label 4>", "note": "<Note 4>" }
   ],
   "roles": [
     {
-      "year": "<Time period, e.g. 'JUN 25 — PRESENT'>",
+      "year": "<Time period from CV, e.g. '2023 — PRESENT'>",
       "company": "<Company name from CV>",
-      "title": "<Role title>",
+      "title": "<Role title from CV>",
       "location": "<Location or scope>",
       "accent": "<Hex color>",
       "number": "01",
-      "summary": "<1-sentence summary of what they built>",
+      "summary": "<1-sentence summary of what candidate built>",
       "outcomes": ["<Quantified outcome 1>", "<Quantified outcome 2>", "<Quantified outcome 3>"]
     },
     {
@@ -192,33 +224,33 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
     }
   ],
   "skills": {
-    "<Category 1>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
-    "<Category 2>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
-    "<Category 3>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"]
+    "<Domain Area 1>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
+    "<Domain Area 2>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"],
+    "<Domain Area 3>": ["<Skill 1>", "<Skill 2>", "<Skill 3>", "<Skill 4>"]
   },
   "caseStudies": [
     {
-      "title": "<Provocative editorial headline from candidate's top win #1, e.g. 'A map is only useful when it changes the route.'>",
+      "title": "<Provocative editorial headline from candidate's top win #1 from CV>",
       "detail": "<1-2 sentence narrative of the transferable methodology for the target company>",
-      "metric": "<Headline metric, e.g. '500+ Districts'>",
+      "metric": "<Headline metric from win #1>",
       "metricLabel": "<Short label>"
     },
     {
-      "title": "<Provocative editorial headline from candidate's top win #2, e.g. 'Growth compounds when more people open the door.'>",
+      "title": "<Provocative editorial headline from candidate's top win #2 from CV>",
       "detail": "<Detail 2>",
-      "metric": "<Metric 2, e.g. '+$1M Pipeline'>",
+      "metric": "<Headline metric from win #2>",
       "metricLabel": "<Label 2>"
     },
     {
-      "title": "<Provocative editorial headline from candidate's top win #3, e.g. 'Macro signals turned into decision-ready client narratives.'>",
+      "title": "<Provocative editorial headline from candidate's top win #3 from CV>",
       "detail": "<Detail 3>",
-      "metric": "<Metric 3, e.g. '85% Retention'>",
+      "metric": "<Headline metric from win #3>",
       "metricLabel": "<Label 3>"
     }
   ],
   "motionNarrative": {
     "headline": "Signal → System → Scale",
-    "detail": "Guiding recruiters from high-level positioning into indisputable quantitative proof."
+    "detail": "Guiding reviewers from high-level positioning into indisputable quantitative proof."
   },
   "fitStats": {
     "roleFit": "Exceptional",
@@ -255,7 +287,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BlueprintResp
 
     // Execute Thread 1 (Live Company Research) and Thread 2 (Candidate Proof & Blueprint Extraction) in PARALLEL
     const [researchDirections, candidateBlueprint] = await Promise.all([
-      runCompanyResearch(openai, company, role, resumeText),
+      runCompanyResearch(openai, company, role, resumeText, jobDescription),
       (async () => {
         const prompt = buildBlueprintPrompt(resumeText, jobDescription, designSystem)
         const completion = await openai.chat.completions.create({
