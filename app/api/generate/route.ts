@@ -8,10 +8,23 @@ export const maxDuration = 120
 
 // Curated Seed Chats existing directly inside your authenticated v0 workspace
 export const WORKSPACE_SEED_CHATS: Record<string, string> = {
+  // COMPUTE Template
   'COMPUTE — AI Platform Template': 'RKiDa7imLjw',
   'Compute': 'RKiDa7imLjw',
   'compute': 'RKiDa7imLjw',
   'RKiDa7imLjw': 'RKiDa7imLjw',
+
+  // EinCode Digital Lab
+  'EinCode Digital Lab': 'TirCdHf4EQ8',
+  'eincode': 'TirCdHf4EQ8',
+  'eincode-digital-lab': 'TirCdHf4EQ8',
+  'TirCdHf4EQ8': 'TirCdHf4EQ8',
+
+  // Exact Landing Page Clone
+  'Exact Landing Page Clone': 'jMO0lvF8j85',
+  'exact-landing-page-clone': 'jMO0lvF8j85',
+  'landing-page-clone': 'jMO0lvF8j85',
+  'jMO0lvF8j85': 'jMO0lvF8j85',
 }
 
 function buildSeedAdaptationPrompt(blueprint: StrategicBlueprint, selectedDirectionIndex: number = 0): string {

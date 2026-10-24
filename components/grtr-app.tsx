@@ -221,64 +221,28 @@ const communityTemplates: CommunityTemplate[] = [
     author: 'Compute (Workspace Verified)',
   },
   {
-    id: 'evBwFXFJcM9',
-    name: 'Modern Developer Portfolio',
-    archetype: 'Dark Obsidian · Smooth Motion',
-    category: 'Developer',
-    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot-2026-01-01-at-11.11.58%E2%80%AFAM-75MGc9XubNCPsB6ffBLtDmtgq4sHDm.jpg',
-    siteUrl: 'https://animated-nextjs-portfolio-swart.vercel.app',
-    description: 'Sleek dark developer showcase featuring glassmorphic cards, smooth animations, interactive project showcases, and tech stack badges.',
-    directive: 'Build directly upon the Modern Developer Portfolio architecture (evBwFXFJcM9): Sleek obsidian theme with frosted glass cards, fluid Framer Motion reveals, interactive project displays, and polished tech badges.',
-    bestFor: 'Fullstack Engineers & Tech Leads',
-    author: 'Ahsan Javed',
-  },
-  {
-    id: 'E3xFlIXCZi4',
-    name: 'Executive Impact Showcase',
-    archetype: 'Bold Typography · Metric Highlights',
-    category: 'Executive',
-    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/screenshots/dpl_2mBppWzodmwGLdSRkz73xkkt97fs-Z4Y3DAAD5Y75vloWANLHK540Wbac7j.jpg',
-    siteUrl: 'https://growthwithritesh.vercel.app',
-    description: 'Bold typography-driven layout with dynamic case studies, quantified achievements, and high-impact CTA section.',
-    directive: 'Build directly upon the Portfolio Website Design template (E3xFlIXCZi4): Bold typography-driven hero, highlighted executive metrics, strategic teardown case studies, and high-converting recruiter CTAs.',
-    bestFor: 'VPs, GTM Directors & C-Suite',
-    author: 'Ritesh Verma',
-  },
-  {
-    id: 'mA8N4h1POSv',
-    name: 'Bento Grid Portfolio',
-    archetype: 'Bento Grid · Interactive Cards',
-    category: 'Executive',
-    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/v0-portfolio-template-theta.vercel.app_%28Desktop%20windows%29-7wF0uGsuUYhxtiiaakDJrrDHxaAZT4.png',
-    siteUrl: 'https://v0-portfolio-template-theta.vercel.app',
-    description: 'Modern bento-grid layout with live metric cards, experience timeline, interactive project popovers, and responsive layout.',
-    directive: 'Build directly upon the Bento Portfolio template (mA8N4h1POSv): Dynamic bento-grid structure with metric stat callouts, interactive cards, career timeline, and modular content hierarchy.',
-    bestFor: 'Heads of Growth & Product Leaders',
-    author: 'theta',
-  },
-  {
-    id: 'JgcWH8Dw9d3',
-    name: 'Retro Screen Developer Showcase',
-    archetype: 'Retro Hardware · Analog Scanlines',
-    category: 'Developer',
-    imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/CleanShot%202026-03-20%20at%2008.25.31%402x%20Large-wKfkKOgM07ZRk683Kq4QXRl4pLz6Hw.jpeg',
-    siteUrl: 'https://v0-old-tv-screen-website.vercel.app',
-    description: 'Tactile CRT retro monitor showcase with analog scanline aesthetics, monospace telemetry, and hardware-inspired interactive components.',
-    directive: 'Build directly upon the Retro Hardware Showcase architecture (JgcWH8Dw9d3): Vintage CRT monitor aesthetic, analog scanline filters, stark monospace displays, and tactile interactive modules.',
-    bestFor: 'Founding Engineers & Systems Architects',
-    author: 'Yadwinder Singh',
-  },
-  {
-    id: 'dmRJapDTzFk',
-    name: 'Avant-Garde Creative Portfolio',
-    archetype: 'High Fashion · Asymmetric Grid',
+    id: 'TirCdHf4EQ8',
+    name: 'EinCode Digital Lab',
+    archetype: 'Creative Engineering · Interactive Labs',
     category: 'Design',
     imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot%202025-12-29%20at%2011.01.03%E2%80%AFPM-y21XKqv59SVVgzoEOMDtBOngIvfMLl.png',
-    siteUrl: 'https://1ui.dev',
-    description: 'High-end creative portfolio featuring asymmetric layouts, oversized editorial headings, and immersive visual project showcases.',
-    directive: 'Build directly upon the Avant-Garde Designer Showcase template (dmRJapDTzFk): High-end luxury editorial with asymmetric layouts, large display serif headings, and refined visual storytelling.',
-    bestFor: 'Design Directors & Creative Leaders',
-    author: '1ui',
+    siteUrl: 'https://v0.app/amansood2027-2411/chat/eincode-digital-lab-TirCdHf4EQ8',
+    description: 'Bespoke digital laboratory showcase featuring interactive project cards, dynamic portfolio grids, and sleek high-contrast typography.',
+    directive: 'Seed workspace chat duplicate from TirCdHf4EQ8',
+    bestFor: 'Creative Technologists, Product Designers & Frontend Architects',
+    author: 'EinCode (Workspace Verified)',
+  },
+  {
+    id: 'jMO0lvF8j85',
+    name: 'Exact Landing Page Clone',
+    archetype: 'High-Converting SaaS · Bold Layout',
+    category: 'Executive',
+    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/screenshots/dpl_2mBppWzodmwGLdSRkz73xkkt97fs-Z4Y3DAAD5Y75vloWANLHK540Wbac7j.jpg',
+    siteUrl: 'https://v0.app/amansood2027-2411/chat/exact-landing-page-clone-jMO0lvF8j85',
+    description: 'Precision high-conversion SaaS portfolio architecture with high-impact headline metrics, strategic case studies, and compelling recruiter conversion flows.',
+    directive: 'Seed workspace chat duplicate from jMO0lvF8j85',
+    bestFor: 'Growth Executives, VPs & Product Marketing Leaders',
+    author: 'Landing Clone (Workspace Verified)',
   },
 ]
 
@@ -616,6 +580,20 @@ function InputStudio({
                         </div>
                       )
                     })}
+
+                    {/* More Coming Soon Placeholder Card */}
+                    <div className="curated-template-card border-dashed border-white/10 bg-zinc-950/40 flex flex-col items-center justify-center p-6 text-center select-none min-h-[260px] rounded-xl hover:border-purple-500/30 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
+                        <Sparkles className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <strong className="text-xs text-white block font-medium">More Templates Coming Soon</strong>
+                      <p className="text-[10px] text-zinc-500 mt-1 max-w-[210px] leading-relaxed">
+                        Curating new executive bento grids, editorial showcases, and engineering consoles into your verified workspace.
+                      </p>
+                      <span className="mt-3.5 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[9px] font-mono text-purple-300">
+                        In Laboratory
+                      </span>
+                    </div>
                   </div>
 
                   {activeTemplate && (
