@@ -1705,6 +1705,7 @@ function LiveStudio({
   const [mobileTab, setMobileTab] = useState<'chat' | 'preview'>('preview')
   const [iframeKey, setIframeKey] = useState(0)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [agentStatus, setAgentStatus] = useState<{ active: boolean; currentStep?: string }>({ active: false })
 
   const reloadPreview = () => {
     setIframeKey(k => k + 1)
@@ -1771,6 +1772,7 @@ function LiveStudio({
         <StudioChat
           chatId={chatId}
           onUpdatePreview={reloadPreview}
+          onAgentStatusChange={setAgentStatus}
           contextLabel={`${roleText} @ ${companyText}`}
         />
       </aside>
@@ -1779,8 +1781,14 @@ function LiveStudio({
         <div className="studio-toolbar">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="status-dot" />
-              <span>{chatId ? 'Live Sandbox Active' : 'All changes saved'}</span>
+              <span className={`status-dot ${agentStatus.active ? 'bg-purple-400 animate-pulse' : ''}`} />
+              <span className={agentStatus.active ? 'text-purple-300 font-medium' : ''}>
+                {agentStatus.active
+                  ? `v0 Agent: ${agentStatus.currentStep || 'Working on updates...'}`
+                  : chatId
+                  ? 'Live Sandbox Active'
+                  : 'All changes saved'}
+              </span>
             </div>
             {chatId && (
               <div className="hidden sm:flex items-center gap-1.5 ml-2">
@@ -1833,7 +1841,18 @@ function LiveStudio({
           </div>
         </div>
 
-        <div className="preview-canvas">
+        <div className="preview-canvas relative">
+          {agentStatus.active && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-4 py-2 rounded-full bg-zinc-950/95 border border-purple-500/50 shadow-2xl backdrop-blur-md text-xs text-white pointer-events-none">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+              </span>
+              <span className="font-semibold text-purple-300">v0 Agent:</span>
+              <span className="text-zinc-200 font-medium">{agentStatus.currentStep || 'Modifying portfolio...'}</span>
+              <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">• Live compile in progress</span>
+            </div>
+          )}
           <div
             className={`preview-frame ${viewport}`}
             style={{ width: viewport === 'mobile' ? 375 : '100%', minHeight: '680px' }}

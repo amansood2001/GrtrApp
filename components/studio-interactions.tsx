@@ -1,7 +1,26 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Send, Loader2, RefreshCw, CheckCircle2, ExternalLink, Copy, Paperclip, X, Image as ImageIcon } from 'lucide-react'
+import {
+  ArrowRight,
+  Send,
+  Loader2,
+  RefreshCw,
+  CheckCircle2,
+  ExternalLink,
+  Copy,
+  Paperclip,
+  X,
+  Brain,
+  Terminal,
+  FileCode,
+  FolderOpen,
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
+  Wrench,
+  Check,
+} from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
 
 export const portfolioPlaceholders = {
@@ -24,7 +43,6 @@ export function ProjectHighlights({ caseStudies }: { caseStudies?: CaseStudyItem
   const items = caseStudies && caseStudies.length > 0 ? caseStudies : defaultProjects
   const [indices, setIndices] = useState([0, 1 % items.length, 2 % items.length])
 
-  // Sync if new case studies arrive
   useEffect(() => {
     if (caseStudies && caseStudies.length > 0) {
       setIndices([0, 1 % caseStudies.length, 2 % caseStudies.length])
@@ -75,10 +93,63 @@ export function ProjectHighlights({ caseStudies }: { caseStudies?: CaseStudyItem
   )
 }
 
-interface StudioChatProps {
-  chatId?: string | null
-  onUpdatePreview?: () => void
-  contextLabel?: string
+export type MessagePart =
+  | {
+      type: 'thinking'
+      text: string
+      startedAt?: string | Date
+      finishedAt?: string | Date
+    }
+  | {
+      type: 'file-read'
+      paths: string[]
+      startedAt?: string | Date
+      finishedAt?: string | Date
+    }
+  | {
+      type: 'file-edit'
+      operation: 'create' | 'update' | 'delete' | 'rename' | 'patch'
+      path: string
+      toPath?: string
+      startedAt?: string | Date
+      finishedAt?: string | Date
+    }
+  | {
+      type: 'bash'
+      command: string
+      output?: string
+      exitCode?: number | null
+      startedAt?: string | Date
+      finishedAt?: string | Date
+    }
+  | {
+      type: 'search'
+      scope: 'repo' | 'web'
+      query: string
+      startedAt?: string | Date
+      finishedAt?: string | Date
+    }
+  | {
+      type: 'tool-call' | 'agent-action'
+      [key: string]: any
+    }
+  | {
+      type: 'text'
+      text: string
+      startedAt?: string | Date
+      finishedAt?: string | Date
+    }
+
+export interface StudioMessage {
+  id?: string
+  role: 'user' | 'assistant'
+  text?: string
+  content?: string
+  parts?: MessagePart[]
+  attachedFiles?: string[]
+  status?: 'streaming' | 'done' | 'error'
+  error?: string
+  publicUrl?: string
 }
 
 export interface ChatAttachment {
@@ -87,25 +158,285 @@ export interface ChatAttachment {
   contentType: string
 }
 
-export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChatProps) {
+interface StudioChatProps {
+  chatId?: string | null
+  onUpdatePreview?: () => void
+  onAgentStatusChange?: (status: { active: boolean; currentStep?: string }) => void
+  contextLabel?: string
+}
+
+function friendlyFileName(path: string): string {
+  if (path.includes('globals.css')) return 'portfolio theme'
+  if (path.includes('page.tsx')) return 'page shell'
+  if (path.includes('layout.tsx')) return 'layout & fonts'
+  if (path.includes('executive-portfolio.tsx')) return 'portfolio UI'
+  if (path.includes('next.config')) return 'next build config'
+  if (path.includes('package.json')) return 'project dependencies'
+  return path.split('/').pop() || path
+}
+
+function calculateSeconds(startedAt?: string | Date, finishedAt?: string | Date): number | null {
+  if (!startedAt || !finishedAt) return null
+  const s = new Date(startedAt).getTime()
+  const f = new Date(finishedAt).getTime()
+  if (isNaN(s) || isNaN(f)) return null
+  return Math.max(1, Math.round((f - s) / 1000))
+}
+
+function ThinkingBlock({ part, isStreaming }: { part: { text: string; startedAt?: string | Date; finishedAt?: string | Date }; isStreaming?: boolean }) {
+  const [open, setOpen] = useState(false)
+  const duration = calculateSeconds(part.startedAt, part.finishedAt)
+
+  return (
+    <div className="my-1.5 rounded-lg border border-white/10 bg-zinc-900/60 overflow-hidden text-xs">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-2 text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <Brain className={`w-3.5 h-3.5 ${isStreaming && !part.finishedAt ? 'text-purple-400 animate-pulse' : 'text-zinc-400'}`} />
+          <span className="font-medium text-[11px]">
+            {duration ? `Thought for ${duration}s` : isStreaming && !part.finishedAt ? 'Thinking through layout...' : 'Thought process'}
+          </span>
+        </div>
+        {open ? <ChevronDown className="w-3 h-3 text-zinc-500" /> : <ChevronRight className="w-3 h-3 text-zinc-500" />}
+      </button>
+      {open && (
+        <div className="px-3 pb-2.5 pt-1 text-zinc-400 font-mono text-[11px] leading-relaxed whitespace-pre-wrap border-t border-white/5 max-h-56 overflow-y-auto">
+          {part.text || 'Analyzing layout structure and directives...'}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FileReadBlock({ paths }: { paths: string[] }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="my-1 rounded-lg border border-white/10 bg-zinc-900/40 text-xs overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <FolderOpen className="w-3.5 h-3.5 text-blue-400" />
+          <span className="text-[11px] font-medium">Explore • {paths.length} {paths.length === 1 ? 'File' : 'Files'}</span>
+        </div>
+        {open ? <ChevronDown className="w-3 h-3 text-zinc-500" /> : <ChevronRight className="w-3 h-3 text-zinc-500" />}
+      </button>
+      {open && (
+        <div className="px-3 py-1.5 border-t border-white/5 space-y-1">
+          {paths.map((p, idx) => (
+            <div key={idx} className="flex items-center gap-2 text-[11px] text-zinc-400 font-mono">
+              <span className="text-zinc-500">↳</span>
+              <span>Reviewed {friendlyFileName(p)}</span>
+              <span className="text-zinc-600 text-[10px]">({p})</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FileEditBlock({ part }: { part: { operation: string; path: string } }) {
+  const isCreate = part.operation === 'create'
+  return (
+    <div className="my-1 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 bg-zinc-900/40 text-xs">
+      <FileCode className={`w-3.5 h-3.5 ${isCreate ? 'text-emerald-400' : 'text-purple-400'}`} />
+      <span className="font-medium text-[11px] text-zinc-300">
+        {isCreate ? 'Created' : 'Updated'} {friendlyFileName(part.path)}
+      </span>
+      <span className="text-zinc-600 font-mono text-[10px] ml-auto truncate max-w-[140px]">{part.path}</span>
+    </div>
+  )
+}
+
+function BashBlock({ part }: { part: { command: string; output?: string } }) {
+  const [open, setOpen] = useState(false)
+  const isBuild = part.command.includes('build')
+  const isBrowser = part.command.includes('agent-browser')
+
+  let title = 'Executed task'
+  if (isBuild) title = 'Checked redesigned build'
+  else if (isBrowser) title = 'Verified interactive browser preview'
+  else if (part.command.includes('shadcn')) title = 'Configured UI primitives'
+
+  return (
+    <div className="my-1 rounded-lg border border-white/10 bg-zinc-900/40 text-xs overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <Terminal className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-medium text-[11px]">{title}</span>
+        </div>
+        {open ? <ChevronDown className="w-3 h-3 text-zinc-500" /> : <ChevronRight className="w-3 h-3 text-zinc-500" />}
+      </button>
+      {open && (
+        <div className="p-2.5 bg-black/60 border-t border-white/5 font-mono text-[10.5px] text-zinc-300 overflow-x-auto max-h-48 overflow-y-auto space-y-1">
+          <div className="text-zinc-500">$ {part.command}</div>
+          {part.output && <div className="text-zinc-400 whitespace-pre-wrap">{part.output}</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MarkdownRenderer({ content }: { content: string }) {
+  const urlMatch = content.match(/(https?:\/\/[^\s\)\*]+)/)
+  const url = urlMatch ? urlMatch[1] : null
+
+  // Simple, clean markdown line-by-line renderer
+  const lines = content.split('\n')
+
+  return (
+    <div className="space-y-1.5 text-xs text-zinc-200 leading-relaxed">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim()
+        if (!trimmed) return <div key={idx} className="h-1" />
+
+        // Bullet point
+        if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ')) {
+          const itemText = trimmed.replace(/^[-•*]\s*/, '')
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1">
+              <span className="text-purple-400 mt-1 shrink-0">•</span>
+              <span>{renderFormattedInline(itemText)}</span>
+            </div>
+          )
+        }
+
+        // Header ###
+        if (trimmed.startsWith('### ')) {
+          return (
+            <h4 key={idx} className="font-semibold text-white text-xs pt-1">
+              {trimmed.slice(4)}
+            </h4>
+          )
+        }
+
+        // Header ##
+        if (trimmed.startsWith('## ')) {
+          return (
+            <h3 key={idx} className="font-bold text-white text-sm pt-1">
+              {trimmed.slice(3)}
+            </h3>
+          )
+        }
+
+        return <p key={idx}>{renderFormattedInline(line)}</p>
+      })}
+
+      {url && (
+        <div className="flex items-center gap-2 pt-2">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors no-underline shadow-sm"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Open Live Site</span>
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(url)
+              alert('Live link copied to clipboard!')
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer border border-zinc-700"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            <span>Copy Link</span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function renderFormattedInline(text: string) {
+  // Replace **bold** with <strong>
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-semibold text-white">
+          {part.slice(2, -2)}
+        </strong>
+      )
+    }
+    // Replace `code` with <code>
+    const subparts = part.split(/(`[^`]+`)/g)
+    return subparts.map((sub, j) => {
+      if (sub.startsWith('`') && sub.endsWith('`')) {
+        return (
+          <code key={j} className="px-1 py-0.5 rounded bg-zinc-800 font-mono text-[11px] text-purple-300">
+            {sub.slice(1, -1)}
+          </code>
+        )
+      }
+      return sub
+    })
+  })
+}
+
+export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel }: StudioChatProps) {
   const [draft, setDraft] = useState('')
   const [attachments, setAttachments] = useState<ChatAttachment[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string; attachedFiles?: string[] }[]>([
+  const [messages, setMessages] = useState<StudioMessage[]>([
     {
       role: 'assistant',
       text: chatId
         ? `Live studio connected. I can adjust your positioning, re-order evidence, sharpen the strategic teardown, or swap in custom assets in real-time.`
         : `Executive Studio Copilot ready. Prompt any modification to your strategic positioning, company teardown, or interaction physics.`,
+      status: 'done',
     },
   ])
-  const [typing, setTyping] = useState(false)
+  const [streaming, setStreaming] = useState(false)
   const busy = useRef(false)
   const end = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    end.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
-  }, [messages, typing])
+    end.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [messages, streaming])
+
+  // Load message history from v0 when chatId is available
+  useEffect(() => {
+    if (!chatId) return
+
+    let cancelled = false
+    async function loadHistory() {
+      try {
+        const res = await fetch(`/api/chat?chatId=${encodeURIComponent(chatId!)}`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.success && Array.isArray(data.messages) && data.messages.length > 0 && !cancelled) {
+          const loaded: StudioMessage[] = data.messages.map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            text: m.content || '',
+            parts: m.parts || [],
+            status: 'done',
+          }))
+          setMessages(loaded)
+        }
+      } catch (e) {
+        console.warn('Could not load chat history:', e)
+      }
+    }
+
+    loadHistory()
+    return () => {
+      cancelled = true
+    }
+  }, [chatId])
 
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -143,26 +474,20 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
     setAttachments(prev => prev.filter((_, i) => i !== index))
   }
 
-  // Track chatId connection
-  useEffect(() => {
-    if (chatId) {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://grtr-woad.vercel.app'
-      const liveUrl = `${origin}/api/preview/${chatId}`
-
-      setMessages(prev => {
-        if (!prev.some(m => m.text.includes('Live sandbox connected'))) {
-          return [
-            ...prev,
-            {
-              role: 'assistant',
-              text: `🚀 Live sandbox connected!\n\nPublic recruiter preview: ${liveUrl}\n\nAll prompt directives and attached assets now modify your live portfolio in real time.`,
-            },
-          ]
-        }
-        return prev
-      })
+  function determineCurrentStep(parts: MessagePart[]): string {
+    if (!parts || parts.length === 0) return 'Analyzing directive...'
+    const last = parts[parts.length - 1]
+    if (last.type === 'thinking') return 'Reasoning through layout...'
+    if (last.type === 'file-read') return `Reading ${last.paths.length} project file${last.paths.length > 1 ? 's' : ''}...`
+    if (last.type === 'file-edit') return `${last.operation === 'create' ? 'Creating' : 'Updating'} ${friendlyFileName(last.path)}...`
+    if (last.type === 'bash') {
+      if (last.command.includes('build')) return 'Checking redesigned build...'
+      if (last.command.includes('agent-browser')) return 'Verifying interactive preview...'
+      return 'Running compilation check...'
     }
-  }, [chatId])
+    if (last.type === 'text') return 'Finalizing updates...'
+    return 'Refining portfolio...'
+  }
 
   async function send(text: string) {
     const currentAttachments = [...attachments]
@@ -170,17 +495,28 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
     if (!value || busy.current) return
     busy.current = true
 
-    setMessages(m => [
-      ...m,
+    // Append user message
+    setMessages(prev => [
+      ...prev,
       {
         role: 'user',
         text: value,
         attachedFiles: currentAttachments.map(a => a.name),
+        status: 'done',
+      },
+      // Append assistant placeholder for streaming
+      {
+        role: 'assistant',
+        parts: [],
+        text: '',
+        status: 'streaming',
       },
     ])
+
     setDraft('')
     setAttachments([])
-    setTyping(true)
+    setStreaming(true)
+    onAgentStatusChange?.({ active: true, currentStep: 'Analyzing directive...' })
 
     if (chatId) {
       try {
@@ -194,106 +530,188 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
             attachments: currentAttachments,
           }),
         })
-        const data = await res.json()
-        if (data.success) {
-          setMessages(m => [
-            ...m,
-            {
-              role: 'assistant',
-              text: data.text || `Applied your directive to the live portfolio sandbox. Preview updated.`,
-            },
-          ])
-          onUpdatePreview?.()
-        } else {
-          setMessages(m => [
-            ...m,
-            { role: 'assistant', text: `Failed to update: ${data.error || 'Server error'}` },
-          ])
+
+        if (!res.ok) {
+          throw new Error(`Server returned HTTP ${res.status}`)
+        }
+
+        const reader = res.body?.getReader()
+        if (!reader) {
+          throw new Error('No streaming body available')
+        }
+
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value: chunk } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(chunk, { stream: true })
+          const blocks = buffer.split('\n\n')
+          buffer = blocks.pop() || ''
+
+          for (const block of blocks) {
+            const trimmed = block.trim()
+            if (!trimmed.startsWith('data: ')) continue
+            const jsonText = trimmed.slice(6).trim()
+            if (!jsonText) continue
+
+            try {
+              const payload = JSON.parse(jsonText)
+              const parts: MessagePart[] = payload.parts || []
+              const status: 'streaming' | 'done' | 'error' = payload.status || 'streaming'
+
+              // Extract assistant text prose from parts
+              const textParts = parts.filter(p => p.type === 'text') as Array<{ type: 'text'; text: string }>
+              const combinedText = textParts.map(p => p.text).join('\n\n')
+
+              // Update the assistant message in real time
+              setMessages(prev => {
+                const next = [...prev]
+                const lastIdx = next.length - 1
+                if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+                  next[lastIdx] = {
+                    ...next[lastIdx],
+                    parts,
+                    text: combinedText,
+                    status,
+                    error: payload.error,
+                    publicUrl: payload.publicUrl,
+                  }
+                }
+                return next
+              })
+
+              const stepText = determineCurrentStep(parts)
+              onAgentStatusChange?.({
+                active: status === 'streaming',
+                currentStep: status === 'done' ? 'Completed' : stepText,
+              })
+
+              if (status === 'done') {
+                // Auto-refresh the live preview iframe!
+                onUpdatePreview?.()
+              }
+            } catch (parseErr) {
+              console.warn('SSE block parse error:', parseErr)
+            }
+          }
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Network error'
-        setMessages(m => [
-          ...m,
-          { role: 'assistant', text: `Connection error: ${msg}. Please retry.` },
-        ])
+        setMessages(prev => {
+          const next = [...prev]
+          const lastIdx = next.length - 1
+          if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+            next[lastIdx] = {
+              ...next[lastIdx],
+              status: 'error',
+              error: msg,
+              text: `Connection error: ${msg}. Please retry.`,
+            }
+          }
+          return next
+        })
       } finally {
         busy.current = false
-        setTyping(false)
+        setStreaming(false)
+        onAgentStatusChange?.({ active: false, currentStep: 'Done' })
       }
     } else {
-      // Direct local feedback if sandbox is compiling or offline
+      // Local fallback if no live sandbox chatId is connected
       setTimeout(() => {
-        setMessages(m => [
-          ...m,
-          {
-            role: 'assistant',
-            text: `Directive received: "${value}". Calibrated positioning and refreshed interactive preview.`,
-          },
-        ])
+        setMessages(prev => {
+          const next = [...prev]
+          const lastIdx = next.length - 1
+          if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+            next[lastIdx] = {
+              ...next[lastIdx],
+              status: 'done',
+              text: `Directive received: "${value}". Calibrated positioning and refreshed interactive preview.`,
+            }
+          }
+          return next
+        })
         busy.current = false
-        setTyping(false)
+        setStreaming(false)
+        onAgentStatusChange?.({ active: false, currentStep: 'Done' })
         onUpdatePreview?.()
       }, 500)
     }
   }
 
-  const renderMessageContent = (text: string) => {
-    const urlMatch = text.match(/(https?:\/\/[^\s\)\*]+)/)
-    const url = urlMatch ? urlMatch[1] : null
-
-    return (
-      <div className="space-y-2">
-        <div className="whitespace-pre-wrap">{text}</div>
-        {url && (
-          <div className="flex items-center gap-2 pt-2">
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors no-underline"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Open Live Site</span>
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(url)
-                alert('Live link copied to clipboard!')
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer border border-zinc-700"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span>Copy Link</span>
-            </button>
-          </div>
-        )}
-      </div>
-    )
-  }
-
   return (
     <div className="studio-chat-interactive">
       <div className="messages" role="log" aria-label="Studio chat history" aria-live="polite">
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === 'user' ? 'user-message' : 'ai-message'}>
-            {m.attachedFiles && m.attachedFiles.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {m.attachedFiles.map((name, fIdx) => (
-                  <span key={fIdx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono">
-                    <Paperclip className="w-2.5 h-2.5" />
-                    <span>{name}</span>
-                  </span>
-                ))}
+        {messages.map((m, i) => {
+          if (m.role === 'user') {
+            return (
+              <div key={i} className="user-message">
+                {m.attachedFiles && m.attachedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {m.attachedFiles.map((name, fIdx) => (
+                      <span key={fIdx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono">
+                        <Paperclip className="w-2.5 h-2.5" />
+                        <span>{name}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="whitespace-pre-wrap">{m.text}</div>
               </div>
-            )}
-            {renderMessageContent(m.text)}
-          </div>
-        ))}
-        {typing && (
-          <p role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            )
+          }
+
+          // Assistant message
+          const parts = m.parts || []
+          const hasParts = parts.length > 0
+          const textContent = m.text || ''
+
+          return (
+            <div key={i} className="ai-message space-y-2">
+              {hasParts && (
+                <div className="space-y-1 mb-2">
+                  {parts.map((p, pIdx) => {
+                    if (p.type === 'thinking') {
+                      return <ThinkingBlock key={pIdx} part={p} isStreaming={m.status === 'streaming'} />
+                    }
+                    if (p.type === 'file-read') {
+                      return <FileReadBlock key={pIdx} paths={p.paths} />
+                    }
+                    if (p.type === 'file-edit') {
+                      return <FileEditBlock key={pIdx} part={p} />
+                    }
+                    if (p.type === 'bash') {
+                      return <BashBlock key={pIdx} part={p} />
+                    }
+                    return null
+                  })}
+                </div>
+              )}
+
+              {textContent ? (
+                <MarkdownRenderer content={textContent} />
+              ) : m.status === 'streaming' ? (
+                <div className="flex items-center gap-2 text-xs text-purple-300 py-1">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                  <span>Agent is working on your portfolio...</span>
+                </div>
+              ) : null}
+
+              {m.error && (
+                <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2.5">
+                  {m.error}
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {streaming && (
+          <p role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
-            <span>{chatId ? 'Grtr AI updating live sandbox…' : 'Synthesizing changes…'}</span>
+            <span>v0 Agent live in progress…</span>
           </p>
         )}
         <div ref={end} />
@@ -307,7 +725,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
           'Make navbar sleek obsidian',
           'Tune spring physics & motion reveals',
         ].map(text => (
-          <button key={text} disabled={typing} onClick={() => send(text)}>
+          <button key={text} disabled={streaming} onClick={() => send(text)}>
             {text}
             <ArrowRight />
           </button>
@@ -378,7 +796,7 @@ export function StudioChat({ chatId, onUpdatePreview, contextLabel }: StudioChat
 
           <button
             aria-label="Send message"
-            disabled={typing || (!draft.trim() && attachments.length === 0)}
+            disabled={streaming || (!draft.trim() && attachments.length === 0)}
             onClick={() => send(draft)}
             className="p-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition cursor-pointer"
           >
