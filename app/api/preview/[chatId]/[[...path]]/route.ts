@@ -469,32 +469,19 @@ export async function GET(req: NextRequest, context: RouteContext) {
         })
       }
 
-      const prefix = `/api/preview/${chatId}`
-
-      // Define Turbopack chunk base path right before any chunks load
-      const chunkSetup = `<script>window.TURBOPACK_CHUNK_BASE_PATH = "${prefix}/_next/";</script>`
-
-      // Rewrite /_next/ URLs cleanly with exactly one prefix
-      html = html.replaceAll('/_next/', `${prefix}/_next/`)
-      html = html.replaceAll(new RegExp(`(${prefix})+/_next/`, 'g'), `${prefix}/_next/`)
-
-      // Rewrite /v0-runtime-dist.js through proxy
-      html = html.replaceAll('src="/v0-runtime-dist.js"', `src="${prefix}/v0-runtime-dist.js"`)
-      html = html.replaceAll('href="/v0-runtime-dist.js"', `href="${prefix}/v0-runtime-dist.js"`)
-
-      if (html.includes('<head>')) {
-        html = html.replace('<head>', `<head>\n  ${chunkSetup}`)
-      } else {
-        html = `${chunkSetup}\n${html}`
-      }
-
-      return new NextResponse(html, {
+      const response = new NextResponse(html, {
         status: previewResponse.status,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'no-store, max-age=0',
         },
       })
+      response.cookies.set('v0_preview_chat', chatId, {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 3600,
+      })
+      return response
     }
 
     return previewResponse
