@@ -214,7 +214,7 @@ const communityTemplates: CommunityTemplate[] = [
     archetype: 'Dark Glass · High-Tech Velocity',
     category: 'Developer',
     imageUrl: 'https://gvsmhepiuiax2e6y.public.blob.vercel-storage.com/templates/assets/Screenshot-2026-01-01-at-11.11.58%E2%80%AFAM-75MGc9XubNCPsB6ffBLtDmtgq4sHDm.jpg',
-    siteUrl: 'https://compute-the-platform-to-build-ship-ai-agents-k2gt4ri9.v0.build',
+    siteUrl: 'https://compute-the-platform-to-build-ship-ai-agents-k2gt4ri9.v0.build/',
     description: 'High-velocity AI agent platform template featuring deep obsidian glass, live interactive telemetry controls, and sleek modern typography.',
     directive: 'Seed workspace chat duplicate from RKiDa7imLjw',
     bestFor: 'Founding GTM, Product Leads & Systems Architects',
