@@ -44,7 +44,9 @@ CRITICAL ADAPTATION DIRECTIVES:
 async function synthesizeV0Prompt(
   blueprint: StrategicBlueprint,
   designSystem: string,
-  selectedDirectionIndex: number = 0
+  selectedDirectionIndex: number = 0,
+  resumeText: string = '',
+  jobDescription: string = ''
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -53,7 +55,6 @@ async function synthesizeV0Prompt(
 
   const openai = new OpenAI({ apiKey })
   const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
-  const cleanEmail = `${blueprint.candidateName.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
 
   const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface to have it build your executive career portfolio.
 
@@ -63,44 +64,49 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
   "Build an extraordinary, bespoke executive career portfolio for me. My name is ${blueprint.candidateName}, and I'm positioning myself for the ${blueprint.targetRole} role at ${blueprint.targetCompany}..."
 - NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
 - Talk to v0 with authority, taste, and clarity.
-- HIGH-AGENCY & VISUAL DIRECTION (DO NOT OVER-SPECIFY):
-  * Avoid walls of text. Make this visually driven and interactive with interesting elements.
-  * DO NOT micromanage or hardcode minute component details, exact pixel dimensions, or rigid borders. Give v0 room to exercise its frontend and design reasoning intelligence.
-  * Clearly set the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
-- DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
-  * You MUST include an explicit section for domain-tailored delight with the following directive:
-    "Domain-tailored delight: Bring in subtle, playful touches and micro-interactions that make this feel unmistakably built for the ${blueprint.targetRole} role at ${blueprint.targetCompany} (e.g. travel/flight motifs, ambient cursors, or interactive routes)."
-- NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
-- DEDICATED MOTION DESIGN & MICRO-INTERACTIONS:
-  * Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
-  * Use elegant Tailwind CSS hover states and micro-interactions (e.g. subtle card lifts hover:-translate-y-1, tactile button presses, snappy role tab switches, and animated proof accordions).
-  * Keep motion restrained, snappy, and executive—feeling like a high-end application (e.g. Linear, Stripe, or Vercel).
-- STYLING & COMPONENT ARCHITECTURE: Instruct v0 to implement the complete Next.js React client component ('use client') using Tailwind CSS classes for all styling and high-contrast typography, ensuring full interactivity (useState for tabs, modals, accordions) and immediate visibility on page load.
-- ABSOLUTE DATA INTEGRITY: You MUST preserve all exact numbers and metrics from my background (e.g. ${blueprint.stats?.map(s => s.value).join(', ') || '$1M+, +40%, 500+'}), authentic companies (${blueprint.roles?.map(r => r.company).join(', ') || 'SeekLab Inc, Ionic Wealth by AngelOne'}), verified email (${cleanEmail}), and spotlighted proof cases.
 
-STRUCTURE OF YOUR PROMPT:
+HIGH-AGENCY & VISUAL DIRECTION (DO NOT OVER-SPECIFY):
+- Avoid walls of plain text. Make this portfolio visually driven, engaging, and interactive with interesting elements.
+- DO NOT micromanage or hardcode minute component details, exact pixel dimensions, or rigid borders. Give v0 room to exercise its frontend design reasoning intelligence.
+- Clearly set the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
+
+JD & CV SEMANTIC ALIGNMENT (CRITICAL):
+- Carefully analyze my attached Full CV in the direct context of the attached Job Description.
+- In Section 4 (Authentic Career Track Record & Domain Strengths), craft an authentic, comprehensive narrative of my real career milestones, leadership scope, and domain capabilities extracted directly from my CV. Tailor this presentation specifically to address the employer's core challenges, responsibilities, and required competencies outlined in the JD, demonstrating why my track record makes me the ideal operator for this role.
+- NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
+- Extract any verified contact details (email, LinkedIn) directly from my CV for the recruiter contact modal.
+
+DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
+- Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
+- Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain (e.g. for fintech: live ticker pulses or balance ledgers; for travel: route maps or flight cursors; for devtools: terminal readouts or deployment pipelines; for data/AI: telemetry graphs or model simulators).
+- Instruct v0 to incorporate these domain-specific delight touches into the user experience.
+
+MOTION DESIGN & SANDBOX STABILITY:
+- Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
+- Instruct v0 to implement the complete Next.js React client component ('use client') using standard React hooks (useState) and Tailwind CSS classes for all styling and interactions, ensuring the code compiles and renders smoothly in the sandbox without unimported third-party packages.
+- Keep motion restrained, snappy, and executive—feeling like a high-end application (e.g. Linear, Stripe, or Vercel).
+
+STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Executive Positioning Thesis
 2. My Strategic Operator Thesis for ${blueprint.targetCompany} (The Commercial Opportunity, My 3-Step Playbook, My Right-to-Win)
-3. Verified Metrics & 3 Spotlighted Proof Cases (with numbers and impact, rendered visually and interactively)
-4. Authentic Career Track Record & Domain Strengths (written in natural prose)
+3. Verified Metrics & Highlighted Proof Cases (rendered as visual, interactive components)
+4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
 6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany}
-7. Motion Design, Physics & Micro-Interactions (with immediate first-paint visibility)
-8. Direct Contact Modal (mailto:${cleanEmail})`
+7. Motion Design, Snappy Interactivity & First-Paint Visibility
+8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
   const userContext = {
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
     candidateName: blueprint.candidateName,
-    positioningHook: blueprint.positioningHook,
-    positioningSubtitle: blueprint.positioningSubtitle,
-    aestheticDirective: designSystem,
-    strategicProblemAndRightToWin: activeDirection,
+    approvedPositioningHook: blueprint.positioningHook,
+    approvedPositioningSubtitle: blueprint.positioningSubtitle,
+    selectedStrategicDirection: activeDirection,
     highlightedProofCases: blueprint.caseStudies,
-    careerHistory: blueprint.roles,
-    headlineStats: blueprint.stats,
-    skills: blueprint.skills,
-    cleanEmail,
+    selectedDesignSystem: designSystem,
+    fullCvText: resumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
+    fullJobDescription: jobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
   }
 
   const completion = await openai.chat.completions.create({
@@ -125,11 +131,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
     const {
       blueprint,
       designSystem = 'Microsoft Fluent 2',
-      selectedDirectionIndex = 0
+      selectedDirectionIndex = 0,
+      resumeText = '',
+      jobDescription = '',
     }: {
       blueprint: StrategicBlueprint
       designSystem?: string
       selectedDirectionIndex?: number
+      resumeText?: string
+      jobDescription?: string
     } = await req.json()
 
     if (!blueprint || !blueprint.candidateName) {
@@ -172,7 +182,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
     // Default Flow: Master First-Person Synthesizer (OpenAI) writes the bespoke prompt for v0
     console.log(`[Prompt Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}"...`)
     const startTime = Date.now()
-    const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex)
+    const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription)
     console.log(`[Prompt Synthesizer] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)

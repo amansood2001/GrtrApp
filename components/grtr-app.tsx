@@ -1963,6 +1963,8 @@ export function GrtrApp() {
           blueprint,
           designSystem: selectedDesign,
           selectedDirectionIndex,
+          resumeText,
+          jobDescription,
         }),
       })
 
