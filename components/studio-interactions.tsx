@@ -720,9 +720,9 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
       <div className="suggestions">
         {[
           'Deploy and share the link on chat',
-          'Sharpen company teardown',
+          'Sharpen company teardown & strategic thesis',
           'Highlight ARR and retention metrics',
-          'Make navbar sleek obsidian',
+          'Enhance visual layout & scannability',
           'Tune spring physics & motion reveals',
         ].map(text => (
           <button key={text} disabled={streaming} onClick={() => send(text)}>

@@ -108,7 +108,7 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 - Talk to v0 with authority, taste, and clarity.
 
 DIRECTION & VISUAL PRESERVATION (CRITICAL):
-- The visual direction, spatial atmosphere, materials (e.g. dark glassmorphism, border glows, high-contrast layouts), and typography hierarchy must be identical to the chosen community template (${templateProfile.name}) and must NOT deviate, in order to preserve the exact visual originality and appeal that made you choose it as your foundation.
+- The visual direction, spatial atmosphere, materials (e.g. borders, surface elevations, contrast ratios, and layout margins), and typography hierarchy must be identical to the chosen community template (${templateProfile.name}) and must NOT deviate, in order to preserve the exact visual originality and appeal that made you choose it as your foundation.
 - DO NOT invent a new design system or replace the template's layout. Direct v0 to respect and preserve the existing styling tokens and design language.
 
 MOTION DESIGN & INTERACTION PHYSICS PRESERVATION (CRITICAL):
@@ -157,7 +157,7 @@ Step 2: Visual Slot Replacement & Asset Priority Hierarchy (CRITICAL)
     - For profile avatars/headshots (if no custom photo was provided in the Asset Kit): instruct v0 to render a refined typographic monogram token or an abstract design-system-aligned visual mark rather than an arbitrary stock portrait.
 
 Step 3: Codebase & Aesthetic Preservation Guardrails
-- Instruct v0 to preserve the core structural layout, grid hierarchy, materials (e.g., dark glassmorphism, border glows, or editorial margins), responsive navigation, and motion physics that make this template distinct.
+- Instruct v0 to preserve the core structural layout, grid hierarchy, materials (e.g. borders, surface elevations, and margins), responsive navigation, and motion physics that make this template distinct.
 - Direct v0 to surgically adapt the existing component tree in app/page.tsx and associated modules, rather than wiping out the code and rebuilding from scratch.
 - Ensure that while all narrative, data, and visual cards are deeply personalized to me and the target role, the visual polish and design integrity of the original template remain 100% intact.
 
