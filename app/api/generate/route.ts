@@ -65,7 +65,11 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 - Talk to v0 with authority, taste, and clarity.
 - DO NOT over-specify or micromanage hex codes, pixel dimensions, or rigid borders. Give v0 creative room to exercise its design intelligence, while clearly setting the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
 - NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
-- INCLUDE A DEDICATED SECTION for Motion Design, Physics & Micro-Interactions (smooth scroll reveals, tactile hover feedback, snappy tabs, interactive counters).
+- INCLUDE A DEDICATED SECTION for Motion Design, Physics & Micro-Interactions:
+  * Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
+  * Use elegant Tailwind CSS hover states and micro-interactions (e.g. subtle card lifts hover:-translate-y-1, tactile button presses, snappy role tab switches, and animated proof accordions).
+  * Keep motion restrained, snappy, and executive—feeling like a high-end application (e.g. Linear, Stripe, or Vercel).
+- STYLING & COMPONENT ARCHITECTURE: Instruct v0 to implement the complete Next.js React client component ('use client') using Tailwind CSS classes for all styling and high-contrast typography, ensuring full interactivity (useState for tabs, modals, accordions) and immediate visibility on page load.
 - ABSOLUTE DATA INTEGRITY: You MUST preserve all exact numbers and metrics from my background (e.g. ${blueprint.stats?.map(s => s.value).join(', ') || '$1M+, +40%, 500+'}), authentic companies (${blueprint.roles?.map(r => r.company).join(', ') || 'SeekLab Inc, Ionic Wealth by AngelOne'}), verified email (${cleanEmail}), and spotlighted proof cases.
 
 STRUCTURE OF YOUR PROMPT:
