@@ -275,15 +275,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
       })
     }
 
-    // Disable HMR client in preview proxy so it never hangs HTTP connection sockets
-    if (path.some(p => p.includes('hmr'))) {
-      return new NextResponse('/* HMR disabled in preview proxy */', {
-        status: 200,
-        headers: { 'Content-Type': 'application/javascript; charset=utf-8' },
-      })
-    }
-
-    // Proxy the request through v0's official preview handler
+    // Forward all assets and requests through v0's official preview proxy
     // Point fallbackUrl back to our internal proxy route so the iframe never navigates to external v0 domains
     const selfProxyUrl = new URL(`/api/preview/${chatId}`, req.url).toString()
     const previewResponse = await fetchPreview({

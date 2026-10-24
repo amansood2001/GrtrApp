@@ -124,6 +124,9 @@ DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
 - Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain, and instruct v0 to integrate them seamlessly into the existing template's interactive zones without breaking the template's layout.
 
+HYDRATION & EXTENSION RESILIENCE:
+- Instruct v0 to ensure app/layout.tsx has suppressHydrationWarning on both <html> and <body> so that client browser extensions (password managers, translators) do not cause React hydration mismatch warnings.
+
 COMMUNITY TEMPLATE ADAPTATION & ASSET AUDIT PROTOCOL:
 You must perform a 3-step audit before crafting the prompt for v0:
 
@@ -247,6 +250,9 @@ DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
 - Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain (e.g. for fintech: live ticker pulses or balance ledgers; for travel: route maps or flight cursors; for devtools: terminal readouts or deployment pipelines; for data/AI: telemetry graphs or model simulators).
 - Instruct v0 to incorporate these domain-specific delight touches into the user experience.
+
+HYDRATION & EXTENSION RESILIENCE:
+- Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx so that client browser extensions (e.g. password managers, form fillers, translators) do not cause React hydration warnings.
 
 MOTION DESIGN & INTERACTION PHYSICS (INTELLIGENTLY TAILORED VIA CV & JD):
 - Analyze the unique intersection of my work style, domain, and seniority from my Full CV against the target company's culture, product caliber, and technical expectations in the Job Description.
