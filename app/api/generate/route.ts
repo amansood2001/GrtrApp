@@ -63,9 +63,15 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
   "Build an extraordinary, bespoke executive career portfolio for me. My name is ${blueprint.candidateName}, and I'm positioning myself for the ${blueprint.targetRole} role at ${blueprint.targetCompany}..."
 - NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
 - Talk to v0 with authority, taste, and clarity.
-- DO NOT over-specify or micromanage hex codes, pixel dimensions, or rigid borders. Give v0 creative room to exercise its design intelligence, while clearly setting the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
+- HIGH-AGENCY & VISUAL DIRECTION (DO NOT OVER-SPECIFY):
+  * Avoid walls of text. Make this visually driven and interactive with interesting elements.
+  * DO NOT micromanage or hardcode minute component details, exact pixel dimensions, or rigid borders. Give v0 room to exercise its frontend and design reasoning intelligence.
+  * Clearly set the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
+- DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
+  * You MUST include an explicit section for domain-tailored delight with the following directive:
+    "Domain-tailored delight: Bring in subtle, playful touches and micro-interactions that make this feel unmistakably built for the ${blueprint.targetRole} role at ${blueprint.targetCompany} (e.g. travel/flight motifs, ambient cursors, or interactive routes)."
 - NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
-- INCLUDE A DEDICATED SECTION for Motion Design, Physics & Micro-Interactions:
+- DEDICATED MOTION DESIGN & MICRO-INTERACTIONS:
   * Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
   * Use elegant Tailwind CSS hover states and micro-interactions (e.g. subtle card lifts hover:-translate-y-1, tactile button presses, snappy role tab switches, and animated proof accordions).
   * Keep motion restrained, snappy, and executive—feeling like a high-end application (e.g. Linear, Stripe, or Vercel).
@@ -75,11 +81,12 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 STRUCTURE OF YOUR PROMPT:
 1. First-Person Opening & Executive Positioning Thesis
 2. My Strategic Operator Thesis for ${blueprint.targetCompany} (The Commercial Opportunity, My 3-Step Playbook, My Right-to-Win)
-3. Verified Metrics & 3 Spotlighted Proof Cases (with numbers and impact)
+3. Verified Metrics & 3 Spotlighted Proof Cases (with numbers and impact, rendered visually and interactively)
 4. Authentic Career Track Record & Domain Strengths (written in natural prose)
 5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
-6. Motion Design, Physics & Micro-Interactions
-7. Direct Contact Modal (mailto:${cleanEmail})`
+6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany}
+7. Motion Design, Physics & Micro-Interactions (with immediate first-paint visibility)
+8. Direct Contact Modal (mailto:${cleanEmail})`
 
   const userContext = {
     targetCompany: blueprint.targetCompany,
