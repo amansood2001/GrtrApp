@@ -253,9 +253,6 @@ MOTION DESIGN & INTERACTION PHYSICS (INTELLIGENTLY TAILORED VIA CV & JD):
 - Based on that analysis, dynamically determine the most fitting motion physics, interaction rhythm, and visual transitions for this specific profile:
   * Decide how interactive elements should physically feel and respond (e.g. transition pacing, hover feedback, tab switching dynamics, and visual state changes) so the interactive feel authentically mirrors how an elite operator in this specific discipline works.
   * Explicitly instruct v0 on this bespoke visual rhythm and motion style in Section 7.
-- CRITICAL SANDBOX STABILITY & FIRST-PAINT RULE:
-  * Hero and all above-the-fold content must be IMMEDIATELY visible on initial page load (never hide hero elements behind opacity:0 or failing scroll observers).
-  * Instruct v0 to implement all motion and micro-interactions using standard Tailwind CSS classes (e.g. transition-all, hover:-translate-y-1, active:scale-95) and standard React hooks (useState) so it compiles and animates cleanly in the sandbox without unimported third-party packages.
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Executive Positioning Thesis
@@ -264,7 +261,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
 6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany}
-7. Motion Design, Tailored Physics & Visual Effects (bespoke animation pacing and visual transitions dynamically derived from my profile and the JD, with immediate first-paint visibility)
+7. Motion Design, Tailored Physics & Visual Effects (bespoke animation pacing and visual transitions dynamically derived from my profile and the JD)
 8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
   const userContext = {
