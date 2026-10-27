@@ -2369,32 +2369,8 @@ export function GrtrApp() {
     setActive(4)
   }
 
-  // Mark an application ready once v0 sandbox finishes compiling
-  const markApplicationReady = useCallback((targetChatId: string) => {
-    if (!targetChatId) return
-    setApplications(prev => {
-      let changed = false
-      const updated = prev.map(a => {
-        if (a.chatId === targetChatId && a.status !== 'ready') {
-          changed = true
-          return { ...a, status: 'ready' as const }
-        }
-        return a
-      })
-      if (changed) {
-        try {
-          localStorage.setItem('grtr_saved_portfolios_v1', JSON.stringify(updated))
-        } catch (e) {
-          console.warn(e)
-        }
-        return updated
-      }
-      return prev
-    })
-  }, [])
-
   // Helper: Background sync portfolio to Supabase cloud
-  const syncAppToCloud = (app: ApplicationItem) => {
+  const syncAppToCloud = useCallback((app: ApplicationItem) => {
     if (!app.chatId) return
     fetch('/api/portfolios', {
       method: 'POST',
@@ -2410,23 +2386,51 @@ export function GrtrApp() {
         status: app.status || 'deployed',
       }),
     }).catch(() => {})
-  }
+  }, [])
 
   // Helper: Delete portfolio from Supabase cloud
-  const deleteAppFromCloud = (chatId: string) => {
+  const deleteAppFromCloud = useCallback((chatId: string) => {
     if (!chatId) return
     fetch(`/api/portfolios?chatId=${encodeURIComponent(chatId)}`, {
       method: 'DELETE',
     }).catch(() => {})
-  }
+  }, [])
+
+  // Mark an application ready once v0 sandbox finishes compiling
+  const markApplicationReady = useCallback((targetChatId: string) => {
+    if (!targetChatId) return
+    setApplications(prev => {
+      let changed = false
+      const updated = prev.map(a => {
+        if (a.chatId === targetChatId && a.status !== 'ready') {
+          changed = true
+          const readyApp = { ...a, status: 'ready' as const }
+          syncAppToCloud(readyApp)
+          return readyApp
+        }
+        return a
+      })
+      if (changed) {
+        try {
+          localStorage.setItem('grtr_saved_portfolios_v1', JSON.stringify(updated))
+        } catch (e) {
+          console.warn(e)
+        }
+        return updated
+      }
+      return prev
+    })
+  }, [syncAppToCloud])
 
   // Restore saved portfolios and active session from localStorage & Supabase
   useEffect(() => {
+    let localSaved: ApplicationItem[] = []
     try {
       const savedApps = localStorage.getItem('grtr_saved_portfolios_v1')
       if (savedApps) {
         const parsed = JSON.parse(savedApps)
         if (Array.isArray(parsed) && parsed.length > 0) {
+          localSaved = parsed
           setApplications(parsed)
         }
       }
@@ -2446,9 +2450,21 @@ export function GrtrApp() {
     fetch('/api/portfolios')
       .then(res => res.json())
       .then(data => {
-        if (data?.portfolios && Array.isArray(data.portfolios) && data.portfolios.length > 0) {
+        const cloudList = data?.portfolios || []
+        const cloudChatIds = new Set(cloudList.map((p: any) => p.chat_id))
+
+        // Migrate any pre-existing local portfolios up to Supabase cloud
+        if (localSaved.length > 0) {
+          localSaved.forEach(localApp => {
+            if (localApp.chatId && !cloudChatIds.has(localApp.chatId)) {
+              syncAppToCloud(localApp)
+            }
+          })
+        }
+
+        if (cloudList.length > 0) {
           setApplications(prev => {
-            const cloudApps: ApplicationItem[] = data.portfolios.map((p: any) => ({
+            const cloudApps: ApplicationItem[] = cloudList.map((p: any) => ({
               id: p.chat_id,
               chatId: p.chat_id,
               candidateName: p.candidate_name,
@@ -2485,7 +2501,7 @@ export function GrtrApp() {
         }
       })
       .catch(() => {})
-  }, [])
+  }, [syncAppToCloud])
 
   // Handler: Select an application to open in Live Studio
   const handleSelectApplication = (appItem: ApplicationItem) => {
