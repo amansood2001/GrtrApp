@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
+import Link from 'next/link'
 import {
   ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, ChevronDown, ChevronLeft,
   CircleUserRound, Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2,
@@ -54,17 +55,26 @@ function Header({
   const [mobileOpen, setMobileOpen] = useState(false)
   return (
     <header className="app-header">
-      <button
-        className="brand"
-        onClick={() => {
-          if (isCreatingNew) onCancelNew?.()
-          setActive(4)
-        }}
-        aria-label="Go to Portfolios Hub"
-      >
-        <span className="brand-name">Grtr</span>
-        <span className="brand-trademark">TM</span>
-      </button>
+      <div className="flex items-center gap-2.5">
+        <button
+          className="brand"
+          onClick={() => {
+            if (isCreatingNew) onCancelNew?.()
+            setActive(4)
+          }}
+          aria-label="Go to Portfolios Hub"
+        >
+          <span className="brand-name">Grtr</span>
+          <span className="brand-trademark">TM</span>
+        </button>
+        <Link
+          href="/"
+          className="text-[11px] text-zinc-500 hover:text-zinc-300 font-mono no-underline hidden lg:inline px-1.5 py-0.5 rounded hover:bg-white/5 transition"
+          title="Back to Landing Page"
+        >
+          Overview
+        </Link>
+      </div>
 
       {/* Contextual Navigation Switcher */}
       <nav className="view-switcher" aria-label="Main navigation">

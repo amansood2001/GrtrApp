@@ -1,7 +1,6 @@
 import './grtr.css'
-
-import { GrtrApp } from '../components/grtr-app'
+import { LandingPage } from '@/components/landing-page'
 
 export default function Page() {
-  return <GrtrApp />
+  return <LandingPage />
 }
