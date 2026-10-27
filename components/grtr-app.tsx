@@ -13,6 +13,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
 import { Button } from '@/components/ui/button'
 import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
+import { UserNav } from '@/components/auth/user-nav'
 
 export function formatDesignLabel(design?: string, maxLen = 32): string {
   if (!design) return 'Minimal Monochrome'
@@ -159,12 +160,7 @@ function Header({
             <span>New Portfolio</span>
           </Button>
         )}
-        <div className="profile">
-          <span className="tier-badge">Plus</span>
-          <button className="avatar" aria-label="Open profile menu">
-            <CircleUserRound aria-label="Your profile" />
-          </button>
-        </div>
+        <UserNav />
       </div>
 
       <button

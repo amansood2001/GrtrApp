@@ -122,3 +122,51 @@ export async function dbRecordEvent(chatId: string, event: {
   }
   return true
 }
+
+export async function dbUpsertUserProfile(profile: {
+  id: string
+  email: string
+  full_name?: string | null
+  avatar_url?: string | null
+}): Promise<any | null> {
+  const supabase = getSupabaseServerClient()
+  if (!supabase) return null
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name || null,
+        avatar_url: profile.avatar_url || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    )
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[Supabase dbUpsertUserProfile] Error:', error)
+    return null
+  }
+  return data
+}
+
+export async function dbGetUserProfile(id: string): Promise<any | null> {
+  const supabase = getSupabaseServerClient()
+  if (!supabase) return null
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('[Supabase dbGetUserProfile] Error:', error)
+    return null
+  }
+  return data
+}
