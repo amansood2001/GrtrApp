@@ -122,6 +122,15 @@ JD & CV SEMANTIC ALIGNMENT (CRITICAL):
 - In Section 4 (Authentic Career Track Record & Domain Strengths), craft an authentic, comprehensive narrative of my real career milestones, leadership scope, and domain capabilities extracted directly from my CV. Tailor this presentation specifically to address the employer's core challenges, responsibilities, and required competencies outlined in the JD, demonstrating why my track record makes me the ideal operator for this role.
 - NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
 
+STRATEGIC THESIS & COMPANY RESEARCH FOR SECTION 2 (ZERO-COMPRESSION & INTERACTION DIRECTIVE):
+- In Section 2 of your prompt for v0 ("My Strategic Operator Thesis for ${blueprint.targetCompany}"), you must output the full, word-for-word text of my selected strategic direction:
+  * The Observed Company Challenge (verbatim as provided in selectedStrategicDirection.observedChallenge)
+  * The Proposed Operational Strategy / Playbook (verbatim as provided in selectedStrategicDirection.proposedStrategy)
+  * My Proven Right-to-Win (verbatim as provided in selectedStrategicDirection.rightToWinProof)
+- NEVER summarize, condense, or dilute these points into high-level slogans. They demonstrate my deep preparation, domain insight, and tailored effort for this role.
+- Immediately following the verbatim text in Section 2, instruct v0 with this explicit directive:
+  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches (e.g. interactive cards, tabbed views, expandable reveals, or motion transitions) that blend naturally with the template's aesthetic atmosphere."
+
 DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
 - Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain, and instruct v0 to integrate them seamlessly into the existing template's interactive zones without breaking the template's layout.
@@ -155,7 +164,7 @@ Step 3: Codebase & Aesthetic Preservation Guardrails
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Community Template Adaptation Thesis (explicitly emphasize that v0 is building on top of and surgically adapting this duplicated ${templateProfile.name} template codebase)
-2. My Strategic Operator Thesis for ${blueprint.targetCompany} (The Commercial Opportunity, My 3-Step Playbook, My Right-to-Win)
+2. My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win VERBATIM without condensing, followed by the explicit directive instructing v0 to render it with interactive elements, animations, and motion rather than plain text)
 3. Verified Metrics & Highlighted Proof Cases (rendered in the template's metric counters, cards, and proof slots)
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Aesthetic Atmosphere & Signature Interactive Concept (state explicitly that it must be identical to ${templateProfile.name} and must not be altered)
@@ -177,7 +186,12 @@ STRUCTURE OF YOUR PROMPT FOR V0:
     candidateName: blueprint.candidateName,
     approvedPositioningHook: blueprint.positioningHook,
     approvedPositioningSubtitle: blueprint.positioningSubtitle,
-    selectedStrategicDirection: activeDirection,
+    selectedStrategicDirection: activeDirection ? {
+      angle: activeDirection.angle,
+      observedChallenge: activeDirection.observedChallenge,
+      proposedStrategy: activeDirection.proposedStrategy,
+      rightToWinProof: activeDirection.rightToWinProof,
+    } : undefined,
     highlightedProofCases: blueprint.caseStudies,
     stats: blueprint.stats,
     roles: blueprint.roles,
@@ -240,6 +254,15 @@ JD & CV SEMANTIC ALIGNMENT (CRITICAL):
 - NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
 - Extract any verified contact details (email, LinkedIn) directly from my CV for the recruiter contact modal.
 
+STRATEGIC THESIS & COMPANY RESEARCH FOR SECTION 2 (ZERO-COMPRESSION & INTERACTION DIRECTIVE):
+- In Section 2 of your prompt for v0 ("My Strategic Operator Thesis for ${blueprint.targetCompany}"), you must output the full, word-for-word text of my selected strategic direction:
+  * The Observed Company Challenge (verbatim as provided in selectedStrategicDirection.observedChallenge)
+  * The Proposed Operational Strategy / Playbook (verbatim as provided in selectedStrategicDirection.proposedStrategy)
+  * My Proven Right-to-Win (verbatim as provided in selectedStrategicDirection.rightToWinProof)
+- NEVER summarize, condense, or dilute these points into high-level slogans. They demonstrate my deep preparation, domain insight, and tailored effort for this role.
+- Immediately following the verbatim text in Section 2, instruct v0 with this explicit directive:
+  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches (e.g. interactive cards, tabbed views, expandable reveals, or motion transitions) that blend naturally with the template's aesthetic atmosphere."
+
 DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
 - Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain (e.g. for fintech: live ticker pulses or balance ledgers; for travel: route maps or flight cursors; for devtools: terminal readouts or deployment pipelines; for data/AI: telemetry graphs or model simulators).
@@ -256,7 +279,7 @@ MOTION DESIGN & INTERACTION PHYSICS (INTELLIGENTLY TAILORED VIA CV & JD):
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Executive Positioning Thesis
-2. My Strategic Operator Thesis for ${blueprint.targetCompany} (The Commercial Opportunity, My 3-Step Playbook, My Right-to-Win)
+2. My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win VERBATIM without condensing, followed by the explicit directive instructing v0 to render it with interactive elements, animations, and motion rather than plain text)
 3. Verified Metrics & Highlighted Proof Cases (rendered as visual, interactive components)
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
@@ -273,7 +296,12 @@ STRUCTURE OF YOUR PROMPT FOR V0:
     candidateName: blueprint.candidateName,
     approvedPositioningHook: blueprint.positioningHook,
     approvedPositioningSubtitle: blueprint.positioningSubtitle,
-    selectedStrategicDirection: activeDirection,
+    selectedStrategicDirection: activeDirection ? {
+      angle: activeDirection.angle,
+      observedChallenge: activeDirection.observedChallenge,
+      proposedStrategy: activeDirection.proposedStrategy,
+      rightToWinProof: activeDirection.rightToWinProof,
+    } : undefined,
     highlightedProofCases: blueprint.caseStudies,
     selectedDesignSystem: designSystem,
     fullCvText: safeResumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
