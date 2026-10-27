@@ -19,11 +19,30 @@ async function getCachedPreview(chatId: string) {
   if (cached && cached.expiry > Date.now()) {
     return cached.data
   }
-  const previewRes = await v0.chats.getPreview({ chatId })
-  if (previewRes.data) {
-    previewCache.set(chatId, { data: previewRes, expiry: Date.now() + 5 * 60 * 1000 })
+
+  // Resilient retry loop: Attempt up to 3 times with exponential backoff on transient network/v0 API blips
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const previewRes = await v0.chats.getPreview({ chatId })
+      if (previewRes.data?.url) {
+        previewCache.set(chatId, { data: previewRes, expiry: Date.now() + 3 * 60 * 1000 })
+        return previewRes
+      }
+      if (attempt < 3) {
+        await new Promise(r => setTimeout(r, 400 * attempt))
+      }
+    } catch (err) {
+      if (attempt === 3) break
+      await new Promise(r => setTimeout(r, 400 * attempt))
+    }
   }
-  return previewRes
+
+  // Fallback direct request
+  try {
+    return await v0.chats.getPreview({ chatId })
+  } catch (err: any) {
+    return { error: { message: err?.message || 'Failed to get preview' } }
+  }
 }
 
 export async function GET(req: NextRequest, context: RouteContext) {
@@ -42,12 +61,15 @@ export async function GET(req: NextRequest, context: RouteContext) {
       let elapsedSec = 0
 
       try {
-        const [chatRes, msgsRes] = await Promise.all([
+        const [chatRes, msgsRes, filesRes] = await Promise.all([
           v0.chats.get({ chatId }).catch(() => null),
           v0.messages.list({ chatId, limit: 10 }).catch(() => null),
+          v0.chats.getFiles({ chatId }).catch(() => null),
         ])
 
         const messages = (msgsRes as any)?.data?.messages || []
+        const rawFiles = (filesRes as any)?.data?.files || []
+        const hasFiles = Array.isArray(rawFiles) && rawFiles.length > 0
         const assistantMsg = messages.find((m: any) => m.role === 'assistant')
         const isStillGenerating = assistantMsg && !assistantMsg.finishReason
         const createdAt = (chatRes as any)?.data?.createdAt ? new Date((chatRes as any).data.createdAt).getTime() : 0
@@ -59,7 +81,8 @@ export async function GET(req: NextRequest, context: RouteContext) {
         } else if (assistantMsg && assistantMsg.finishReason === 'other') {
           isTerminated = true
           failureReason = 'v0 API generation halted with reason "other". This occurs when the v0 account has $0.00 credits remaining or exceeded generation quotas.'
-        } else if (!isStillGenerating && elapsedSec > 300) {
+        } else if (!hasFiles && !isStillGenerating && elapsedSec > 180 && elapsedSec < 600) {
+          // Genuinely timed out during initial creation: brand new chat (between 3-10 minutes old) that stopped with 0 files produced
           isTerminated = true
           failureReason = `Sandbox compilation timed out after ${elapsedSec}s. v0 did not produce any previewable files.`
         }
@@ -72,6 +95,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="refresh" content="8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Generation Alert · Grtr</title>
   <style>
