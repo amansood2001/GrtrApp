@@ -164,6 +164,7 @@ interface StudioChatProps {
   onAgentStatusChange?: (status: { active: boolean; currentStep?: string }) => void
   contextLabel?: string
   onReady?: () => void
+  refreshKey?: number
 }
 
 function friendlyFileName(path: string): string {
@@ -442,7 +443,7 @@ function UserMessageBubble({ message }: { message: StudioMessage }) {
   )
 }
 
-export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel, onReady }: StudioChatProps) {
+export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel, onReady, refreshKey }: StudioChatProps) {
   const [draft, setDraft] = useState('')
   const [attachments, setAttachments] = useState<ChatAttachment[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -463,14 +464,16 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
     end.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [messages, streaming])
 
-  // Load message history from v0 when chatId is available
+  // Load message history from v0 when chatId is available or on manual refresh
   useEffect(() => {
     if (!chatId) return
 
     let cancelled = false
     async function loadHistory() {
       try {
-        const res = await fetch(`/api/chat?chatId=${encodeURIComponent(chatId!)}`)
+        const res = await fetch(`/api/chat?chatId=${encodeURIComponent(chatId!)}&_t=${Date.now()}`, {
+          cache: 'no-store',
+        })
         if (!res.ok) return
         const data = await res.json()
         if (data.success && Array.isArray(data.messages) && data.messages.length > 0 && !cancelled) {
@@ -495,7 +498,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
     return () => {
       cancelled = true
     }
-  }, [chatId])
+  }, [chatId, refreshKey])
 
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files

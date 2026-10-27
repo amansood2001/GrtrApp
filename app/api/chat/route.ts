@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v0 } from 'v0'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export const maxDuration = 120
 
 export async function GET(req: NextRequest) {
@@ -25,7 +27,12 @@ export async function GET(req: NextRequest) {
     const assistantMsg = rawMessages.find((m: any) => m.role === 'assistant')
     const isReady = !!assistantMsg && (assistantMsg.finishReason === 'stop' || assistantMsg.finishReason === 'length')
 
-    const messages = rawMessages.map((m: any) => ({
+    // v0.messages.list returns newest first. Sort chronologically (oldest to newest) for proper chat stream display.
+    const sortedRaw = [...rawMessages].sort(
+      (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
+
+    const messages = sortedRaw.map((m: any) => ({
       id: m.id,
       role: m.role,
       content: m.content || '',
@@ -34,12 +41,19 @@ export async function GET(req: NextRequest) {
       createdAt: m.createdAt,
     }))
 
-    return NextResponse.json({
-      success: true,
-      messages,
-      isReady,
-      finishReason: assistantMsg?.finishReason || null,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        messages,
+        isReady,
+        finishReason: assistantMsg?.finishReason || null,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    )
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to retrieve messages'
     console.error('api/chat GET error:', err)

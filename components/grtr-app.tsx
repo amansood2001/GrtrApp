@@ -1527,6 +1527,7 @@ function LiveStudio({
           onUpdatePreview={reloadPreview}
           onAgentStatusChange={setAgentStatus}
           contextLabel={`${roleText} @ ${companyText}`}
+          refreshKey={iframeKey}
           onReady={() => {
             if (chatId) onMarkReady?.(chatId)
           }}
