@@ -163,6 +163,7 @@ interface StudioChatProps {
   onUpdatePreview?: () => void
   onAgentStatusChange?: (status: { active: boolean; currentStep?: string }) => void
   contextLabel?: string
+  onReady?: () => void
 }
 
 function friendlyFileName(path: string): string {
@@ -386,7 +387,62 @@ function renderFormattedInline(text: string) {
   })
 }
 
-export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel }: StudioChatProps) {
+function UserMessageBubble({ message }: { message: StudioMessage }) {
+  const [expanded, setExpanded] = useState(false)
+  const textContent = message.text || ''
+  const isGiantPrompt =
+    textContent.length > 800 ||
+    textContent.includes('Build an extraordinary, bespoke executive career portfolio')
+
+  if (!isGiantPrompt) {
+    return (
+      <div className="user-message">
+        {message.attachedFiles && message.attachedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {message.attachedFiles.map((name, fIdx) => (
+              <span
+                key={fIdx}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono"
+              >
+                <Paperclip className="w-2.5 h-2.5" />
+                <span>{name}</span>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="whitespace-pre-wrap">{message.text}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="user-message border border-purple-500/30 bg-purple-950/20 p-3 rounded-lg">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-purple-300 font-semibold">
+          <Sparkles className="w-3 h-3 text-purple-400" />
+          Initial Portfolio Architecture Directive
+        </span>
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          className="text-[10px] font-mono text-purple-400 hover:text-purple-300 underline cursor-pointer"
+        >
+          {expanded ? 'Collapse' : 'View Full Prompt'}
+        </button>
+      </div>
+      <p className="text-xs text-zinc-300 mb-0 leading-relaxed">
+        Executive architecture directive synthesized from candidate CV, verified company research, and custom design foundation.
+      </p>
+      {expanded && (
+        <div className="mt-2.5 pt-2.5 border-t border-purple-500/20 text-[11px] font-mono text-zinc-400 max-h-60 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+          {message.text}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel, onReady }: StudioChatProps) {
   const [draft, setDraft] = useState('')
   const [attachments, setAttachments] = useState<ChatAttachment[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -426,6 +482,9 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
             status: 'done',
           }))
           setMessages(loaded)
+          if (data.isReady && onReady) {
+            onReady()
+          }
         }
       } catch (e) {
         console.warn('Could not load chat history:', e)
@@ -646,21 +705,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
       <div className="messages" role="log" aria-label="Studio chat history" aria-live="polite">
         {messages.map((m, i) => {
           if (m.role === 'user') {
-            return (
-              <div key={i} className="user-message">
-                {m.attachedFiles && m.attachedFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {m.attachedFiles.map((name, fIdx) => (
-                      <span key={fIdx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono">
-                        <Paperclip className="w-2.5 h-2.5" />
-                        <span>{name}</span>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="whitespace-pre-wrap">{m.text}</div>
-              </div>
-            )
+            return <UserMessageBubble key={i} message={m} />
           }
 
           // Assistant message

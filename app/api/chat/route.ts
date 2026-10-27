@@ -21,17 +21,24 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const messages = (res.data?.messages || []).map((m: any) => ({
+    const rawMessages = res.data?.messages || []
+    const assistantMsg = rawMessages.find((m: any) => m.role === 'assistant')
+    const isReady = !!assistantMsg && (assistantMsg.finishReason === 'stop' || assistantMsg.finishReason === 'length')
+
+    const messages = rawMessages.map((m: any) => ({
       id: m.id,
       role: m.role,
       content: m.content || '',
       parts: m.parts || [],
+      finishReason: m.finishReason,
       createdAt: m.createdAt,
     }))
 
     return NextResponse.json({
       success: true,
       messages,
+      isReady,
+      finishReason: assistantMsg?.finishReason || null,
     })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to retrieve messages'

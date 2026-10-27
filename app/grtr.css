@@ -708,3 +708,57 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
   border-color: #8b5cf6;
   background: linear-gradient(145deg, rgba(139, 92, 246, 0.08), var(--surface));
 }
+
+/* ==========================================================================
+   Chat Pane & Context Containment (Prevents vertical overflow)
+   ========================================================================== */
+.grtr-app .chat-pane {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.grtr-app .chat-pane-header {
+  flex-shrink: 0 !important;
+}
+
+.grtr-app .chat-context {
+  flex-shrink: 0 !important;
+  max-height: 68px !important;
+  overflow: hidden !important;
+}
+
+.grtr-app .chat-context strong,
+.grtr-app .chat-context small {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: block !important;
+  max-width: 100% !important;
+}
+
+.grtr-app .studio-chat-interactive {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+.grtr-app .studio-chat-interactive .messages {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+.grtr-app .studio-chat-interactive .suggestions {
+  flex-shrink: 0 !important;
+}
+
+.grtr-app .studio-chat-interactive .chat-composer {
+  flex-shrink: 0 !important;
+}
+

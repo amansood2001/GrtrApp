@@ -8,11 +8,23 @@ import {
   Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw,
   Trash2, Image as ImageIcon
 } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { CareerSignal } from './career-signal'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
 import { Button } from '@/components/ui/button'
 import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
+
+export function formatDesignLabel(design?: string, maxLen = 32): string {
+  if (!design) return 'Minimal Monochrome'
+  if (design.startsWith('Custom:')) {
+    const raw = design.replace(/^Custom:\s*/, '').trim()
+    return `Custom: ${raw.slice(0, Math.max(12, maxLen - 8))}${raw.length > maxLen - 8 ? '…' : ''}`
+  }
+  if (design.length > maxLen) {
+    return `${design.slice(0, maxLen - 1)}…`
+  }
+  return design
+}
 
 const views = [
   { id: 1, short: 'Input', label: 'Input Studio', icon: FileText },
@@ -1130,8 +1142,8 @@ function DynamicPortfolioFallback({
             <span>Explore Teardown Angles</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
-          <span className="text-xs text-zinc-500 font-mono">
-            {selectedDesign} · Verified Blueprint
+          <span className="text-xs text-zinc-500 font-mono truncate max-w-[280px]" title={selectedDesign}>
+            {formatDesignLabel(selectedDesign, 32)} · Verified Blueprint
           </span>
         </div>
       </section>
@@ -1429,6 +1441,7 @@ interface LiveStudioProps {
   chatId: string | null
   previewUrl: string | null
   selectedDesign: string
+  onMarkReady?: (chatId: string) => void
 }
 
 function LiveStudio({
@@ -1436,6 +1449,7 @@ function LiveStudio({
   chatId,
   previewUrl,
   selectedDesign,
+  onMarkReady,
 }: LiveStudioProps) {
   const [publish, setPublish] = useState(false)
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
@@ -1504,13 +1518,18 @@ function LiveStudio({
           <strong>
             {roleText} · {companyText}
           </strong>
-          <small>{selectedDesign} · Executive / Strategic</small>
+          <small title={selectedDesign} className="truncate block max-w-full">
+            {formatDesignLabel(selectedDesign, 28)} · Executive
+          </small>
         </div>
         <StudioChat
           chatId={chatId}
           onUpdatePreview={reloadPreview}
           onAgentStatusChange={setAgentStatus}
           contextLabel={`${roleText} @ ${companyText}`}
+          onReady={() => {
+            if (chatId) onMarkReady?.(chatId)
+          }}
         />
       </aside>
 
@@ -1568,8 +1587,8 @@ function LiveStudio({
                 <Monitor />
               </button>
             </div>
-            <span className="system-badge">
-              <b>{selectedDesign}</b>
+            <span className="system-badge" title={selectedDesign}>
+              <b className="truncate max-w-[130px] inline-block align-middle">{formatDesignLabel(selectedDesign, 20)}</b>
             </span>
             <Button onClick={() => setPublish(true)} className="publish-button">
               <Rocket data-icon="inline-start" />
@@ -1627,6 +1646,11 @@ function LiveStudio({
                 title="Live Portfolio Sandbox"
                 className="w-full h-[calc(100vh-230px)] min-h-[640px] border-0 bg-transparent"
                 sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+                onLoad={() => {
+                  if (chatId) {
+                    onMarkReady?.(chatId)
+                  }
+                }}
               />
             ) : (
               <div className="portfolio-preview p-12 text-center text-muted flex flex-col items-center justify-center min-h-[500px]">
@@ -1707,15 +1731,76 @@ function AnalyticsView({
   onSelectApplication,
   onDeleteApplication,
   applications,
+  onMarkReady,
 }: {
   openStudio: () => void
   onSelectApplication: (app: ApplicationItem) => void
   onDeleteApplication: (id: string) => void
   applications: ApplicationItem[]
+  onMarkReady?: (chatId: string) => void
 }) {
   const [selected, setSelected] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+
+  const handleManualSync = async () => {
+    const generatingApps = applications.filter(a => a.status === 'generating' && a.chatId)
+    if (generatingApps.length === 0) return
+    setSyncing(true)
+    try {
+      await Promise.all(
+        generatingApps.map(async appItem => {
+          try {
+            const res = await fetch(`/api/chat?chatId=${encodeURIComponent(appItem.chatId)}`)
+            if (!res.ok) return
+            const data = await res.json()
+            if (data.isReady || (Array.isArray(data.messages) && data.messages.length > 0)) {
+              onMarkReady?.(appItem.chatId)
+            }
+          } catch (err) {
+            console.warn('Manual sync error:', err)
+          }
+        })
+      )
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // Auto-reconcile on mount for any portfolio stuck in generating
+  useEffect(() => {
+    const generatingApps = applications.filter(a => a.status === 'generating' && a.chatId)
+    if (generatingApps.length === 0) return
+
+    let cancelled = false
+    async function reconcile() {
+      setSyncing(true)
+      try {
+        await Promise.all(
+          generatingApps.map(async appItem => {
+            try {
+              const res = await fetch(`/api/chat?chatId=${encodeURIComponent(appItem.chatId)}`)
+              if (!res.ok) return
+              const data = await res.json()
+              if (data.isReady || (Array.isArray(data.messages) && data.messages.length > 0)) {
+                onMarkReady?.(appItem.chatId)
+              }
+            } catch (err) {
+              console.warn('Status reconcile error:', err)
+            }
+          })
+        )
+      } finally {
+        if (!cancelled) setSyncing(false)
+      }
+    }
+
+    reconcile()
+    return () => {
+      cancelled = true
+    }
+  }, [applications, onMarkReady])
 
   const filtered = applications.filter(a => {
     if (!searchTerm) return true
@@ -1778,15 +1863,27 @@ function AnalyticsView({
               <h2>Tailored portfolios</h2>
               <p>Click any portfolio to open its live editor & sandbox.</p>
             </div>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search portfolios..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="px-2.5 py-1.5 pl-7 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-purple-500/50"
-              />
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleManualSync}
+                disabled={syncing}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-zinc-900 border border-white/10 hover:border-purple-500/40 text-zinc-300 hover:text-white text-xs transition cursor-pointer"
+                title="Check compilation status of generating portfolios"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-purple-400' : ''}`} />
+                <span className="hidden sm:inline">{syncing ? 'Syncing...' : 'Sync Status'}</span>
+              </button>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search portfolios..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="px-2.5 py-1.5 pl-7 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-purple-500/50"
+                />
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
+              </div>
             </div>
           </div>
 
@@ -1817,7 +1914,9 @@ function AnalyticsView({
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[11px] text-zinc-400">{a.candidateName}</span>
                       <span className="text-zinc-600">·</span>
-                      <span className="text-[10px] text-zinc-400 font-mono truncate max-w-[130px]">{a.selectedDesign}</span>
+                      <span className="text-[10px] text-zinc-400 font-mono truncate max-w-[130px]" title={a.selectedDesign}>
+                        {formatDesignLabel(a.selectedDesign, 20)}
+                      </span>
                     </div>
                   </div>
 
@@ -1918,7 +2017,12 @@ function AnalyticsView({
               </div>
               <div>
                 <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono block">Design Foundation</span>
-                <span className="text-xs text-purple-300 font-mono">{app.selectedDesign}</span>
+                <span
+                  className="text-xs text-purple-300 font-mono block max-h-24 overflow-y-auto leading-relaxed bg-zinc-900/60 p-2 rounded border border-white/5 break-words"
+                  title={app.selectedDesign}
+                >
+                  {app.selectedDesign}
+                </span>
               </div>
             </div>
 
@@ -2008,6 +2112,30 @@ export function GrtrApp() {
 
   // Tracked Applications
   const [applications, setApplications] = useState<ApplicationItem[]>(initialApplications)
+
+  // Mark an application ready once v0 sandbox finishes compiling
+  const markApplicationReady = useCallback((targetChatId: string) => {
+    if (!targetChatId) return
+    setApplications(prev => {
+      let changed = false
+      const updated = prev.map(a => {
+        if (a.chatId === targetChatId && a.status !== 'ready') {
+          changed = true
+          return { ...a, status: 'ready' as const }
+        }
+        return a
+      })
+      if (changed) {
+        try {
+          localStorage.setItem('grtr_saved_portfolios_v1', JSON.stringify(updated))
+        } catch (e) {
+          console.warn(e)
+        }
+        return updated
+      }
+      return prev
+    })
+  }, [])
 
   // Restore saved portfolios and active session from localStorage
   useEffect(() => {
@@ -2228,7 +2356,9 @@ export function GrtrApp() {
               for{' '}
               <strong className="text-purple-300 font-medium">{blueprint?.targetCompany || 'Target Role'}</strong>
               <span className="text-zinc-500 mx-2">·</span>
-              <span className="text-zinc-400 font-mono text-[11px]">{selectedDesign}</span>
+              <span className="text-zinc-400 font-mono text-[11px] truncate max-w-[260px] inline-block align-middle" title={selectedDesign}>
+                {formatDesignLabel(selectedDesign, 32)}
+              </span>
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -2291,6 +2421,7 @@ export function GrtrApp() {
               chatId={chatId}
               previewUrl={previewUrl}
               selectedDesign={selectedDesign}
+              onMarkReady={markApplicationReady}
             />
           )}
           {active === 4 && (
@@ -2299,6 +2430,7 @@ export function GrtrApp() {
               onSelectApplication={handleSelectApplication}
               onDeleteApplication={handleDeleteApplication}
               applications={applications}
+              onMarkReady={markApplicationReady}
             />
           )}
         </motion.div>
