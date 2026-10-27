@@ -23,13 +23,13 @@ export function UserNav() {
   if (!isClerkConfigured) {
     return (
       <div className="flex items-center gap-2">
-        <span className="tier-badge">Guest</span>
+        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider font-medium text-zinc-400 bg-white/[0.04] border border-white/10">Guest</span>
         <button
-          className="avatar opacity-80 hover:opacity-100 transition cursor-pointer"
+          className="w-7 h-7 rounded-full bg-zinc-800 border border-white/15 hover:border-purple-400/50 flex items-center justify-center transition cursor-pointer text-zinc-300"
           onClick={() => alert('Clerk Authentication setup in progress. Please set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.')}
           title="Sign in with Google / Email"
         >
-          <User className="w-4 h-4 text-zinc-400" />
+          <User className="w-3.5 h-3.5 text-zinc-400" />
         </button>
       </div>
     )
@@ -91,14 +91,23 @@ function ClerkUserNav() {
   }
 
   const tier = (user.publicMetadata?.plan as string) || 'Free'
+  const isPaidTier = tier.toLowerCase() !== 'free'
 
   return (
     <div className="flex items-center gap-2.5">
-      <span className="tier-badge capitalize">{tier}</span>
+      <span
+        className={`px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider font-medium ${
+          isPaidTier
+            ? 'text-purple-300 bg-purple-500/10 border border-purple-500/30'
+            : 'text-zinc-400 bg-white/[0.04] border border-white/10'
+        }`}
+      >
+        {tier}
+      </span>
       <UserButton
         appearance={{
           elements: {
-            avatarBox: 'w-7 h-7 border border-white/20 hover:border-purple-400/60 transition shadow-inner',
+            avatarBox: 'w-7 h-7 rounded-full ring-1 ring-white/15 hover:ring-purple-400/50 transition shadow-sm overflow-hidden',
             userButtonPopoverCard: 'bg-[#0c0d0e] border border-white/10 shadow-2xl',
             userButtonPopoverActionButton: 'hover:bg-white/5 text-zinc-300',
             userButtonPopoverActionButtonText: 'text-zinc-200 font-sans',

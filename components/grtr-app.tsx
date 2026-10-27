@@ -152,14 +152,14 @@ function Header({
 
       <div className="flex items-center gap-3 ml-auto">
         {!isCreatingNew && (
-          <Button
-            size="sm"
+          <button
+            type="button"
             onClick={onStartNew}
-            className="primary-cta text-xs h-8 px-3 flex items-center gap-1.5 cursor-pointer shadow-sm"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-zinc-200 text-zinc-950 flex items-center gap-1.5 cursor-pointer shadow-sm transition-all border border-white/20 active:scale-[0.98]"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Portfolio</span>
-          </Button>
+          </button>
         )}
         <UserNav />
       </div>
@@ -2071,18 +2071,18 @@ function AnalyticsView({
         <section className="applications-panel">
           <div className="list-head">
             <div>
-              <h2>Tailored portfolios</h2>
-              <p>Click any portfolio to open its live editor &amp; sandbox.</p>
+              <h2 className="text-sm font-semibold text-white tracking-tight">Tailored portfolios</h2>
+              <p className="text-[11px] text-zinc-400">Click any portfolio to open its live editor &amp; sandbox.</p>
             </div>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search portfolios..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="px-2.5 py-1.5 pl-7 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-purple-500/50"
+                className="h-8 pl-8 pr-3 rounded-lg bg-[#0e1116] border border-white/10 hover:border-white/20 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 text-xs text-zinc-200 placeholder:text-zinc-500 transition-all outline-none w-52 sm:w-64"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
             </div>
           </div>
 
@@ -2098,22 +2098,22 @@ function AnalyticsView({
               {filtered.map((a, i) => (
                 <div
                   key={a.id || a.chatId || a.company + i}
-                  className={`app-row ${selected === i ? 'selected' : ''} group relative cursor-pointer`}
+                  className={`app-row ${selected === i ? 'selected' : ''} group relative cursor-pointer transition-colors`}
                   onClick={() => setSelected(i)}
                   onDoubleClick={() => onSelectApplication(a)}
                 >
-                  <span className="company-mark" style={{ '--company-color': a.color || '#8b5cf6' } as React.CSSProperties}>
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs bg-white/[0.04] border border-white/10 text-zinc-200 shrink-0 font-mono shadow-inner">
                     {a.company.slice(0, 1)}
                   </span>
                   <div className="app-primary flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <strong className="text-white text-xs truncate">{a.role}</strong>
-                      <span className="text-[10px] text-purple-300 font-mono">@{a.company}</span>
+                      <strong className="text-white text-xs truncate font-medium">{a.role}</strong>
+                      <span className="text-[11px] text-purple-300/80 font-mono font-medium">@{a.company}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[11px] text-zinc-400">{a.candidateName}</span>
                       <span className="text-zinc-600">·</span>
-                      <span className="text-[10px] text-zinc-400 font-mono truncate max-w-[130px]" title={a.selectedDesign}>
+                      <span className="text-[11px] text-zinc-500 font-mono truncate max-w-[140px]" title={a.selectedDesign}>
                         {formatDesignLabel(a.selectedDesign, 20)}
                       </span>
                     </div>
@@ -2121,11 +2121,11 @@ function AnalyticsView({
 
                   <div className="flex items-center gap-1.5">
                     {a.status === 'generating' ? (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1 font-mono">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1.5 font-mono font-medium">
                         <Loader2 className="w-2.5 h-2.5 animate-spin" /> Compiling
                       </span>
                     ) : (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-medium flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
                       </span>
                     )}
@@ -2137,9 +2137,9 @@ function AnalyticsView({
                         e.stopPropagation()
                         onSelectApplication(a)
                       }}
-                      className="px-2.5 py-1 rounded bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition cursor-pointer text-xs flex items-center gap-1 font-medium border border-purple-500/30"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium text-zinc-200 bg-white/[0.05] hover:bg-purple-600 hover:text-white border border-white/10 hover:border-purple-500 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
                     >
-                      <Code2 className="w-3.5 h-3.5" />
+                      <Code2 className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white" />
                       <span>Studio</span>
                     </button>
 
@@ -2150,7 +2150,7 @@ function AnalyticsView({
                         e.stopPropagation()
                         window.open(a.previewUrl, '_blank')
                       }}
-                      className="p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer border border-transparent hover:border-white/10"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </button>
@@ -2159,7 +2159,7 @@ function AnalyticsView({
                       type="button"
                       title="Copy preview link"
                       onClick={(e) => handleCopyLink(e, a)}
-                      className="p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer border border-transparent hover:border-white/10"
                     >
                       {copiedId === (a.id || a.chatId) ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
@@ -2226,34 +2226,37 @@ function AnalyticsView({
               </div>
             </div>
 
-            <div className="p-4 space-y-2">
-              <Button
-                className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs py-2.5 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-600/20"
+            <div className="p-4 space-y-2.5">
+              <button
+                type="button"
+                className="w-full rounded-lg bg-gradient-to-r from-purple-950/80 via-indigo-950/70 to-purple-900/70 hover:from-purple-900 hover:to-indigo-900 text-white font-medium text-xs py-2.5 px-3.5 border border-purple-500/30 hover:border-purple-400/50 shadow-md shadow-purple-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer group active:scale-[0.99]"
                 onClick={() => onSelectApplication(app)}
               >
-                <Code2 className="w-4 h-4" />
-                <span>Open in Live Studio & Sandbox</span>
-                <ArrowRight className="w-3.5 h-3.5 ml-auto" />
-              </Button>
+                <Code2 className="w-4 h-4 text-purple-300" />
+                <span>Open in Live Studio &amp; Sandbox</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-auto text-purple-300/80 group-hover:translate-x-0.5 transition-transform" />
+              </button>
 
-              <Button
-                variant="outline"
-                className="w-full border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-xs py-2 flex items-center justify-center gap-2 cursor-pointer"
+              <button
+                type="button"
+                className="w-full rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-xs py-2 px-3.5 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 onClick={() => window.open(app.previewUrl, '_blank')}
               >
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Open Fullsite Preview</span>
-              </Button>
+              </button>
             </div>
 
             <div className="intel-feed">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-white tracking-wide uppercase font-mono mb-0">
-                  Recent Activity · <span className="text-purple-300 font-sans normal-case">{app.company}</span>
+              <div className="flex items-center justify-between mb-3.5 pb-2 border-b border-white/[0.06]">
+                <h3 className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5 mb-0">
+                  <span>Telemetry</span>
+                  <span className="text-zinc-600">/</span>
+                  <span className="text-zinc-200 normal-case font-sans font-medium">{app.company}</span>
                 </h3>
-                <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
+                <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Live
+                  Live Radar
                 </span>
               </div>
 
@@ -2263,26 +2266,26 @@ function AnalyticsView({
                   <span>Loading telemetry...</span>
                 </div>
               ) : activityEvents.length === 0 ? (
-                <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2 text-left">
+                <div className="p-4 rounded-xl bg-gradient-to-b from-[#111419]/90 to-[#0c0e12]/90 border border-white/[0.08] space-y-2.5 text-left shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      Tracking Initialized
+                      <span>Signal Telemetry Active</span>
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-200 font-medium">
+                  <p className="text-xs text-zinc-200 font-medium tracking-tight">
                     No external recruiter visits recorded yet.
                   </p>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <p className="text-[11px] text-zinc-400 leading-relaxed font-normal">
                     Impressions, session dwell time, and device telemetry will update here automatically as recruiters open your link.
                   </p>
                   <button
                     type="button"
                     onClick={(e) => handleCopyLink(e, app)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-purple-300 hover:text-white bg-purple-600/20 hover:bg-purple-600 rounded border border-purple-500/30 transition cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-purple-300 hover:text-white bg-purple-500/10 hover:bg-purple-500/20 rounded-lg border border-purple-500/25 hover:border-purple-500/40 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                   >
-                    <Copy className="w-3 h-3" />
-                    <span>Copy Link to Test</span>
+                    <Copy className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Copy Candidate Link</span>
                   </button>
                 </div>
               ) : (
