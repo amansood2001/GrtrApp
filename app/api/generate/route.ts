@@ -40,7 +40,7 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
     id: 'RKiDa7imLjw',
     name: 'COMPUTE — AI Platform Template',
     archetype: 'Dark Glass · High-Tech Velocity',
-    siteUrl: 'https://compute-the-platform-to-build-ship-ai-agents-k2gt4ri9.v0.build/',
+    siteUrl: 'https://v0-compute-11.vercel.app',
     structuralSlots: {
       heroSlot: 'Ambient hero visual lockup, headline badge, and deploy agent CTA button',
       metricsSlot: 'Real-time telemetry metric counters, active latency dials, and SLA indicators',
@@ -53,7 +53,7 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
     id: 'TirCdHf4EQ8',
     name: 'EinCode Digital Lab',
     archetype: 'Creative Engineering · Interactive Labs',
-    siteUrl: 'https://eincode-digital-lab-ro19nmqi.v0.build/',
+    siteUrl: 'https://v0.app/templates/eincode-digital-lab-NjOUgG6VT7X',
     structuralSlots: {
       heroSlot: 'Digital laboratory headline, status pill, and interactive ASCII terminal card',
       showcaseSlot: 'Interactive project grid cards with dynamic hover states and tag chips',
@@ -65,7 +65,7 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
     id: 'jMO0lvF8j85',
     name: 'Exact Landing Page Clone',
     archetype: 'High-Converting SaaS · Bold Layout',
-    siteUrl: 'https://exact-landing-page-clone-2424t1qy.v0.build/',
+    siteUrl: 'https://v0.app/templates/exact-landing-page-clone-TRBFYs8lKCv',
     structuralSlots: {
       heroSlot: 'High-impact value headline, social proof badge, and primary recruiter conversion CTA',
       metricsSlot: 'Key milestone metric numbers and quantifiable impact counters',
