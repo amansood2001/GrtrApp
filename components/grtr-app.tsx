@@ -38,7 +38,7 @@ function Header({
   isCreatingNew = false,
   onStartNew,
   onCancelNew,
-  hasActivePortfolio = false,
+  activeCandidateName,
   activeCompanyName,
   applicationsCount = 3,
 }: {
@@ -47,7 +47,7 @@ function Header({
   isCreatingNew?: boolean
   onStartNew?: () => void
   onCancelNew?: () => void
-  hasActivePortfolio?: boolean
+  activeCandidateName?: string
   activeCompanyName?: string
   applicationsCount?: number
 }) {
@@ -66,7 +66,7 @@ function Header({
         <span className="brand-trademark">TM</span>
       </button>
 
-      {/* Structured Workflow Switcher */}
+      {/* Contextual Navigation Switcher */}
       <nav className="view-switcher" aria-label="Main navigation">
         {isCreatingNew ? (
           <div className="flex items-center gap-1 px-1">
@@ -102,30 +102,37 @@ function Header({
               <span>Exit</span>
             </button>
           </div>
+        ) : active === 3 ? (
+          <div className="flex items-center gap-2 px-1">
+            <button
+              onClick={() => setActive(4)}
+              className="text-xs text-zinc-400 hover:text-white px-2.5 py-1 rounded-md hover:bg-white/5 transition flex items-center gap-1.5 cursor-pointer font-sans"
+              title="Return to Portfolios Hub"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Portfolios</span>
+            </button>
+            <span className="text-zinc-600">/</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 border border-white/10 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <strong className="text-white font-medium">
+                {activeCandidateName ? `${activeCandidateName} @ ` : ''}{activeCompanyName || 'Portfolio'}
+              </strong>
+              <span className="text-purple-300 font-mono text-[10px] hidden sm:inline">(Live Studio)</span>
+            </div>
+          </div>
         ) : (
           <div className="flex items-center gap-1">
             <button
               onClick={() => setActive(4)}
-              className={active === 4 ? 'active' : ''}
-              aria-current={active === 4 ? 'page' : undefined}
+              className="active"
+              aria-current="page"
             >
               <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Portfolios</span>
               <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-300 font-mono border border-white/10">
                 {applicationsCount}
               </span>
-            </button>
-            <button
-              onClick={() => hasActivePortfolio && setActive(3)}
-              className={`${active === 3 ? 'active' : ''} ${!hasActivePortfolio ? 'opacity-40 cursor-not-allowed' : ''}`}
-              aria-current={active === 3 ? 'page' : undefined}
-              title={hasActivePortfolio ? `Open Live Studio for ${activeCompanyName || 'active portfolio'}` : 'Select a portfolio from dashboard to open Studio'}
-            >
-              <Code2 className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Live Studio</span>
-              {hasActivePortfolio && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-1 inline-block animate-pulse" />
-              )}
             </button>
           </div>
         )}
@@ -177,17 +184,6 @@ function Header({
             >
               Portfolios ({applicationsCount})
             </button>
-            {hasActivePortfolio && (
-              <button
-                onClick={() => {
-                  setActive(3)
-                  setMobileOpen(false)
-                }}
-                className={active === 3 ? 'active' : ''}
-              >
-                Live Studio ({activeCompanyName || 'Active'})
-              </button>
-            )}
             <button
               onClick={() => {
                 onStartNew?.()
@@ -2167,14 +2163,15 @@ function AnalyticsView({
 
                     <button
                       type="button"
-                      title="Open in Live Studio & Sandbox"
+                      title={`Open Live Studio for ${a.company}`}
                       onClick={(e) => {
                         e.stopPropagation()
                         onSelectApplication(a)
                       }}
-                      className="p-1.5 rounded bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition cursor-pointer"
+                      className="px-2.5 py-1 rounded bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition cursor-pointer text-xs flex items-center gap-1 font-medium border border-purple-500/30"
                     >
                       <Code2 className="w-3.5 h-3.5" />
+                      <span>Studio</span>
                     </button>
 
                     <button
@@ -2637,51 +2634,10 @@ export function GrtrApp() {
         isCreatingNew={isCreatingNew}
         onStartNew={handleStartNewApplication}
         onCancelNew={handleCancelNewApplication}
-        hasActivePortfolio={Boolean(chatId)}
+        activeCandidateName={blueprint?.candidateName}
         activeCompanyName={blueprint?.targetCompany}
         applicationsCount={applications.length}
       />
-
-      {/* Active Build / Portfolio Session Sticky Banner */}
-      {chatId && active !== 3 && !isCreatingNew && (
-        <div className="active-portfolio-banner w-full px-6 py-2.5 bg-gradient-to-r from-purple-950/90 via-zinc-950 to-zinc-900 border-b border-purple-500/30 flex items-center justify-between text-xs sticky top-[64px] z-20 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-zinc-300">
-              Active Portfolio:{' '}
-              <strong className="text-white font-medium">{blueprint?.candidateName || 'Candidate'}</strong>{' '}
-              for{' '}
-              <strong className="text-purple-300 font-medium">{blueprint?.targetCompany || 'Target Role'}</strong>
-              <span className="text-zinc-500 mx-2">·</span>
-              <span className="text-zinc-400 font-mono text-[11px] truncate max-w-[260px] inline-block align-middle" title={selectedDesign}>
-                {formatDesignLabel(selectedDesign, 32)}
-              </span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs text-zinc-300 hover:text-white"
-              onClick={() => previewUrl && window.open(previewUrl, '_blank')}
-            >
-              <ExternalLink className="w-3.5 h-3.5 mr-1" />
-              Preview
-            </Button>
-            <Button
-              size="sm"
-              className="h-7 text-xs bg-purple-600 hover:bg-purple-500 text-white font-medium"
-              onClick={() => setActive(3)}
-            >
-              <span>Open Live Studio & Sandbox</span>
-              <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Button>
-          </div>
-        </div>
-      )}
 
       <AnimatePresence initial={false} mode="wait">
         <motion.div
