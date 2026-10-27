@@ -75,6 +75,26 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
   },
 }
 
+function sanitizeAssetsForPrompt(assets?: {
+  avatarUrl?: string
+  projectImages?: string[]
+  preferredSocials?: Record<string, string>
+}) {
+  if (!assets) return null
+  return {
+    hasCustomAvatar: Boolean(assets.avatarUrl),
+    avatarType: assets.avatarUrl ? 'User provided an authentic profile photo' : 'None',
+    customProjectImagesCount: assets.projectImages?.length || 0,
+    preferredSocials: assets.preferredSocials || {},
+  }
+}
+
+function truncateSafely(str: string | undefined | null, maxChars: number): string {
+  if (!str) return ''
+  if (str.length <= maxChars) return str
+  return str.slice(0, maxChars) + '... [truncated for prompt limits]'
+}
+
 // ---------------------------------------------------------------------------
 // MODE B: Template Adaptation Prompt Synthesizer (Community Templates)
 // ---------------------------------------------------------------------------
@@ -171,13 +191,17 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 7. Motion Design Physics & Interaction Pacing (state explicitly that it must remain identical to ${templateProfile.name} and should not be meddled with, maintaining immediate first-paint)
 8. Direct Recruiter Contact Modal (using verified contact details from the Asset Kit / CV)`
 
+  const safeResumeText = truncateSafely(resumeText, 25000)
+  const safeJobDescription = truncateSafely(jobDescription, 15000)
+  const safeAssets = sanitizeAssetsForPrompt(userProvidedAssets)
+
   const userContext = {
     isCommunityTemplate: true,
     templateName: templateProfile.name,
     templateArchetype: templateProfile.archetype,
     templateSiteUrl: templateProfile.siteUrl,
     templateStructuralProfile: templateProfile.structuralSlots,
-    userProvidedAssets: userProvidedAssets || null,
+    userProvidedAssets: safeAssets,
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
     candidateName: blueprint.candidateName,
@@ -187,8 +211,8 @@ STRUCTURE OF YOUR PROMPT FOR V0:
     highlightedProofCases: blueprint.caseStudies,
     stats: blueprint.stats,
     roles: blueprint.roles,
-    fullCvText: resumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
-    fullJobDescription: jobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
+    fullCvText: safeResumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
+    fullJobDescription: safeJobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
   }
 
   const completion = await openai.chat.completions.create({
@@ -270,6 +294,9 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 7. Motion Design, Tailored Physics & Visual Effects (bespoke animation pacing and visual transitions dynamically derived from my profile and the JD)
 8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
+  const safeResumeText = truncateSafely(resumeText, 25000)
+  const safeJobDescription = truncateSafely(jobDescription, 15000)
+
   const userContext = {
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
@@ -279,8 +306,8 @@ STRUCTURE OF YOUR PROMPT FOR V0:
     selectedStrategicDirection: activeDirection,
     highlightedProofCases: blueprint.caseStudies,
     selectedDesignSystem: designSystem,
-    fullCvText: resumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
-    fullJobDescription: jobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
+    fullCvText: safeResumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
+    fullJobDescription: safeJobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
   }
 
   const completion = await openai.chat.completions.create({
@@ -369,9 +396,23 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       )
       console.log(`[Community Template Workflow] Adaptation prompt synthesized in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${adaptationMessage.length} chars)`)
 
+      // Collect valid user image attachments for v0 (if any)
+      const v0Attachments: Array<{ url: string }> = []
+      if (userProvidedAssets?.avatarUrl && typeof userProvidedAssets.avatarUrl === 'string') {
+        v0Attachments.push({ url: userProvidedAssets.avatarUrl })
+      }
+      if (Array.isArray(userProvidedAssets?.projectImages)) {
+        for (const img of userProvidedAssets.projectImages) {
+          if (img && typeof img === 'string') {
+            v0Attachments.push({ url: img })
+          }
+        }
+      }
+
       await v0.messages.sendAsync({
         chatId: newChatId,
         message: adaptationMessage,
+        attachments: v0Attachments.length > 0 ? v0Attachments : undefined,
       })
 
       return NextResponse.json({
@@ -389,15 +430,29 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
 
+    const v0Attachments: Array<{ url: string }> = []
+    if (userProvidedAssets?.avatarUrl && typeof userProvidedAssets.avatarUrl === 'string') {
+      v0Attachments.push({ url: userProvidedAssets.avatarUrl })
+    }
+    if (Array.isArray(userProvidedAssets?.projectImages)) {
+      for (const img of userProvidedAssets.projectImages) {
+        if (img && typeof img === 'string') {
+          v0Attachments.push({ url: img })
+        }
+      }
+    }
+
     let chatResponse: any
     try {
       chatResponse = await v0.chats.createAsync({
         message,
+        attachments: v0Attachments.length > 0 ? v0Attachments : undefined,
       })
     } catch (asyncErr) {
       console.warn('v0.chats.createAsync failed, attempting synchronous fallback:', asyncErr)
       chatResponse = await v0.chats.create({
         message,
+        attachments: v0Attachments.length > 0 ? v0Attachments : undefined,
       })
     }
 
