@@ -39,6 +39,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
     if (previewRes.error || !previewRes.data) {
       let isTerminated = false
       let failureReason = ''
+      let elapsedSec = 0
 
       try {
         const [chatRes, msgsRes] = await Promise.all([
@@ -48,8 +49,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
         const messages = (msgsRes as any)?.data?.messages || []
         const assistantMsg = messages.find((m: any) => m.role === 'assistant')
+        const isStillGenerating = assistantMsg && !assistantMsg.finishReason
         const createdAt = (chatRes as any)?.data?.createdAt ? new Date((chatRes as any).data.createdAt).getTime() : 0
-        const elapsedSec = createdAt ? Math.round((Date.now() - createdAt) / 1000) : 0
+        elapsedSec = createdAt ? Math.round((Date.now() - createdAt) / 1000) : 0
 
         if ((chatRes as any)?.error?.message) {
           isTerminated = true
@@ -57,7 +59,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
         } else if (assistantMsg && assistantMsg.finishReason === 'other') {
           isTerminated = true
           failureReason = 'v0 API generation halted with reason "other". This occurs when the v0 account has $0.00 credits remaining or exceeded generation quotas.'
-        } else if (elapsedSec > 120) {
+        } else if (!isStillGenerating && elapsedSec > 300) {
           isTerminated = true
           failureReason = `Sandbox compilation timed out after ${elapsedSec}s. v0 did not produce any previewable files.`
         }
@@ -258,10 +260,10 @@ export async function GET(req: NextRequest, context: RouteContext) {
   <div class="loader-card">
     <div class="spinner"></div>
     <h2>Compiling Live Portfolio Sandbox</h2>
-    <p>Assembling live interactive components, responsive architecture & spring physics. The sandbox will load automatically in seconds.</p>
+    <p>Assembling live interactive components, responsive architecture & spring physics. Complex templates with multiple components compile in 1-2 minutes.</p>
     <div class="badge">
       <span class="pulse"></span>
-      <span>Live compile in progress · Auto-refreshing</span>
+      <span>${elapsedSec > 0 ? `Active generation in progress (${elapsedSec}s)` : 'Live compile in progress'} · Auto-refreshing</span>
     </div>
   </div>
 </body>
