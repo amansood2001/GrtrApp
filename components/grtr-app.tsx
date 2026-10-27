@@ -1647,49 +1647,113 @@ function LiveStudio({
 }
 
 interface ApplicationItem {
+  id: string
   role: string
   company: string
-  url: string
-  plan: string
-  views: number
-  time: string
-  last: string
-  color: string
+  candidateName: string
+  chatId: string
+  previewUrl: string
+  selectedDesign: string
+  blueprint?: StrategicBlueprint
+  status?: 'generating' | 'ready' | 'error'
+  createdAt: string
+  url?: string
+  plan?: string
+  views?: number
+  time?: string
+  last?: string
+  color?: string
 }
 
 const initialApplications: ApplicationItem[] = [
-  { role: 'VP, Growth', company: 'Northstar Labs', url: 'grtr.app/p/you/northstar', plan: 'Plus', views: 32, time: '4m 15s', last: '14 min ago', color: '#8b5cf6' },
-  { role: 'Product Strategy Lead', company: 'Vertex AI', url: 'yourname.com/vertex', plan: 'Pro', views: 28, time: '3m 40s', last: '2 hours ago', color: '#4285f4' },
-  { role: 'GTM Director', company: 'Atlas Commerce', url: 'grtr.app/p/you/atlas', plan: 'Plus', views: 14, time: '2m 50s', last: 'Yesterday', color: '#f97316' },
+  {
+    id: 'YDS32ES5K3h',
+    chatId: 'YDS32ES5K3h',
+    previewUrl: '/api/preview/YDS32ES5K3h',
+    role: 'Growth Marketing Manager',
+    company: 'PhonePe',
+    candidateName: 'Aarav Mehta',
+    selectedDesign: 'COMPUTE — AI Platform Template',
+    status: 'ready',
+    createdAt: new Date().toISOString(),
+    url: 'grtr.app/p/aaravmehta/phonepe',
+    plan: 'Plus',
+    views: 18,
+    time: '3m 45s',
+    last: 'Just now',
+    color: '#8b5cf6',
+  },
+  {
+    id: 'wZoN0S4sp3n',
+    chatId: 'wZoN0S4sp3n',
+    previewUrl: '/api/preview/wZoN0S4sp3n',
+    role: 'Growth Marketing Manager (Media Iteration)',
+    company: 'PhonePe',
+    candidateName: 'Aarav Mehta',
+    selectedDesign: 'COMPUTE — AI Platform Template',
+    status: 'ready',
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    url: 'grtr.app/p/aaravmehta/phonepe-v1',
+    plan: 'Plus',
+    views: 12,
+    time: '2m 30s',
+    last: '1 hr ago',
+    color: '#6366f1',
+  },
 ]
 
 function AnalyticsView({
   openStudio,
+  onSelectApplication,
+  onDeleteApplication,
   applications,
 }: {
   openStudio: () => void
+  onSelectApplication: (app: ApplicationItem) => void
+  onDeleteApplication: (id: string) => void
   applications: ApplicationItem[]
 }) {
   const [selected, setSelected] = useState(0)
-  const app = applications[selected] || applications[0]
+  const [searchTerm, setSearchTerm] = useState('')
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  const filtered = applications.filter(a => {
+    if (!searchTerm) return true
+    const term = searchTerm.toLowerCase()
+    return (
+      a.company.toLowerCase().includes(term) ||
+      a.role.toLowerCase().includes(term) ||
+      (a.candidateName && a.candidateName.toLowerCase().includes(term))
+    )
+  })
+
+  const app = filtered[selected] || filtered[0] || applications[0]
+
+  const handleCopyLink = (e: React.MouseEvent, appItem: ApplicationItem) => {
+    e.stopPropagation()
+    const fullUrl = window.location.origin + appItem.previewUrl
+    navigator.clipboard.writeText(fullUrl)
+    setCopiedId(appItem.id || appItem.chatId)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   return (
     <div className="view-shell analytics-view">
       <div className="dashboard-head">
         <div>
-          <span className="eyebrow">Portfolio intelligence</span>
-          <h1>Applications</h1>
-          <p>Build deliberately. See what resonates. Improve every application.</p>
+          <span className="eyebrow">Portfolio intelligence & Dashboard</span>
+          <h1>My Portfolios</h1>
+          <p>Manage, resume live sandbox builds, and review your executive portfolios across target roles.</p>
         </div>
         <Button onClick={openStudio} className="primary-cta">
           <Plus data-icon="inline-start" />
-          New portfolio
+          New application
         </Button>
       </div>
 
       <div className="metric-grid">
         {[
-          [BriefcaseBusiness, String(applications.length), 'Applications built', '+1 this month'],
+          [BriefcaseBusiness, String(applications.length), 'Portfolios generated', 'Active & in sync'],
           [CircleUserRound, '74', 'Recruiter views', '+18% this week'],
           [TrendingUp, '3m 38s', 'Avg. dwell time', 'Top 12%'],
           [Globe2, '1', 'Custom domain', 'Active'],
@@ -1711,119 +1775,215 @@ function AnalyticsView({
         <section className="applications-panel">
           <div className="list-head">
             <div>
-              <h2>Tailored applications</h2>
-              <p>Every role, one purpose-built story.</p>
+              <h2>Tailored portfolios</h2>
+              <p>Click any portfolio to open its live editor & sandbox.</p>
             </div>
-            <button>
-              <Search />
-              Search
-            </button>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search portfolios..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="px-2.5 py-1.5 pl-7 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-purple-500/50"
+              />
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
+            </div>
           </div>
-          <div className="app-list">
-            {applications.map((a, i) => (
-              <button
-                key={a.company + i}
-                className={`app-row ${selected === i ? 'selected' : ''}`}
-                onClick={() => setSelected(i)}
-              >
-                <span className="company-mark" style={{ '--company-color': a.color } as React.CSSProperties}>
-                  {a.company.slice(0, 1)}
-                </span>
-                <div className="app-primary">
-                  <strong>{a.role}</strong>
-                  <span>{a.company}</span>
-                  <small>
-                    <Link2 />
-                    {a.url}
-                  </small>
+
+          {filtered.length === 0 ? (
+            <div className="p-8 text-center text-zinc-400 text-xs">
+              <p>No portfolios match your search.</p>
+              <Button size="sm" variant="outline" className="mt-3 text-xs" onClick={openStudio}>
+                Create new portfolio
+              </Button>
+            </div>
+          ) : (
+            <div className="app-list">
+              {filtered.map((a, i) => (
+                <div
+                  key={a.id || a.chatId || a.company + i}
+                  className={`app-row ${selected === i ? 'selected' : ''} group relative cursor-pointer`}
+                  onClick={() => setSelected(i)}
+                  onDoubleClick={() => onSelectApplication(a)}
+                >
+                  <span className="company-mark" style={{ '--company-color': a.color || '#8b5cf6' } as React.CSSProperties}>
+                    {a.company.slice(0, 1)}
+                  </span>
+                  <div className="app-primary flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <strong className="text-white text-xs truncate">{a.role}</strong>
+                      <span className="text-[10px] text-purple-300 font-mono">@{a.company}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-zinc-400">{a.candidateName}</span>
+                      <span className="text-zinc-600">·</span>
+                      <span className="text-[10px] text-zinc-400 font-mono truncate max-w-[130px]">{a.selectedDesign}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {a.status === 'generating' ? (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1 font-mono">
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" /> Compiling
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      title="Open in Live Studio & Sandbox"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onSelectApplication(a)
+                      }}
+                      className="p-1.5 rounded bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition cursor-pointer"
+                    >
+                      <Code2 className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      title="Preview live site in new tab"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.open(a.previewUrl, '_blank')
+                      }}
+                      className="p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      title="Copy preview link"
+                      onClick={(e) => handleCopyLink(e, a)}
+                      className="p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+                    >
+                      {copiedId === (a.id || a.chatId) ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      title="Delete portfolio"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (confirm(`Remove portfolio for ${a.company}?`)) {
+                          onDeleteApplication(a.id || a.chatId)
+                        }
+                      }}
+                      className="p-1.5 rounded hover:bg-red-500/20 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <span className={`plan-pill ${a.plan.toLowerCase()}`}>
-                  {a.plan}
-                  {a.plan === 'Pro' && <i />}
-                </span>
-                <div className="app-stat">
-                  <strong>{a.views}</strong>
-                  <small>views</small>
-                </div>
-                <div className="app-stat">
-                  <strong>{a.time}</strong>
-                  <small>avg. time</small>
-                </div>
-                <div className="last-view">
-                  <span>{a.last}</span>
-                  <small>last viewed</small>
-                </div>
-                <ChevronRight />
-              </button>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
-        <aside className="intel-panel">
-          <div className="intel-head">
-            <div>
-              <span className="company-mark" style={{ '--company-color': app.color } as React.CSSProperties}>
-                {app.company.slice(0, 1)}
-              </span>
+        {app && (
+          <aside className="intel-panel">
+            <div className="intel-head">
               <div>
-                <small>Recruiter intelligence</small>
-                <h2>{app.company}</h2>
+                <span className="company-mark" style={{ '--company-color': app.color || '#8b5cf6' } as React.CSSProperties}>
+                  {app.company.slice(0, 1)}
+                </span>
+                <div>
+                  <small className="text-zinc-400 block text-[10px]">Active Portfolio Selection</small>
+                  <h2 className="text-sm font-semibold text-white">{app.company}</h2>
+                </div>
+              </div>
+              <button
+                aria-label="Open portfolio preview in new tab"
+                title="Open fullscreen preview"
+                onClick={() => window.open(app.previewUrl, '_blank')}
+                className="cursor-pointer"
+              >
+                <ExternalLink />
+              </button>
+            </div>
+
+            <div className="p-4 border-b border-white/5 space-y-3 bg-zinc-950/40">
+              <div>
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono block">Target Role</span>
+                <span className="text-xs font-medium text-white">{app.role}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono block">Candidate</span>
+                <span className="text-xs text-zinc-300">{app.candidateName}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono block">Design Foundation</span>
+                <span className="text-xs text-purple-300 font-mono">{app.selectedDesign}</span>
               </div>
             </div>
-            <button aria-label="Open portfolio">
-              <ExternalLink />
-            </button>
-          </div>
-          <div className="heatmap">
-            <div>
-              <span>Content heatmap</span>
-              <strong>84% engaged</strong>
+
+            <div className="p-4 space-y-2">
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs py-2.5 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-600/20"
+                onClick={() => onSelectApplication(app)}
+              >
+                <Code2 className="w-4 h-4" />
+                <span>Open in Live Studio & Sandbox</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-auto" />
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-xs py-2 flex items-center justify-center gap-2 cursor-pointer"
+                onClick={() => window.open(app.previewUrl, '_blank')}
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Fullsite Preview</span>
+              </Button>
             </div>
-            <div className="heat-bars">
-              <span style={{ width: '92%' }} />
-              <span style={{ width: '84%' }} />
-              <span style={{ width: '62%' }} />
-              <span style={{ width: '38%' }} />
+
+            <div className="heatmap">
+              <div>
+                <span>Content heatmap</span>
+                <strong>84% engaged</strong>
+              </div>
+              <div className="heat-bars">
+                <span style={{ width: '92%' }} />
+                <span style={{ width: '84%' }} />
+                <span style={{ width: '62%' }} />
+                <span style={{ width: '38%' }} />
+              </div>
+              <div className="heat-labels">
+                <span>Hero</span>
+                <span>Strategy</span>
+                <span>Case studies</span>
+                <span>About</span>
+              </div>
             </div>
-            <div className="heat-labels">
-              <span>Hero</span>
-              <span>Strategy</span>
-              <span>Case studies</span>
-              <span>About</span>
+
+            <div className="intel-feed">
+              <h3>Recent activity</h3>
+              <article>
+                <span />
+                <div>
+                  <p>
+                    A recruiter viewed your strategic teardown for <strong>{app.company}</strong>.
+                  </p>
+                  <small>14 minutes ago · 3m 42s session</small>
+                </div>
+              </article>
+              <article>
+                <span />
+                <div>
+                  <p>
+                    Return visit to your <strong>Verified Metrics</strong> proof card.
+                  </p>
+                  <small>2 hours ago · Direct link</small>
+                </div>
+              </article>
             </div>
-          </div>
-          <div className="intel-feed">
-            <h3>Recent activity</h3>
-            <article>
-              <span />
-              <div>
-                <p>
-                  A recruiter in <strong>New York, US</strong> viewed your strategic teardown.
-                </p>
-                <small>14 minutes ago · 3m 42s session</small>
-              </div>
-            </article>
-            <article>
-              <span />
-              <div>
-                <p>
-                  Return visit to your <strong>Category Creation</strong> case study.
-                </p>
-                <small>2 hours ago · Direct link</small>
-              </div>
-            </article>
-            <article>
-              <span className="muted" />
-              <div>
-                <p>Your portfolio was shared through a private link.</p>
-                <small>Yesterday · 2 new visitors</small>
-              </div>
-            </article>
-          </div>
-          <Button variant="outline" className="full-button" onClick={openStudio}>
-            Open Live Studio <ArrowRight data-icon="inline-end" />
-          </Button>
-        </aside>
+          </aside>
+        )}
       </div>
     </div>
   )
@@ -1848,6 +2008,55 @@ export function GrtrApp() {
 
   // Tracked Applications
   const [applications, setApplications] = useState<ApplicationItem[]>(initialApplications)
+
+  // Restore saved portfolios and active session from localStorage
+  useEffect(() => {
+    try {
+      const savedApps = localStorage.getItem('grtr_saved_portfolios_v1')
+      if (savedApps) {
+        const parsed = JSON.parse(savedApps)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setApplications(parsed)
+        }
+      }
+      const savedSession = localStorage.getItem('grtr_active_portfolio_session_v1')
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession)
+        if (parsed.chatId) setChatId(parsed.chatId)
+        if (parsed.previewUrl) setPreviewUrl(parsed.previewUrl)
+        if (parsed.selectedDesign) setSelectedDesign(parsed.selectedDesign)
+        if (parsed.blueprint) setBlueprint(parsed.blueprint)
+      }
+    } catch (err) {
+      console.warn('Failed to load saved portfolios from localStorage:', err)
+    }
+  }, [])
+
+  // Handler: Select an application to open in Live Studio
+  const handleSelectApplication = (appItem: ApplicationItem) => {
+    if (appItem.chatId) {
+      setChatId(appItem.chatId)
+      setPreviewUrl(appItem.previewUrl || `/api/preview/${appItem.chatId}`)
+      if (appItem.blueprint) setBlueprint(appItem.blueprint)
+      if (appItem.selectedDesign) setSelectedDesign(appItem.selectedDesign)
+      setActive(3) // Advance to Stage 3: Live Studio
+    } else {
+      setActive(1)
+    }
+  }
+
+  // Handler: Delete an application
+  const handleDeleteApplication = (id: string) => {
+    setApplications(prev => {
+      const updated = prev.filter(a => a.id !== id && a.chatId !== id)
+      try {
+        localStorage.setItem('grtr_saved_portfolios_v1', JSON.stringify(updated))
+      } catch (e) {
+        console.warn(e)
+      }
+      return updated
+    })
+  }
 
   // Handler: Parse CV
   const handleCvParsed = (text: string, filename: string) => {
@@ -1927,13 +2136,22 @@ export function GrtrApp() {
       }
 
       if (data.success && data.chatId) {
+        const fullPreviewUrl = data.previewUrl || `/api/preview/${data.chatId}`
         setChatId(data.chatId)
-        setPreviewUrl(data.previewUrl || `/api/preview/${data.chatId}`)
+        setPreviewUrl(fullPreviewUrl)
 
-        // Add to applications list
+        // Add to applications list & persist in localStorage
         const newApp: ApplicationItem = {
+          id: data.chatId,
+          chatId: data.chatId,
+          previewUrl: fullPreviewUrl,
           role: blueprint.targetRole || 'Growth Executive',
           company: blueprint.targetCompany || 'Target Enterprise',
+          candidateName: blueprint.candidateName,
+          selectedDesign,
+          blueprint,
+          status: 'generating',
+          createdAt: new Date().toISOString(),
           url: `grtr.app/p/${blueprint.candidateName.toLowerCase().replace(/\s+/g, '')}/${blueprint.targetCompany.toLowerCase().replace(/\s+/g, '')}`,
           plan: 'Plus',
           views: 1,
@@ -1941,7 +2159,30 @@ export function GrtrApp() {
           last: 'Live now',
           color: '#8b5cf6',
         }
-        setApplications(prev => [newApp, ...prev])
+
+        setApplications(prev => {
+          const filtered = prev.filter(a => a.chatId !== newApp.chatId && a.id !== newApp.id)
+          const updated = [newApp, ...filtered]
+          try {
+            localStorage.setItem('grtr_saved_portfolios_v1', JSON.stringify(updated))
+          } catch (e) {
+            console.warn(e)
+          }
+          return updated
+        })
+
+        // Persist active session so reload / back doesn't lose it
+        try {
+          localStorage.setItem('grtr_active_portfolio_session_v1', JSON.stringify({
+            chatId: data.chatId,
+            previewUrl: fullPreviewUrl,
+            selectedDesign,
+            blueprint,
+            active: 3,
+          }))
+        } catch (e) {
+          console.warn(e)
+        }
 
         setActive(3) // Advance to Stage 3: Live Studio
       } else {
@@ -1972,6 +2213,46 @@ export function GrtrApp() {
         setActive={setActive}
         applicationsCount={applications.length}
       />
+
+      {/* Active Build / Portfolio Session Sticky Banner */}
+      {chatId && active !== 3 && (
+        <div className="active-portfolio-banner w-full px-6 py-2.5 bg-gradient-to-r from-purple-950/90 via-zinc-950 to-zinc-900 border-b border-purple-500/30 flex items-center justify-between text-xs sticky top-[64px] z-20 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-zinc-300">
+              Active Portfolio:{' '}
+              <strong className="text-white font-medium">{blueprint?.candidateName || 'Candidate'}</strong>{' '}
+              for{' '}
+              <strong className="text-purple-300 font-medium">{blueprint?.targetCompany || 'Target Role'}</strong>
+              <span className="text-zinc-500 mx-2">·</span>
+              <span className="text-zinc-400 font-mono text-[11px]">{selectedDesign}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-zinc-300 hover:text-white"
+              onClick={() => previewUrl && window.open(previewUrl, '_blank')}
+            >
+              <ExternalLink className="w-3.5 h-3.5 mr-1" />
+              Preview
+            </Button>
+            <Button
+              size="sm"
+              className="h-7 text-xs bg-purple-600 hover:bg-purple-500 text-white font-medium"
+              onClick={() => setActive(3)}
+            >
+              <span>Open Live Studio & Sandbox</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={active}
@@ -2015,6 +2296,8 @@ export function GrtrApp() {
           {active === 4 && (
             <AnalyticsView
               openStudio={() => setActive(1)}
+              onSelectApplication={handleSelectApplication}
+              onDeleteApplication={handleDeleteApplication}
               applications={applications}
             />
           )}
