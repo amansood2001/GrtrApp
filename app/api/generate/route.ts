@@ -129,7 +129,7 @@ STRATEGIC THESIS & COMPANY RESEARCH FOR SECTION 2 (ZERO-COMPRESSION & INTERACTIO
   * My Proven Right-to-Win (verbatim as provided in selectedStrategicDirection.rightToWinProof)
 - NEVER summarize, condense, or dilute these points into high-level slogans. They demonstrate my deep preparation, domain insight, and tailored effort for this role.
 - Immediately following the verbatim text in Section 2, instruct v0 with this explicit directive:
-  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches (e.g. interactive cards, tabbed views, expandable reveals, or motion transitions) that blend naturally with the template's aesthetic atmosphere."
+  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches that blend naturally with the template's aesthetic atmosphere."
 
 DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
@@ -261,7 +261,7 @@ STRATEGIC THESIS & COMPANY RESEARCH FOR SECTION 2 (ZERO-COMPRESSION & INTERACTIO
   * My Proven Right-to-Win (verbatim as provided in selectedStrategicDirection.rightToWinProof)
 - NEVER summarize, condense, or dilute these points into high-level slogans. They demonstrate my deep preparation, domain insight, and tailored effort for this role.
 - Immediately following the verbatim text in Section 2, instruct v0 with this explicit directive:
-  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches (e.g. interactive cards, tabbed views, expandable reveals, or motion transitions) that blend naturally with the template's aesthetic atmosphere."
+  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches that blend naturally with the template's aesthetic atmosphere."
 
 DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 - Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
