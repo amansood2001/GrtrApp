@@ -811,9 +811,6 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         {[
           'Deploy and share the link on chat',
           'Sharpen company teardown & strategic thesis',
-          'Highlight ARR and retention metrics',
-          'Enhance visual layout & scannability',
-          'Add executive proof metrics & ROI card',
         ].map(text => (
           <button key={text} disabled={streaming} onClick={() => send(text)}>
             <span>{text}</span>

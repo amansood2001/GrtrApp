@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import {
-  ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, ChevronDown, CircleUserRound,
-  Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2, LayoutDashboard,
-  Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
+  ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, ChevronDown, ChevronLeft,
+  CircleUserRound, Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2,
+  LayoutDashboard, Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
   Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw,
   Trash2, Image as ImageIcon
 } from 'lucide-react'
@@ -35,46 +35,121 @@ const views = [
 function Header({
   active,
   setActive,
+  isCreatingNew = false,
+  onStartNew,
+  onCancelNew,
+  hasActivePortfolio = false,
+  activeCompanyName,
   applicationsCount = 3,
 }: {
   active: number
   setActive: (n: number) => void
+  isCreatingNew?: boolean
+  onStartNew?: () => void
+  onCancelNew?: () => void
+  hasActivePortfolio?: boolean
+  activeCompanyName?: string
   applicationsCount?: number
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   return (
     <header className="app-header">
-      <button className="brand" onClick={() => setActive(1)} aria-label="Go to Input Studio">
+      <button
+        className="brand"
+        onClick={() => {
+          if (isCreatingNew) onCancelNew?.()
+          setActive(4)
+        }}
+        aria-label="Go to Portfolios Hub"
+      >
         <span className="brand-name">Grtr</span>
         <span className="brand-trademark">TM</span>
       </button>
-      <nav className="main-links" aria-label="Main navigation">
-        <button onClick={() => setActive(1)}>New Application</button>
-        <button onClick={() => setActive(4)}>
-          My Applications <span>{applicationsCount}</span>
-        </button>
-        <button className="upgrade-link">Plus Plan</button>
+
+      {/* Structured Workflow Switcher */}
+      <nav className="view-switcher" aria-label="Main navigation">
+        {isCreatingNew ? (
+          <div className="flex items-center gap-1 px-1">
+            <span className="text-[10px] font-mono text-purple-400 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 mr-1 hidden sm:inline-block">
+              Genesis Wizard
+            </span>
+            <button
+              onClick={() => setActive(1)}
+              className={active === 1 ? 'active' : ''}
+              aria-current={active === 1 ? 'page' : undefined}
+            >
+              <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="step-number">1.</span>
+              <span>Input Studio</span>
+            </button>
+            <ChevronRight className="w-3 h-3 text-zinc-600 shrink-0" />
+            <button
+              onClick={() => setActive(2)}
+              className={active === 2 ? 'active' : ''}
+              aria-current={active === 2 ? 'page' : undefined}
+            >
+              <Target className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="step-number">2.</span>
+              <span>Strategic Blueprint</span>
+            </button>
+            <button
+              type="button"
+              onClick={onCancelNew}
+              className="ml-2 text-[11px] text-zinc-400 hover:text-white px-2 py-1 rounded hover:bg-white/5 transition flex items-center gap-1 cursor-pointer"
+              title="Exit creation and return to Portfolios"
+            >
+              <X className="w-3 h-3" />
+              <span>Exit</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setActive(4)}
+              className={active === 4 ? 'active' : ''}
+              aria-current={active === 4 ? 'page' : undefined}
+            >
+              <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Portfolios</span>
+              <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-300 font-mono border border-white/10">
+                {applicationsCount}
+              </span>
+            </button>
+            <button
+              onClick={() => hasActivePortfolio && setActive(3)}
+              className={`${active === 3 ? 'active' : ''} ${!hasActivePortfolio ? 'opacity-40 cursor-not-allowed' : ''}`}
+              aria-current={active === 3 ? 'page' : undefined}
+              title={hasActivePortfolio ? `Open Live Studio for ${activeCompanyName || 'active portfolio'}` : 'Select a portfolio from dashboard to open Studio'}
+            >
+              <Code2 className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Live Studio</span>
+              {hasActivePortfolio && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-1 inline-block animate-pulse" />
+              )}
+            </button>
+          </div>
+        )}
       </nav>
-      <nav className="view-switcher" aria-label="Demo views">
-        {views.map(({ id, short, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActive(id)}
-            className={active === id ? 'active' : ''}
-            aria-current={active === id ? 'page' : undefined}
+
+      <div className="flex items-center gap-3 ml-auto">
+        {!isCreatingNew && (
+          <Button
+            size="sm"
+            onClick={onStartNew}
+            className="primary-cta text-xs h-8 px-3 flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
-            <Icon aria-hidden="true" />
-            <span className="step-number">{id}.</span>
-            <span>{short}</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Portfolio</span>
+          </Button>
+        )}
+        <div className="profile">
+          <span className="tier-badge">Plus</span>
+          <button className="avatar" aria-label="Open profile menu">
+            <CircleUserRound aria-label="Your profile" />
           </button>
-        ))}
-      </nav>
-      <div className="profile">
-        <span className="tier-badge">Plus</span>
-        <button className="avatar" aria-label="Open profile menu">
-          <CircleUserRound aria-label="Your profile" />
-        </button>
+        </div>
       </div>
+
       <button
         className="mobile-menu"
         onClick={() => setMobileOpen(!mobileOpen)}
@@ -83,6 +158,7 @@ function Header({
       >
         <Menu />
       </button>
+
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -91,18 +167,36 @@ function Header({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
           >
-            {views.map(({ id, label }) => (
+            <button
+              onClick={() => {
+                onCancelNew?.()
+                setActive(4)
+                setMobileOpen(false)
+              }}
+              className={active === 4 ? 'active' : ''}
+            >
+              Portfolios ({applicationsCount})
+            </button>
+            {hasActivePortfolio && (
               <button
-                key={id}
                 onClick={() => {
-                  setActive(id)
+                  setActive(3)
                   setMobileOpen(false)
                 }}
-                className={active === id ? 'active' : ''}
+                className={active === 3 ? 'active' : ''}
               >
-                {id}. {label}
+                Live Studio ({activeCompanyName || 'Active'})
               </button>
-            ))}
+            )}
+            <button
+              onClick={() => {
+                onStartNew?.()
+                setMobileOpen(false)
+              }}
+              className="text-purple-300 font-medium"
+            >
+              + New Portfolio
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -204,6 +298,7 @@ interface InputStudioProps {
   onGenerate: () => void
   isGeneratingBlueprint: boolean
   error?: string | null
+  onCancel?: () => void
 }
 
 export interface CommunityTemplate {
@@ -305,6 +400,7 @@ function InputStudio({
   onGenerate,
   isGeneratingBlueprint,
   error,
+  onCancel,
 }: InputStudioProps) {
   const [jdMode, setJdMode] = useState<'text' | 'file'>('text')
   const [designTab, setDesignTab] = useState('moods')
@@ -377,11 +473,22 @@ function InputStudio({
 
   return (
     <div className="view-shell input-view">
-      <div id="input-workspace" className="workspace-heading">
+      <div id="input-workspace" className="workspace-heading flex items-center justify-between">
         <div>
           <h1>Input studio</h1>
           <p>Your experience, shaped for your next role.</p>
         </div>
+        {onCancel && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCancel}
+            className="text-xs text-zinc-400 hover:text-white flex items-center gap-1.5 cursor-pointer"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>Cancel &amp; Back to Portfolios</span>
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -738,6 +845,42 @@ interface BlueprintProps {
   onUpdateCaseStudies?: (caseStudies: CaseStudyItem[]) => void
 }
 
+function AutoExpandingHookTextarea({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (val: string) => void
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const adjustHeight = useCallback(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.max(90, el.scrollHeight)}px`
+  }, [])
+
+  useEffect(() => {
+    adjustHeight()
+  }, [value, adjustHeight])
+
+  return (
+    <textarea
+      ref={textareaRef}
+      aria-label="Positioning hook"
+      value={value}
+      onChange={e => {
+        onChange(e.target.value)
+        adjustHeight()
+      }}
+      rows={2}
+      className="positioning-hook-textarea"
+      placeholder="Executive positioning hook..."
+    />
+  )
+}
+
 function Blueprint({
   blueprint,
   onBack,
@@ -762,17 +905,17 @@ function Blueprint({
       <div className="blueprint-layout">
         <div className="blueprint-main">
           <section className="strategy-card hero-strategy beam">
-            <div className="strategy-label">
-              AI positioning hook <button>Edit</button>
+            <div className="strategy-label flex items-center justify-between">
+              <span>AI positioning hook</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Editable</span>
             </div>
-            <textarea
-              aria-label="Positioning hook"
+            <AutoExpandingHookTextarea
               value={blueprint.positioningHook}
-              onChange={e => onUpdateHook(e.target.value)}
+              onChange={onUpdateHook}
             />
             <div className="confidence">
-              <Sparkles />
-              Distinctive, specific, and supported by verified proof points in your CV
+              <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+              <span>Distinctive, specific, and supported by verified proof points in your CV</span>
             </div>
           </section>
 
@@ -1342,6 +1485,7 @@ interface LiveStudioProps {
   previewUrl: string | null
   selectedDesign: string
   onMarkReady?: (chatId: string) => void
+  onBackToPortfolios?: () => void
 }
 
 function LiveStudio({
@@ -1350,8 +1494,10 @@ function LiveStudio({
   previewUrl,
   selectedDesign,
   onMarkReady,
+  onBackToPortfolios,
 }: LiveStudioProps) {
   const [publish, setPublish] = useState(false)
+  const [thesisOpen, setThesisOpen] = useState(false)
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [mobileTab, setMobileTab] = useState<'chat' | 'preview'>('preview')
   const [iframeKey, setIframeKey] = useState(0)
@@ -1436,7 +1582,19 @@ function LiveStudio({
 
       <main className={`preview-pane ${mobileTab === 'preview' ? 'mobile-show' : ''}`}>
         <div className="studio-toolbar">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {onBackToPortfolios && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBackToPortfolios}
+                className="h-7 text-xs text-zinc-400 hover:text-white px-2 flex items-center gap-1 cursor-pointer mr-1"
+                title="Back to all portfolios"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Portfolios</span>
+              </Button>
+            )}
             <div className="flex items-center gap-2">
               <span className={`status-dot ${agentStatus.active ? 'bg-purple-400 animate-pulse' : ''}`} />
               <span className={agentStatus.active ? 'text-purple-300 font-medium' : ''}>
@@ -1472,6 +1630,18 @@ function LiveStudio({
             )}
           </div>
           <div className="toolbar-actions">
+            {blueprint && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setThesisOpen(true)}
+                className="h-8 text-xs border-purple-500/30 bg-purple-950/20 hover:bg-purple-900/40 text-purple-200 hover:text-white flex items-center gap-1.5 cursor-pointer"
+                title="View approved strategic thesis, right to win angles, and case studies"
+              >
+                <Target className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">Strategic Thesis</span>
+              </Button>
+            )}
             <div className="viewport-toggle">
               <button
                 onClick={() => setViewport('mobile')}
@@ -1557,12 +1727,114 @@ function LiveStudio({
               <div className="portfolio-preview p-12 text-center text-muted flex flex-col items-center justify-center min-h-[500px]">
                 <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-zinc-300 font-medium text-sm">Generating live portfolio sandbox...</p>
-                <p className="text-zinc-500 text-xs mt-1">Assembling responsive layout, interactive widgets & typography</p>
+                <p className="text-zinc-500 text-xs mt-1">Assembling responsive layout, interactive widgets &amp; typography</p>
               </div>
             )}
           </div>
         </div>
       </main>
+
+      {/* Strategic Thesis Reference Drawer */}
+      <AnimatePresence>
+        {thesisOpen && blueprint && (
+          <motion.div
+            className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setThesisOpen(false)}
+          >
+            <motion.div
+              className="w-full max-w-xl h-full bg-[#111316] border-l border-[#232530] p-6 overflow-y-auto flex flex-col justify-between shadow-2xl"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-[#232530] mb-6">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-purple-400" />
+                    <h2 className="text-base font-semibold text-white tracking-tight">Approved Strategic Thesis</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setThesisOpen(false)}
+                    className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Target Context */}
+                <div className="p-3.5 rounded-lg bg-zinc-900/60 border border-[#232530] mb-5">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-zinc-400 font-mono text-[11px]">TARGET ROLE & COMPANY</span>
+                    <span className="text-emerald-400 font-mono text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Active In Sandbox</span>
+                  </div>
+                  <h3 className="text-base font-semibold text-white font-serif">{blueprint.targetRole} @ {blueprint.targetCompany}</h3>
+                  <p className="text-xs text-zinc-400 mt-1">Candidate: {blueprint.candidateName}</p>
+                </div>
+
+                {/* Positioning Hook */}
+                <div className="mb-6">
+                  <span className="text-[10px] uppercase font-mono text-purple-400 font-semibold tracking-wider block mb-2">
+                    AI Positioning Hook
+                  </span>
+                  <blockquote className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 text-white font-serif text-lg leading-snug italic">
+                    "{blueprint.positioningHook}"
+                  </blockquote>
+                </div>
+
+                {/* Strategic Angles */}
+                <div className="mb-6">
+                  <span className="text-[10px] uppercase font-mono text-purple-400 font-semibold tracking-wider block mb-2">
+                    Company Research &amp; Right to Win Angles
+                  </span>
+                  <div className="space-y-3">
+                    {blueprint.directions?.map((d, i) => (
+                      <div key={i} className="p-3.5 rounded-lg bg-zinc-900/40 border border-[#232530] text-xs space-y-1.5">
+                        <strong className="text-purple-300 font-medium block">Angle 0{i + 1}: {d.angle}</strong>
+                        <p className="text-zinc-300 text-[11px]"><strong className="text-zinc-400">Challenge:</strong> {d.observedChallenge}</p>
+                        <p className="text-zinc-300 text-[11px]"><strong className="text-zinc-400">Strategy:</strong> {d.proposedStrategy}</p>
+                        <p className="text-emerald-300 text-[11px]"><strong className="text-emerald-400">Right to Win:</strong> {d.rightToWinProof}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Prioritized Case Studies */}
+                {blueprint.caseStudies && blueprint.caseStudies.length > 0 && (
+                  <div className="mb-6">
+                    <span className="text-[10px] uppercase font-mono text-purple-400 font-semibold tracking-wider block mb-2">
+                      Prioritized Case Studies
+                    </span>
+                    <div className="space-y-2">
+                      {blueprint.caseStudies.map((cs, i) => (
+                        <div key={i} className="p-3 rounded-lg bg-zinc-900/40 border border-[#232530] flex items-center justify-between text-xs">
+                          <div>
+                            <strong className="text-white block">{cs.title}</strong>
+                            <span className="text-[11px] text-zinc-400">{cs.detail}</span>
+                          </div>
+                          <span className="font-mono text-emerald-400 font-bold ml-4 shrink-0">{cs.metric}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-[#232530] flex justify-between items-center text-xs text-zinc-400">
+                <span>Strategy locked for live interview dialogue</span>
+                <Button variant="outline" size="sm" onClick={() => setThesisOpen(false)} className="border-[#232530] text-white">
+                  Close Drawer
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {publish && <PublishModal close={() => setPublish(false)} blueprint={blueprint} />}
@@ -1591,6 +1863,23 @@ interface ApplicationItem {
 }
 
 const initialApplications: ApplicationItem[] = [
+  {
+    id: 'qQgc64emjUV',
+    chatId: 'qQgc64emjUV',
+    previewUrl: '/api/preview/qQgc64emjUV',
+    role: 'Product Manager',
+    company: 'Pine Labs',
+    candidateName: 'Ananya Sharma',
+    selectedDesign: 'Minimal Monochrome',
+    status: 'ready',
+    createdAt: new Date().toISOString(),
+    url: 'grtr.app/p/ananyasharma/pinelabs',
+    plan: 'Plus',
+    views: 8,
+    time: '2m 14s',
+    last: 'Active',
+    color: '#10b981',
+  },
   {
     id: 'YDS32ES5K3h',
     chatId: 'YDS32ES5K3h',
@@ -1757,6 +2046,7 @@ function AnalyticsView({
   }, [app?.chatId, app?.id])
 
   const totalRecruiterViews = activityEvents.filter(e => e.type === 'recruiter_view').length
+  const readyCount = applications.filter(a => a.status === 'ready').length
 
   const handleCopyLink = (e: React.MouseEvent, appItem: ApplicationItem) => {
     e.stopPropagation()
@@ -1770,7 +2060,7 @@ function AnalyticsView({
     <div className="view-shell analytics-view">
       <div className="dashboard-head">
         <div>
-          <span className="eyebrow">Portfolio intelligence & Dashboard</span>
+          <span className="eyebrow">Portfolio intelligence &amp; Dashboard</span>
           <h1>My Portfolios</h1>
           <p>Manage, resume live sandbox builds, and review your executive portfolios across target roles.</p>
         </div>
@@ -1783,9 +2073,9 @@ function AnalyticsView({
       <div className="metric-grid">
         {[
           [BriefcaseBusiness, String(applications.length), 'Portfolios generated', 'Active & in sync'],
-          [CircleUserRound, String(totalRecruiterViews), 'Recruiter views', totalRecruiterViews > 0 ? 'Live telemetry' : 'Tracking ready'],
+          [CircleUserRound, String(totalRecruiterViews), 'Recruiter views', totalRecruiterViews > 0 ? `For ${app?.company || 'Selected'}` : 'Tracking ready'],
           [TrendingUp, totalRecruiterViews > 0 ? '2m 45s' : '—', 'Avg. dwell time', totalRecruiterViews > 0 ? 'Verified session' : 'Awaiting visits'],
-          [Globe2, '1', 'Custom domain', 'Active'],
+          [Rocket, String(readyCount), 'Active Sandboxes', `${readyCount} live on Vercel`],
         ].map(([Icon, val, label, trend]) => (
           <article className="metric-card" key={String(label)}>
             <div>
@@ -1992,7 +2282,9 @@ function AnalyticsView({
 
             <div className="intel-feed">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-white tracking-wide uppercase font-mono mb-0">Recent Activity</h3>
+                <h3 className="text-xs font-semibold text-white tracking-wide uppercase font-mono mb-0">
+                  Recent Activity · <span className="text-purple-300 font-sans normal-case">{app.company}</span>
+                </h3>
                 <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Live
@@ -2070,7 +2362,8 @@ function AnalyticsView({
 }
 
 export function GrtrApp() {
-  const [active, setActive] = useState(1)
+  const [active, setActive] = useState(4)
+  const [isCreatingNew, setIsCreatingNew] = useState(false)
 
   // Application State
   const [resumeText, setResumeText] = useState('')
@@ -2088,6 +2381,24 @@ export function GrtrApp() {
 
   // Tracked Applications
   const [applications, setApplications] = useState<ApplicationItem[]>(initialApplications)
+
+  // Handler: Start a fresh new portfolio creation
+  const handleStartNewApplication = () => {
+    setResumeText('')
+    setResumeFileName('')
+    setJobDescription('')
+    setSelectedDesign('Minimal Monochrome')
+    setBlueprint(null)
+    setErrorMessage(null)
+    setIsCreatingNew(true)
+    setActive(1)
+  }
+
+  // Handler: Cancel creation and return to Portfolios
+  const handleCancelNewApplication = () => {
+    setIsCreatingNew(false)
+    setActive(4)
+  }
 
   // Mark an application ready once v0 sandbox finishes compiling
   const markApplicationReady = useCallback((targetChatId: string) => {
@@ -2143,9 +2454,10 @@ export function GrtrApp() {
       setPreviewUrl(appItem.previewUrl || `/api/preview/${appItem.chatId}`)
       if (appItem.blueprint) setBlueprint(appItem.blueprint)
       if (appItem.selectedDesign) setSelectedDesign(appItem.selectedDesign)
+      setIsCreatingNew(false)
       setActive(3) // Advance to Stage 3: Live Studio
     } else {
-      setActive(1)
+      handleStartNewApplication()
     }
   }
 
@@ -2288,6 +2600,7 @@ export function GrtrApp() {
           console.warn(e)
         }
 
+        setIsCreatingNew(false)
         setActive(3) // Advance to Stage 3: Live Studio
       } else {
         const errorDetail = data.error || 'Portfolio generation failed.'
@@ -2321,11 +2634,16 @@ export function GrtrApp() {
       <Header
         active={active}
         setActive={setActive}
+        isCreatingNew={isCreatingNew}
+        onStartNew={handleStartNewApplication}
+        onCancelNew={handleCancelNewApplication}
+        hasActivePortfolio={Boolean(chatId)}
+        activeCompanyName={blueprint?.targetCompany}
         applicationsCount={applications.length}
       />
 
       {/* Active Build / Portfolio Session Sticky Banner */}
-      {chatId && active !== 3 && (
+      {chatId && active !== 3 && !isCreatingNew && (
         <div className="active-portfolio-banner w-full px-6 py-2.5 bg-gradient-to-r from-purple-950/90 via-zinc-950 to-zinc-900 border-b border-purple-500/30 flex items-center justify-between text-xs sticky top-[64px] z-20 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <span className="relative flex h-2 w-2">
@@ -2386,6 +2704,7 @@ export function GrtrApp() {
               onGenerate={handleGenerateBlueprint}
               isGeneratingBlueprint={isGeneratingBlueprint}
               error={errorMessage}
+              onCancel={handleCancelNewApplication}
             />
           )}
           {active === 2 && blueprint && (
@@ -2405,11 +2724,12 @@ export function GrtrApp() {
               previewUrl={previewUrl}
               selectedDesign={selectedDesign}
               onMarkReady={markApplicationReady}
+              onBackToPortfolios={() => setActive(4)}
             />
           )}
           {active === 4 && (
             <AnalyticsView
-              openStudio={() => setActive(1)}
+              openStudio={handleStartNewApplication}
               onSelectApplication={handleSelectApplication}
               onDeleteApplication={handleDeleteApplication}
               applications={applications}

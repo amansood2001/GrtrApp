@@ -843,3 +843,69 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
   flex-shrink: 0 !important;
 }
 
+/* ==========================================================================
+   Studio Side-by-Side & Positioning Hook Polish (v0 Matching)
+   ========================================================================== */
+.grtr-app .studio-view {
+  display: grid !important;
+  grid-template-columns: minmax(360px, 35%) 1fr !important;
+  height: calc(100vh - 64px) !important;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.grtr-app .chat-pane {
+  border-right: 1px solid var(--line) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  background: var(--surface) !important;
+}
+
+.grtr-app .preview-pane {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  background: var(--bg) !important;
+}
+
+.grtr-app .positioning-hook-textarea {
+  width: 100% !important;
+  min-height: 88px !important;
+  max-height: 320px !important;
+  overflow-y: auto !important;
+  resize: none !important;
+  font-family: 'Instrument Serif', Georgia, serif !important;
+  font-size: 24px !important;
+  line-height: 1.38 !important;
+  letter-spacing: -0.015em !important;
+  font-weight: 400 !important;
+  padding: 16px 18px !important;
+  border-radius: 12px !important;
+  background: rgba(18, 21, 26, 0.85) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--text) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.grtr-app .positioning-hook-textarea:focus {
+  border-color: rgba(139, 92, 246, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  outline: none !important;
+}
+
+@media (max-width: 768px) {
+  .grtr-app .studio-view {
+    display: block !important;
+    height: calc(100vh - 64px) !important;
+  }
+}
+
+
