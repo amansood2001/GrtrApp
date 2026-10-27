@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { dbRecordEvent } from './supabase/server'
 
 export interface PortfolioActivityEvent {
   id: string
@@ -75,6 +76,18 @@ export async function recordPortfolioEvent(
 
   inMemoryStore = store
   saveStore(store)
+
+  // Asynchronously record to Supabase if configured (non-blocking)
+  dbRecordEvent(chatId, {
+    eventType: event.type,
+    title: event.title,
+    description: event.description,
+    device: event.device,
+    referrer: event.referrer,
+  }).catch(err => {
+    // Silent catch so client telemetry is never delayed
+  })
+
   return newEvent
 }
 

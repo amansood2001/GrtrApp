@@ -2393,7 +2393,34 @@ export function GrtrApp() {
     })
   }, [])
 
-  // Restore saved portfolios and active session from localStorage
+  // Helper: Background sync portfolio to Supabase cloud
+  const syncAppToCloud = (app: ApplicationItem) => {
+    if (!app.chatId) return
+    fetch('/api/portfolios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: app.chatId,
+        candidate_name: app.candidateName || 'Candidate',
+        target_company: app.company || 'Target Company',
+        target_role: app.role || 'Executive Role',
+        strategic_angle: app.plan || null,
+        blueprint: app.blueprint || null,
+        theme: app.selectedDesign || 'obsidian',
+        status: app.status || 'deployed',
+      }),
+    }).catch(() => {})
+  }
+
+  // Helper: Delete portfolio from Supabase cloud
+  const deleteAppFromCloud = (chatId: string) => {
+    if (!chatId) return
+    fetch(`/api/portfolios?chatId=${encodeURIComponent(chatId)}`, {
+      method: 'DELETE',
+    }).catch(() => {})
+  }
+
+  // Restore saved portfolios and active session from localStorage & Supabase
   useEffect(() => {
     try {
       const savedApps = localStorage.getItem('grtr_saved_portfolios_v1')
@@ -2414,6 +2441,50 @@ export function GrtrApp() {
     } catch (err) {
       console.warn('Failed to load saved portfolios from localStorage:', err)
     }
+
+    // Reconcile with Supabase cloud store in background
+    fetch('/api/portfolios')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.portfolios && Array.isArray(data.portfolios) && data.portfolios.length > 0) {
+          setApplications(prev => {
+            const cloudApps: ApplicationItem[] = data.portfolios.map((p: any) => ({
+              id: p.chat_id,
+              chatId: p.chat_id,
+              candidateName: p.candidate_name,
+              company: p.target_company,
+              role: p.target_role,
+              selectedDesign: p.theme || 'obsidian',
+              status: 'ready' as const,
+              createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Recently',
+              previewUrl: `/api/preview/${p.chat_id}`,
+              blueprint: p.blueprint,
+              url: `grtr.app/p/${(p.candidate_name || 'candidate').toLowerCase().replace(/\s+/g, '')}/${(p.target_company || 'company').toLowerCase().replace(/\s+/g, '')}`,
+              plan: 'Plus',
+              views: 1,
+              time: 'Active',
+              last: 'Live',
+              color: '#8b5cf6',
+            }))
+
+            const map = new Map<string, ApplicationItem>()
+            prev.forEach(item => {
+              if (item.chatId) map.set(item.chatId, item)
+            })
+            cloudApps.forEach(item => {
+              if (item.chatId && !map.has(item.chatId)) {
+                map.set(item.chatId, item)
+              }
+            })
+            const merged = Array.from(map.values())
+            try {
+              localStorage.setItem('grtr_saved_portfolios_v1', JSON.stringify(merged))
+            } catch (e) {}
+            return merged
+          })
+        }
+      })
+      .catch(() => {})
   }, [])
 
   // Handler: Select an application to open in Live Studio
@@ -2432,6 +2503,7 @@ export function GrtrApp() {
 
   // Handler: Delete an application
   const handleDeleteApplication = (id: string) => {
+    deleteAppFromCloud(id)
     setApplications(prev => {
       const updated = prev.filter(a => a.id !== id && a.chatId !== id)
       try {
@@ -2555,6 +2627,9 @@ export function GrtrApp() {
           }
           return updated
         })
+
+        // Sync new portfolio to Supabase in background
+        syncAppToCloud(newApp)
 
         // Persist active session so reload / back doesn't lose it
         try {
