@@ -1514,7 +1514,7 @@ function LiveStudio({
   const liveShareUrl = chatId
     ? typeof window !== 'undefined'
       ? `${window.location.origin}/api/preview/${chatId}`
-      : `https://grtr-woad.vercel.app/api/preview/${chatId}`
+      : `https://grtr.app/api/preview/${chatId}`
     : ''
 
   const handleCopyLiveLink = () => {

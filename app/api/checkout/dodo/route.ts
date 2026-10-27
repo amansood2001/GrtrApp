@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'planId is required' }, { status: 400 })
     }
 
-    const host = req.headers.get('host') || 'grtr-woad.vercel.app'
+    const host = req.headers.get('host') || 'grtr.app'
     const protocol = host.includes('localhost') ? 'http' : 'https'
     const defaultReturn = `${protocol}://${host}/app?checkout=success&plan=${planId}`
 

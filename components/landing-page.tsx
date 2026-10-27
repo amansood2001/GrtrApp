@@ -128,7 +128,7 @@ export function LandingPage() {
             <ArrowRight className="w-4 h-4" />
           </Link>
           <a
-            href="https://grtr-woad.vercel.app/api/preview/qQgc64emjUV"
+            href="https://grtr.app/api/preview/qQgc64emjUV"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-200 text-sm font-medium transition-all flex items-center justify-center gap-2 no-underline"
@@ -710,7 +710,7 @@ export function LandingPage() {
         </div>
         <div className="flex items-center gap-6">
           <Link href="/app" className="hover:text-zinc-300 no-underline transition">Workspace</Link>
-          <a href="https://grtr-woad.vercel.app/api/preview/qQgc64emjUV" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 no-underline transition">Sample Teardown</a>
+          <a href="https://grtr.app/api/preview/qQgc64emjUV" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 no-underline transition">Sample Teardown</a>
           <a href="#pricing" className="hover:text-zinc-300 no-underline transition">Pricing</a>
           <a href="#faq" className="hover:text-zinc-300 no-underline transition">FAQ</a>
         </div>

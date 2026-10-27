@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       lower === 'get link' ||
       lower === 'deploy portfolio'
 
-    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'grtr-woad.vercel.app'
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'grtr.app'
     const protocol = req.headers.get('x-forwarded-proto') || 'https'
     const publicUrl = `${protocol}://${host}/api/preview/${chatId}`
 
