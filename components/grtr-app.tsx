@@ -757,13 +757,6 @@ function Blueprint({
           <span className="eyebrow">Pre-flight strategy</span>
           <h1>Your strongest route to the role.</h1>
         </div>
-        <div className="match-score">
-          <span>{blueprint.matchScore || 94}</span>
-          <div>
-            <strong>%</strong>
-            <small>Strategic match</small>
-          </div>
-        </div>
       </div>
       <div className="blueprint-layout">
         <div className="blueprint-main">
@@ -847,7 +840,6 @@ function Blueprint({
               <strong>{blueprint.fitStats?.designFoundation || 'IBM Carbon'}</strong>
             </div>
           </div>
-          <MotionNarrativeCard motionNarrative={blueprint.motionNarrative} />
         </aside>
       </div>
 
@@ -880,118 +872,13 @@ function Blueprint({
   )
 }
 
-function MotionNarrativeCard({
-  motionNarrative,
-}: {
-  motionNarrative?: { headline?: string; detail?: string }
-}) {
-  const [testingPhysics, setTestingPhysics] = useState(false)
-  const [physicsMode, setPhysicsMode] = useState<'spring' | 'inertia'>('spring')
-
-  const triggerTest = () => {
-    setTestingPhysics(true)
-    setTimeout(() => setTestingPhysics(false), 900)
-  }
-
-  return (
-    <div className="motion-card enhanced-motion-card">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="orb-preview" style={{ width: 22, height: 22 }}>
-            <span />
-            <span />
-            <span />
-          </div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold">
-            Motion Architecture
-          </span>
-        </div>
-        <span className="text-[9px] font-mono text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/50">
-          60fps Verified
-        </span>
-      </div>
-
-      <h3 className="text-sm font-semibold text-white mb-1">
-        {motionNarrative?.headline || 'Signal → System → Scale'}
-      </h3>
-      <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-        {motionNarrative?.detail || 'Engineered inertia reveals and magnetic spring physics guide executive recruiters through your strategic narrative without friction.'}
-      </p>
-
-      {/* Interactive Physics Sandbox Widget */}
-      <div className="physics-tester-box">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono text-zinc-400">Physics Simulation</span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPhysicsMode('spring')}
-              className={`text-[9px] font-mono px-2 py-0.5 rounded cursor-pointer transition-colors ${physicsMode === 'spring' ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40' : 'text-zinc-500 hover:text-zinc-300'}`}
-            >
-              Spring
-            </button>
-            <button
-              type="button"
-              onClick={() => setPhysicsMode('inertia')}
-              className={`text-[9px] font-mono px-2 py-0.5 rounded cursor-pointer transition-colors ${physicsMode === 'inertia' ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40' : 'text-zinc-500 hover:text-zinc-300'}`}
-            >
-              Inertia
-            </button>
-          </div>
-        </div>
-
-        <div className="physics-stage" onClick={triggerTest} title="Click to test physics rebound">
-          <motion.div
-            className="physics-puck"
-            animate={
-              testingPhysics
-                ? physicsMode === 'spring'
-                  ? { x: [0, 110, 75, 95, 88, 90], scale: [1, 1.15, 0.92, 1.05, 1] }
-                  : { x: [0, 90], transition: { ease: [0.16, 1, 0.3, 1], duration: 0.8 } }
-                : { x: 0, scale: 1 }
-            }
-            transition={
-              physicsMode === 'spring'
-                ? { type: 'spring', stiffness: 180, damping: 24, mass: 0.8 }
-                : undefined
-            }
-          >
-            <span>{testingPhysics ? 'Rebounding…' : 'Click to Test'}</span>
-          </motion.div>
-          <div className="physics-track-line" />
-        </div>
-      </div>
-
-      {/* Tangible Physics Parameters Specs */}
-      <div className="physics-specs-grid">
-        <div className="spec-item">
-          <span className="spec-label">Scroll Engine</span>
-          <strong className="spec-val">Lenis (damp: 0.12)</strong>
-        </div>
-        <div className="spec-item">
-          <span className="spec-label">Spring Dynamics</span>
-          <strong className="spec-val">Stiff 180 / Damp 24</strong>
-        </div>
-        <div className="spec-item">
-          <span className="spec-label">Teardown Reveal</span>
-          <strong className="spec-val">Stagger 80ms Blur</strong>
-        </div>
-        <div className="spec-item">
-          <span className="spec-label">Metric Velocity</span>
-          <strong className="spec-val">Odometer 1.2s</strong>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function SynthesisHUD() {
   const [stepIndex, setStepIndex] = useState(0)
   const steps = [
     { title: 'Deconstructing Target Company Requirements', desc: 'Analyzing strategic JD friction points, core competency gaps & category landscape' },
     { title: 'Parsing Candidate Dossier & Trajectory', desc: 'Isolating verified metrics, leadership inflection points & right-to-win proof' },
     { title: 'Synthesizing 3 Differentiated Strategic Angles', desc: 'Formulating executive angles, proposed solutions & quantifiable hypotheses' },
-    { title: 'Calibrating Interaction Physics & Motion Narrative', desc: 'Configuring Lenis inertia scroll, Framer spring parameters & bento layout' },
+    { title: 'Calibrating Strategic Evidence & Narrative Pacing', desc: 'Curating verified proof points, case studies & executive bento layout' },
     { title: 'Assembling Strategic Blueprint Pre-Flight', desc: 'Finalizing positioning hook, evidence cards & executive dossier' },
   ]
 
@@ -1727,6 +1614,17 @@ const initialApplications: ApplicationItem[] = [
   },
 ]
 
+function formatRelativeTime(timestamp: number): string {
+  const diffSec = Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
+  if (diffSec < 60) return 'Just now'
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffHour = Math.floor(diffMin / 60)
+  if (diffHour < 24) return `${diffHour}h ago`
+  const diffDay = Math.floor(diffHour / 24)
+  return `${diffDay}d ago`
+}
+
 function AnalyticsView({
   openStudio,
   onSelectApplication,
@@ -1815,6 +1713,38 @@ function AnalyticsView({
 
   const app = filtered[selected] || filtered[0] || applications[0]
 
+  const [activityEvents, setActivityEvents] = useState<any[]>([])
+  const [loadingActivity, setLoadingActivity] = useState(false)
+
+  useEffect(() => {
+    const idToFetch = app?.chatId || app?.id
+    if (!idToFetch) {
+      setActivityEvents([])
+      return
+    }
+
+    let cancelled = false
+    setLoadingActivity(true)
+
+    fetch(`/api/analytics?chatId=${encodeURIComponent(idToFetch)}&_t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!cancelled && data.success && Array.isArray(data.events)) {
+          setActivityEvents(data.events)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingActivity(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [app?.chatId, app?.id])
+
+  const totalRecruiterViews = activityEvents.filter(e => e.type === 'recruiter_view').length
+
   const handleCopyLink = (e: React.MouseEvent, appItem: ApplicationItem) => {
     e.stopPropagation()
     const fullUrl = window.location.origin + appItem.previewUrl
@@ -1840,8 +1770,8 @@ function AnalyticsView({
       <div className="metric-grid">
         {[
           [BriefcaseBusiness, String(applications.length), 'Portfolios generated', 'Active & in sync'],
-          [CircleUserRound, '74', 'Recruiter views', '+18% this week'],
-          [TrendingUp, '3m 38s', 'Avg. dwell time', 'Top 12%'],
+          [CircleUserRound, String(totalRecruiterViews), 'Recruiter views', totalRecruiterViews > 0 ? 'Live telemetry' : 'Tracking ready'],
+          [TrendingUp, totalRecruiterViews > 0 ? '2m 45s' : '—', 'Avg. dwell time', totalRecruiterViews > 0 ? 'Verified session' : 'Awaiting visits'],
           [Globe2, '1', 'Custom domain', 'Active'],
         ].map(([Icon, val, label, trend]) => (
           <article className="metric-card" key={String(label)}>
@@ -2047,45 +1977,77 @@ function AnalyticsView({
               </Button>
             </div>
 
-            <div className="heatmap">
-              <div>
-                <span>Content heatmap</span>
-                <strong>84% engaged</strong>
-              </div>
-              <div className="heat-bars">
-                <span style={{ width: '92%' }} />
-                <span style={{ width: '84%' }} />
-                <span style={{ width: '62%' }} />
-                <span style={{ width: '38%' }} />
-              </div>
-              <div className="heat-labels">
-                <span>Hero</span>
-                <span>Strategy</span>
-                <span>Case studies</span>
-                <span>About</span>
-              </div>
-            </div>
-
             <div className="intel-feed">
-              <h3>Recent activity</h3>
-              <article>
-                <span />
-                <div>
-                  <p>
-                    A recruiter viewed your strategic teardown for <strong>{app.company}</strong>.
-                  </p>
-                  <small>14 minutes ago · 3m 42s session</small>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-white tracking-wide uppercase font-mono mb-0">Recent Activity</h3>
+                <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live
+                </span>
+              </div>
+
+              {loadingActivity ? (
+                <div className="py-6 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                  <span>Loading telemetry...</span>
                 </div>
-              </article>
-              <article>
-                <span />
-                <div>
-                  <p>
-                    Return visit to your <strong>Verified Metrics</strong> proof card.
+              ) : activityEvents.length === 0 ? (
+                <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      Tracking Initialized
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-200 font-medium">
+                    No external recruiter visits recorded yet.
                   </p>
-                  <small>2 hours ago · Direct link</small>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Impressions, session dwell time, and device telemetry will update here automatically as recruiters open your link.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => handleCopyLink(e, app)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-purple-300 hover:text-white bg-purple-600/20 hover:bg-purple-600 rounded border border-purple-500/30 transition cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copy Link to Test</span>
+                  </button>
                 </div>
-              </article>
+              ) : (
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {activityEvents.map((evt: any) => {
+                    const isView = evt.type === 'recruiter_view'
+                    return (
+                      <article key={evt.id} className="flex gap-2.5 py-1.5 border-b border-white/5 last:border-0">
+                        <span
+                          className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${
+                            isView ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-purple-400'
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-zinc-200 leading-snug">
+                            {evt.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-zinc-400 font-mono">
+                              {formatRelativeTime(evt.timestamp)}
+                            </span>
+                            {evt.description && (
+                              <>
+                                <span className="text-zinc-600">·</span>
+                                <span className="text-[10px] text-zinc-400 font-mono truncate" title={evt.description}>
+                                  {evt.description}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </aside>
         )}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v0 } from 'v0'
+import { recordPortfolioEvent } from '@/lib/analytics-tracker'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -71,6 +72,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+
+    recordPortfolioEvent(chatId, {
+      type: 'studio_update',
+      title: 'Studio directive applied',
+      description: message.length > 60 ? message.slice(0, 57) + '...' : message,
+      timestamp: Date.now(),
+    }).catch(() => {})
 
     const lower = message.toLowerCase().trim()
     // STRICT deployment match: Only intercept if the user explicitly asks solely for deployment or the share link.

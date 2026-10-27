@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { v0 } from 'v0'
 import type { GenerateResponse, StrategicBlueprint } from '@/lib/types'
+import { recordPortfolioEvent } from '@/lib/analytics-tracker'
 
 export const runtime = 'nodejs'
 export const maxDuration = 120
@@ -392,6 +393,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
         message: adaptationMessage,
       })
 
+      recordPortfolioEvent(newChatId, {
+        type: 'deployed',
+        title: 'Portfolio compiled and live sandbox connected',
+        description: `Bespoke portfolio synthesized for ${blueprint.candidateName} @ ${blueprint.targetCompany}`,
+        timestamp: Date.now(),
+      }).catch(() => {})
+
       return NextResponse.json({
         success: true,
         chatId: newChatId,
@@ -434,6 +442,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
     }
 
     console.log(`Successfully created bespoke portfolio chat: ${chatId} (output tokens: ${outputTokens})`)
+
+    recordPortfolioEvent(chatId, {
+      type: 'deployed',
+      title: 'Portfolio compiled and live sandbox connected',
+      description: `Bespoke portfolio synthesized for ${blueprint.candidateName} @ ${blueprint.targetCompany}`,
+      timestamp: Date.now(),
+    }).catch(() => {})
 
     return NextResponse.json({
       success: true,

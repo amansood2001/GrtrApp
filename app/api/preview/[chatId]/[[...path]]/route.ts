@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v0, fetchPreview } from 'v0'
 import { interactivePreviewSnippet } from '@/lib/preview-interactions'
+import { recordPortfolioEvent, detectDeviceInfo, detectReferrerInfo } from '@/lib/analytics-tracker'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -493,6 +494,22 @@ export async function GET(req: NextRequest, context: RouteContext) {
             'Cache-Control': 'no-store, max-age=0',
           },
         })
+      }
+
+      if (path.length === 0) {
+        const ua = req.headers.get('user-agent')
+        const ref = req.headers.get('referer')
+        const device = detectDeviceInfo(ua)
+        const referrerDesc = detectReferrerInfo(ref)
+
+        recordPortfolioEvent(chatId, {
+          type: 'recruiter_view',
+          title: 'Recruiter viewed live portfolio',
+          description: `${device} · ${referrerDesc}`,
+          timestamp: Date.now(),
+          device,
+          referrer: referrerDesc,
+        }).catch(err => console.warn('[Preview] Analytics record error:', err))
       }
 
       const response = new NextResponse(html, {

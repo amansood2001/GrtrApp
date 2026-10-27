@@ -297,10 +297,15 @@ function MarkdownRenderer({ content }: { content: string }) {
   const lines = content.split('\n')
 
   return (
-    <div className="space-y-1.5 text-xs text-zinc-200 leading-relaxed">
+    <div className="w-full space-y-2 text-xs text-zinc-200 leading-relaxed font-sans">
       {lines.map((line, idx) => {
         const trimmed = line.trim()
         if (!trimmed) return <div key={idx} className="h-1" />
+
+        // Skip raw markdown duplicate button text like [Open Live Site](...)Copy Link
+        if (trimmed.startsWith('[Open Live Site]') || trimmed.startsWith('[Open Live Portfolio]')) {
+          return null
+        }
 
         // Bullet point
         if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ')) {
@@ -308,7 +313,7 @@ function MarkdownRenderer({ content }: { content: string }) {
           return (
             <div key={idx} className="flex items-start gap-2 pl-1">
               <span className="text-purple-400 mt-1 shrink-0">•</span>
-              <span>{renderFormattedInline(itemText)}</span>
+              <span className="flex-1">{renderFormattedInline(itemText)}</span>
             </div>
           )
         }
@@ -331,31 +336,43 @@ function MarkdownRenderer({ content }: { content: string }) {
           )
         }
 
-        return <p key={idx}>{renderFormattedInline(line)}</p>
+        return <p key={idx} className="m-0 leading-relaxed">{renderFormattedInline(line)}</p>
       })}
 
       {url && (
-        <div className="flex items-center gap-2 pt-2">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors no-underline shadow-sm"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>Open Live Site</span>
-          </a>
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(url)
-              alert('Live link copied to clipboard!')
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer border border-zinc-700"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            <span>Copy Link</span>
-          </button>
+        <div className="mt-3 p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Active & Interactive
+            </span>
+            <span className="text-[10px] text-zinc-400 font-mono">Public Preview</span>
+          </div>
+          <div className="text-xs text-zinc-300 font-mono bg-black/40 px-2.5 py-1.5 rounded border border-white/5 truncate">
+            {url}
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors no-underline shadow-sm cursor-pointer"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open Live Site</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(url)
+                alert('Live link copied to clipboard!')
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer border border-zinc-700"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copy Link</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -717,9 +734,9 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           const textContent = m.text || ''
 
           return (
-            <div key={i} className="ai-message space-y-2">
+            <div key={i} className="ai-message w-full flex flex-col space-y-3">
               {hasParts && (
-                <div className="space-y-1 mb-2">
+                <div className="w-full space-y-1.5 mb-1">
                   {parts.map((p, pIdx) => {
                     if (p.type === 'thinking') {
                       return <ThinkingBlock key={pIdx} part={p} isStreaming={m.status === 'streaming'} />
@@ -739,11 +756,13 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
               )}
 
               {textContent ? (
-                <MarkdownRenderer content={textContent} />
+                <div className="w-full">
+                  <MarkdownRenderer content={textContent} />
+                </div>
               ) : m.status === 'streaming' ? (
                 <div className="flex items-center gap-2 text-xs text-purple-300 py-1">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
-                  <span>Agent is working on your portfolio...</span>
+                  <span>Agent is assembling your portfolio sandbox...</span>
                 </div>
               ) : null}
 
@@ -771,11 +790,11 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           'Sharpen company teardown & strategic thesis',
           'Highlight ARR and retention metrics',
           'Enhance visual layout & scannability',
-          'Tune spring physics & motion reveals',
+          'Add executive proof metrics & ROI card',
         ].map(text => (
           <button key={text} disabled={streaming} onClick={() => send(text)}>
-            {text}
-            <ArrowRight />
+            <span>{text}</span>
+            <ArrowRight className="w-3 h-3 text-purple-400 shrink-0 ml-2" />
           </button>
         ))}
       </div>
