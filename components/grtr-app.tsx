@@ -1939,31 +1939,6 @@ function AnalyticsView({
   const [selected, setSelected] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [syncing, setSyncing] = useState(false)
-
-  const handleManualSync = async () => {
-    const generatingApps = applications.filter(a => a.status === 'generating' && a.chatId)
-    if (generatingApps.length === 0) return
-    setSyncing(true)
-    try {
-      await Promise.all(
-        generatingApps.map(async appItem => {
-          try {
-            const res = await fetch(`/api/chat?chatId=${encodeURIComponent(appItem.chatId)}`)
-            if (!res.ok) return
-            const data = await res.json()
-            if (data.isReady || (Array.isArray(data.messages) && data.messages.length > 0)) {
-              onMarkReady?.(appItem.chatId)
-            }
-          } catch (err) {
-            console.warn('Manual sync error:', err)
-          }
-        })
-      )
-    } finally {
-      setSyncing(false)
-    }
-  }
 
   // Auto-reconcile on mount for any portfolio stuck in generating
   useEffect(() => {
@@ -1972,7 +1947,6 @@ function AnalyticsView({
 
     let cancelled = false
     async function reconcile() {
-      setSyncing(true)
       try {
         await Promise.all(
           generatingApps.map(async appItem => {
@@ -1988,8 +1962,8 @@ function AnalyticsView({
             }
           })
         )
-      } finally {
-        if (!cancelled) setSyncing(false)
+      } catch (err) {
+        console.warn('Reconcile error:', err)
       }
     }
 
@@ -2091,29 +2065,17 @@ function AnalyticsView({
           <div className="list-head">
             <div>
               <h2>Tailored portfolios</h2>
-              <p>Click any portfolio to open its live editor & sandbox.</p>
+              <p>Click any portfolio to open its live editor &amp; sandbox.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleManualSync}
-                disabled={syncing}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-zinc-900 border border-white/10 hover:border-purple-500/40 text-zinc-300 hover:text-white text-xs transition cursor-pointer"
-                title="Check compilation status of generating portfolios"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-purple-400' : ''}`} />
-                <span className="hidden sm:inline">{syncing ? 'Syncing...' : 'Sync Status'}</span>
-              </button>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search portfolios..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="px-2.5 py-1.5 pl-7 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-purple-500/50"
-                />
-                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
-              </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search portfolios..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="px-2.5 py-1.5 pl-7 rounded-md bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-purple-500/50"
+              />
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
             </div>
           </div>
 
