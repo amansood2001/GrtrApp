@@ -803,8 +803,40 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 
 .grtr-app .match-score,
 .grtr-app .motion-card,
-.grtr-app .heatmap {
+.grtr-app .heatmap,
+.grtr-app .career-signal {
   display: none !important;
+}
+
+.grtr-app .reorder-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 11px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  padding: 4px 11px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.grtr-app .reorder-btn.active {
+  background: #9333ea !important;
+  color: #ffffff !important;
+  border: 1px solid #a855f7 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4) !important;
+}
+
+.grtr-app .reorder-btn:not(.active) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(192, 132, 252, 0.3) !important;
+}
+
+.grtr-app .reorder-btn:not(.active):hover {
+  background: rgba(192, 132, 252, 0.15) !important;
+  color: #ffffff !important;
 }
 
 .grtr-app .studio-chat-interactive .chat-composer {

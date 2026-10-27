@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   Send,
   Loader2,
   RefreshCw,
@@ -39,56 +41,77 @@ const defaultProjects: CaseStudyItem[] = [
   { title: 'Retention & Expansion Architecture', detail: 'Redesigned the post-sales expansion journey to compound net revenue retention.', metric: '+48%', metricLabel: 'Net Retention' },
 ]
 
-export function ProjectHighlights({ caseStudies }: { caseStudies?: CaseStudyItem[] }) {
+export function ProjectHighlights({
+  caseStudies,
+  isReordering,
+  onReorder,
+}: {
+  caseStudies?: CaseStudyItem[]
+  isReordering?: boolean
+  onReorder?: (items: CaseStudyItem[]) => void
+}) {
   const items = caseStudies && caseStudies.length > 0 ? caseStudies : defaultProjects
-  const [indices, setIndices] = useState([0, 1 % items.length, 2 % items.length])
 
-  useEffect(() => {
-    if (caseStudies && caseStudies.length > 0) {
-      setIndices([0, 1 % caseStudies.length, 2 % caseStudies.length])
-    }
-  }, [caseStudies])
+  const moveItem = (fromIdx: number, toIdx: number) => {
+    if (toIdx < 0 || toIdx >= items.length) return
+    const next = [...items]
+    const [moved] = next.splice(fromIdx, 1)
+    next.splice(toIdx, 0, moved)
+    onReorder?.(next)
+  }
 
   return (
-    <div className="case-grid">
-      {indices.map((index, slot) => {
-        const item = items[index] || defaultProjects[0]
-        return (
-          <article className="case-card" key={slot}>
-            <div className="case-content">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="case-index-pill font-mono text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
-                  Case 0{slot + 1}
-                </span>
-                <small className="text-[10px] uppercase font-mono tracking-wider text-muted">
-                  Verified Evidence
-                </small>
-              </div>
-              <h3 className="text-base font-semibold text-white mb-1.5 leading-snug">{item.title}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">{item.detail}</p>
-              {items.length > 3 && (
-                <button
-                  type="button"
-                  aria-label={`Swap project ${slot + 1}`}
-                  onClick={() =>
-                    setIndices(current =>
-                      current.map((value, i) => (i === slot ? (value + 1) % items.length : value))
-                    )
-                  }
-                  className="case-swap-btn"
-                >
-                  <RefreshCw className="w-2.5 h-2.5 inline mr-1" />
-                  Swap evidence
-                </button>
+    <div className="case-grid space-y-2.5">
+      {items.map((item, idx) => (
+        <article
+          className={`case-card transition-all ${
+            isReordering ? 'border-purple-500/50 bg-purple-950/20 shadow-md shadow-purple-950/30' : ''
+          }`}
+          key={item.title + idx}
+        >
+          <div className="case-content flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="case-index-pill font-mono text-[9px] text-purple-300 bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30 font-semibold">
+                Case 0{idx + 1}
+              </span>
+              <small className="text-[10px] uppercase font-mono tracking-wider text-zinc-400">
+                Verified Evidence
+              </small>
+
+              {isReordering && (
+                <div className="ml-auto flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={idx === 0}
+                    onClick={() => moveItem(idx, idx - 1)}
+                    className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-800 hover:bg-purple-600 disabled:opacity-30 disabled:hover:bg-zinc-800 text-zinc-200 hover:text-white border border-white/10 transition cursor-pointer"
+                    title="Move this case study up"
+                  >
+                    <ArrowUp className="w-2.5 h-2.5" />
+                    <span>Up</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={idx === items.length - 1}
+                    onClick={() => moveItem(idx, idx + 1)}
+                    className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-800 hover:bg-purple-600 disabled:opacity-30 disabled:hover:bg-zinc-800 text-zinc-200 hover:text-white border border-white/10 transition cursor-pointer"
+                    title="Move this case study down"
+                  >
+                    <ArrowDown className="w-2.5 h-2.5" />
+                    <span>Down</span>
+                  </button>
+                </div>
               )}
             </div>
-            <div className="case-metric">
-              <strong>{item.metric}</strong>
-              <small>{item.metricLabel || 'Verified Impact'}</small>
-            </div>
-          </article>
-        )
-      })}
+            <h3 className="text-base font-semibold text-white mb-1.5 leading-snug">{item.title}</h3>
+            <p className="text-xs text-zinc-300 leading-relaxed mb-2">{item.detail}</p>
+          </div>
+          <div className="case-metric shrink-0">
+            <strong>{item.metric}</strong>
+            <small>{item.metricLabel || 'Verified Impact'}</small>
+          </div>
+        </article>
+      ))}
     </div>
   )
 }

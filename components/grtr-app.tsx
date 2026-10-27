@@ -9,7 +9,6 @@ import {
   Trash2, Image as ImageIcon
 } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { CareerSignal } from './career-signal'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
 import { Button } from '@/components/ui/button'
 import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
@@ -383,7 +382,6 @@ function InputStudio({
           <h1>Input studio</h1>
           <p>Your experience, shaped for your next role.</p>
         </div>
-        <CareerSignal />
       </div>
 
       {error && (
@@ -737,6 +735,7 @@ interface BlueprintProps {
   onBuild: (selectedDirectionIndex?: number) => void
   isBuildingPortfolio: boolean
   onUpdateHook: (newHook: string) => void
+  onUpdateCaseStudies?: (caseStudies: CaseStudyItem[]) => void
 }
 
 function Blueprint({
@@ -745,8 +744,10 @@ function Blueprint({
   onBuild,
   isBuildingPortfolio,
   onUpdateHook,
+  onUpdateCaseStudies,
 }: BlueprintProps) {
   const [direction, setDirection] = useState(0)
+  const [isReordering, setIsReordering] = useState(false)
   const directions = blueprint.directions || []
   const activeDirection = directions[direction] || directions[0]
 
@@ -815,10 +816,22 @@ function Blueprint({
           </section>
 
           <section className="strategy-card">
-            <div className="strategy-label">
-              Prioritized case studies <button>Reorder</button>
+            <div className="strategy-label flex items-center justify-between">
+              <span>Prioritized case studies</span>
+              <button
+                type="button"
+                onClick={() => setIsReordering(prev => !prev)}
+                className={`reorder-btn ${isReordering ? 'active' : ''}`}
+                title={isReordering ? 'Save new case study priority' : 'Reorder prioritized case studies'}
+              >
+                {isReordering ? '✓ Done Reordering' : '↕ Reorder'}
+              </button>
             </div>
-            <ProjectHighlights caseStudies={blueprint.caseStudies} />
+            <ProjectHighlights
+              caseStudies={blueprint.caseStudies}
+              isReordering={isReordering}
+              onReorder={onUpdateCaseStudies}
+            />
           </section>
         </div>
 
@@ -2296,6 +2309,12 @@ export function GrtrApp() {
     }
   }
 
+  const handleUpdateCaseStudies = (newCaseStudies: CaseStudyItem[]) => {
+    if (blueprint) {
+      setBlueprint({ ...blueprint, caseStudies: newCaseStudies })
+    }
+  }
+
   return (
     <div className="grtr-app">
       <div className="ambient-bg" aria-hidden="true" />
@@ -2376,6 +2395,7 @@ export function GrtrApp() {
               onBuild={handleBuildPortfolio}
               isBuildingPortfolio={isBuildingPortfolio}
               onUpdateHook={handleUpdateHook}
+              onUpdateCaseStudies={handleUpdateCaseStudies}
             />
           )}
           {active === 3 && (
