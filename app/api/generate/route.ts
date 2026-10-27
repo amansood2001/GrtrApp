@@ -75,20 +75,6 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
   },
 }
 
-function sanitizeAssetsForPrompt(assets?: {
-  avatarUrl?: string
-  projectImages?: string[]
-  preferredSocials?: Record<string, string>
-}) {
-  if (!assets) return null
-  return {
-    hasCustomAvatar: Boolean(assets.avatarUrl),
-    avatarType: assets.avatarUrl ? 'User provided an authentic profile photo' : 'None',
-    customProjectImagesCount: assets.projectImages?.length || 0,
-    preferredSocials: assets.preferredSocials || {},
-  }
-}
-
 function truncateSafely(str: string | undefined | null, maxChars: number): string {
   if (!str) return ''
   if (str.length <= maxChars) return str
@@ -103,12 +89,7 @@ async function synthesizeV0TemplateAdaptationPrompt(
   templateProfile: CommunityTemplateProfile,
   selectedDirectionIndex: number = 0,
   resumeText: string = '',
-  jobDescription: string = '',
-  userProvidedAssets?: {
-    avatarUrl?: string
-    projectImages?: string[]
-    preferredSocials?: Record<string, string>
-  }
+  jobDescription: string = ''
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -128,6 +109,7 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 - Talk to v0 with authority, taste, and clarity.
 
 DIRECTION & VISUAL PRESERVATION (CRITICAL):
+- CRITICAL ARCHITECTURE & DESIGN PRESERVATION RULE: You must strictly preserve 100% of the duplicated ${templateProfile.name} template's visual architecture, 3D canvas/ASCII scenes (e.g. components/landing/ascii-scene.tsx or procedural backgrounds), layouts, typography, animations, and spatial atmosphere. Do NOT wipe out, replace, or remove signature visual components or canvas elements. Surgically adapt the narrative copy, headline thesis, verified metrics, 3-step playbook, and experience sections with the candidate's authentic background.
 - The visual direction, spatial atmosphere, materials (e.g. borders, surface elevations, contrast ratios, and layout margins), and typography hierarchy must be identical to the chosen community template (${templateProfile.name}) and must NOT deviate, in order to preserve the exact visual originality and appeal that made you choose it as your foundation.
 - DO NOT invent a new design system or replace the template's layout. Direct v0 to respect and preserve the existing styling tokens and design language.
 
@@ -154,27 +136,17 @@ Step 1: Identity & Residual Sanitization
 - Inspect the template's existing content and metadata:
   * Completely eliminate all placeholder author branding, personal headshots, creator bios, and mock credentials.
   * Purge all template author social handles (e.g. GitHub, Twitter/X, Substack, personal Calendly) and generic mock buttons (e.g. "Sign In", "Deploy Platform").
-  * Contact & Social Links Precedence:
-    - First Priority: Use any custom social links or preferred contact channels provided in the Progressive Asset Kit.
-    - Second Priority: Use verified contact info (email, LinkedIn) extracted directly from my CV.
-    - If a specific channel is not provided in either source, instruct v0 to remove that icon entirely rather than linking to a dead "#" or the original template author.
+  * Contact & Social Links: Use verified contact info (email, LinkedIn) extracted directly from my CV. If a specific channel is not provided in my CV, instruct v0 to remove that icon or link entirely rather than linking to a dead "#" or the original template author.
 
-Step 2: Visual Slot Replacement & Asset Priority Hierarchy (CRITICAL)
+Step 2: Visual Media and Slot Replacement (CRITICAL)
 - The template contains visual media cards, image placeholders, or decorative graphics originally designed for a different project or persona.
 - NEVER instruct v0 to output unverified or hallucinated external image URLs (which break or 404), and NEVER retain the original template author's personal photos or assets.
-- Apply the following strict Two-Tier Replacement Hierarchy:
-
-  [TIER A — USER-SUPPLIED ASSETS HAVE HIGHEST PRIORITY]:
-  * Check the attached context for any user-uploaded media from the "Progressive Asset Kit" (e.g., custom headshot/avatar, verified project screenshots, or specific work links).
-  * If custom assets are present, give them absolute priority: instruct v0 to slot these directly into the corresponding hero/project/media sections, replacing incoherent template elements with the candidate's authentic materials.
-
-  [TIER B — FIRST-PRINCIPLES PROCEDURAL REPLACEMENT FOR REMAINING SLOTS]:
-  * For any visual slot where no user-supplied asset was provided: do NOT guess or search for random external images.
-  * Instead, analyze my authentic profile from my CV against the target role in the JD:
-    - Deeply evaluate what constitutes my natural "proof of work" and tangible professional output—regardless of domain, discipline, or seniority.
-    - Dynamically determine the most compelling visual vocabulary, interactive UI widgets, data visualizations, process workflows, or functional components that authentically demonstrate my impact in this specific field.
-    - Instruct v0 to replace each remaining visual slot with that bespoke, natively rendered React/Tailwind/Lucide/SVG component as you deem best fit for my background.
-    - For profile avatars/headshots (if no custom photo was provided in the Asset Kit): instruct v0 to render a refined typographic monogram token or an abstract design-system-aligned visual mark rather than an arbitrary stock portrait.
+- If the template features procedural visual scenes, 3D canvases, or ASCII art (e.g. ascii-scene.tsx), PRESERVE THEM 100% INTACT. Do NOT replace them with generic photos.
+- If the template has an avatar/headshot slot, instruct v0 to render a refined typographic monogram token or an abstract design-system-aligned visual mark rather than an arbitrary stock photo.
+- Analyze my authentic profile from my CV against the target role in the JD:
+  * Deeply evaluate what constitutes my natural "proof of work" and tangible professional output.
+  * Dynamically determine the most compelling visual vocabulary, interactive UI widgets, data visualizations, process workflows, or functional components that authentically demonstrate my impact in this specific field.
+  * Instruct v0 to replace each remaining visual slot with that bespoke, natively rendered React/Tailwind/Lucide/SVG component.
 
 Step 3: Codebase & Aesthetic Preservation Guardrails
 - Instruct v0 to preserve the core structural layout, grid hierarchy, materials (e.g. borders, surface elevations, and margins), responsive navigation, and motion physics that make this template distinct.
@@ -189,11 +161,10 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 5. Aesthetic Atmosphere & Signature Interactive Concept (state explicitly that it must be identical to ${templateProfile.name} and must not be altered)
 6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany} integrated into the template
 7. Motion Design Physics & Interaction Pacing (state explicitly that it must remain identical to ${templateProfile.name} and should not be meddled with, maintaining immediate first-paint)
-8. Direct Recruiter Contact Modal (using verified contact details from the Asset Kit / CV)`
+8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
   const safeJobDescription = truncateSafely(jobDescription, 15000)
-  const safeAssets = sanitizeAssetsForPrompt(userProvidedAssets)
 
   const userContext = {
     isCommunityTemplate: true,
@@ -201,7 +172,6 @@ STRUCTURE OF YOUR PROMPT FOR V0:
     templateArchetype: templateProfile.archetype,
     templateSiteUrl: templateProfile.siteUrl,
     templateStructuralProfile: templateProfile.structuralSlots,
-    userProvidedAssets: safeAssets,
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
     candidateName: blueprint.candidateName,
@@ -335,18 +305,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       selectedDirectionIndex = 0,
       resumeText = '',
       jobDescription = '',
-      userProvidedAssets,
     }: {
       blueprint: StrategicBlueprint
       designSystem?: string
       selectedDirectionIndex?: number
       resumeText?: string
       jobDescription?: string
-      userProvidedAssets?: {
-        avatarUrl?: string
-        projectImages?: string[]
-        preferredSocials?: Record<string, string>
-      }
     } = await req.json()
 
     if (!blueprint || !blueprint.candidateName) {
@@ -391,28 +355,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
         templateProfile,
         selectedDirectionIndex,
         resumeText,
-        jobDescription,
-        userProvidedAssets
+        jobDescription
       )
       console.log(`[Community Template Workflow] Adaptation prompt synthesized in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${adaptationMessage.length} chars)`)
-
-      // Collect valid user image attachments for v0 (if any)
-      const v0Attachments: Array<{ url: string }> = []
-      if (userProvidedAssets?.avatarUrl && typeof userProvidedAssets.avatarUrl === 'string') {
-        v0Attachments.push({ url: userProvidedAssets.avatarUrl })
-      }
-      if (Array.isArray(userProvidedAssets?.projectImages)) {
-        for (const img of userProvidedAssets.projectImages) {
-          if (img && typeof img === 'string') {
-            v0Attachments.push({ url: img })
-          }
-        }
-      }
 
       await v0.messages.sendAsync({
         chatId: newChatId,
         message: adaptationMessage,
-        attachments: v0Attachments.length > 0 ? v0Attachments : undefined,
       })
 
       return NextResponse.json({
@@ -430,29 +379,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
 
-    const v0Attachments: Array<{ url: string }> = []
-    if (userProvidedAssets?.avatarUrl && typeof userProvidedAssets.avatarUrl === 'string') {
-      v0Attachments.push({ url: userProvidedAssets.avatarUrl })
-    }
-    if (Array.isArray(userProvidedAssets?.projectImages)) {
-      for (const img of userProvidedAssets.projectImages) {
-        if (img && typeof img === 'string') {
-          v0Attachments.push({ url: img })
-        }
-      }
-    }
-
     let chatResponse: any
     try {
       chatResponse = await v0.chats.createAsync({
         message,
-        attachments: v0Attachments.length > 0 ? v0Attachments : undefined,
       })
     } catch (asyncErr) {
       console.warn('v0.chats.createAsync failed, attempting synchronous fallback:', asyncErr)
       chatResponse = await v0.chats.create({
         message,
-        attachments: v0Attachments.length > 0 ? v0Attachments : undefined,
       })
     }
 
