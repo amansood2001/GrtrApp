@@ -14,6 +14,7 @@ import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-i
 import { Button } from '@/components/ui/button'
 import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
 import { UserNav } from '@/components/auth/user-nav'
+import { PaywallModal } from '@/components/auth/paywall-modal'
 
 export function formatDesignLabel(design?: string, maxLen = 32): string {
   if (!design) return 'Minimal Monochrome'
@@ -2346,6 +2347,25 @@ export function GrtrApp() {
 
   // Tracked Applications
   const [applications, setApplications] = useState<ApplicationItem[]>(initialApplications)
+  const [isUnlocked, setIsUnlocked] = useState(false)
+
+  // Verify paid subscription status or checkout success
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('checkout') === 'success') {
+        localStorage.setItem('grtr_user_paid_status', 'active')
+        setIsUnlocked(true)
+      } else {
+        const stored =
+          localStorage.getItem('grtr_user_paid_status') === 'active' ||
+          localStorage.getItem('grtr_dev_subscription_unlocked') === 'true'
+        if (stored) {
+          setIsUnlocked(true)
+        }
+      }
+    }
+  }, [])
 
   // Handler: Start a fresh new portfolio creation
   const handleStartNewApplication = () => {
@@ -2757,6 +2777,12 @@ export function GrtrApp() {
       <AnimatePresence>
         {isGeneratingBlueprint && <SynthesisHUD />}
       </AnimatePresence>
+
+      {!isUnlocked && (
+        <PaywallModal
+          onUnlocked={() => setIsUnlocked(true)}
+        />
+      )}
     </div>
   )
 }
