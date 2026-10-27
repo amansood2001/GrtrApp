@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next'
+import { ClarityAnalytics } from '@/components/analytics/clarity-analytics'
 import type { Metadata, Viewport } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className="antialiased">
         {children}
+        <ClarityAnalytics />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
