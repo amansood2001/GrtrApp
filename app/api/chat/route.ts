@@ -59,7 +59,15 @@ export async function POST(req: NextRequest) {
     }
 
     const lower = message.toLowerCase().trim()
-    const isDeployRequest = /\b(deploy|link|share|url|live|publish)\b/.test(lower)
+    // STRICT deployment match: Only intercept if the user explicitly asks solely for deployment or the share link.
+    // Never intercept conversational prompts, critique, design requests, or negative phrasing (e.g. "Live reconciliation does not make sense").
+    const isDeployRequest =
+      lower === 'deploy and share the link on chat' ||
+      lower === 'deploy' ||
+      lower === 'publish' ||
+      lower === 'share link' ||
+      lower === 'get link' ||
+      lower === 'deploy portfolio'
 
     const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'grtr-woad.vercel.app'
     const protocol = req.headers.get('x-forwarded-proto') || 'https'
