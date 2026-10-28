@@ -334,12 +334,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       selectedDirectionIndex = 0,
       resumeText = '',
       jobDescription = '',
+      attachedSkills = [],
     }: {
       blueprint: StrategicBlueprint
       designSystem?: string
       selectedDirectionIndex?: number
       resumeText?: string
       jobDescription?: string
+      attachedSkills?: Array<{ id: string; name: string; content?: string }>
     } = await req.json()
 
     if (!blueprint || !blueprint.candidateName) {
@@ -388,9 +390,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       )
       console.log(`[Community Template Workflow] Adaptation prompt synthesized in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${adaptationMessage.length} chars)`)
 
+      const skillsBlock = attachedSkills && attachedSkills.length > 0
+        ? `\n\n---\n### ATTACHED AGENT SKILLS & ARCHITECTURAL CONTRACTS (Strictly adhere to these patterns):\n${attachedSkills.slice(0, 3).map(s => s.content || `## SKILL: ${s.name}`).join('\n\n')}`
+        : ''
+
       await v0.messages.sendAsync({
         chatId: newChatId,
-        message: adaptationMessage,
+        message: adaptationMessage + skillsBlock,
       })
 
       recordPortfolioEvent(newChatId, {
@@ -415,15 +421,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
 
+    const skillsBlock = attachedSkills && attachedSkills.length > 0
+      ? `\n\n---\n### ATTACHED AGENT SKILLS & ARCHITECTURAL CONTRACTS (Strictly adhere to these patterns):\n${attachedSkills.slice(0, 3).map(s => s.content || `## SKILL: ${s.name}`).join('\n\n')}`
+      : ''
+    const finalMessage = message + skillsBlock
+
     let chatResponse: any
     try {
       chatResponse = await v0.chats.createAsync({
-        message,
+        message: finalMessage,
       })
     } catch (asyncErr) {
       console.warn('v0.chats.createAsync failed, attempting synchronous fallback:', asyncErr)
       chatResponse = await v0.chats.create({
-        message,
+        message: finalMessage,
       })
     }
 

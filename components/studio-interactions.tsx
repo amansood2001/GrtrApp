@@ -24,6 +24,8 @@ import {
   Check,
 } from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
+import { CURATED_SKILLS, type AgentSkill } from '@/lib/skills-registry'
+import { Zap, Command } from 'lucide-react'
 
 export const portfolioPlaceholders = {
   role: 'Head of Growth',
@@ -486,6 +488,8 @@ function UserMessageBubble({ message }: { message: StudioMessage }) {
 export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel, onReady, refreshKey }: StudioChatProps) {
   const [draft, setDraft] = useState('')
   const [attachments, setAttachments] = useState<ChatAttachment[]>([])
+  const [showSlashMenu, setShowSlashMenu] = useState(false)
+  const [selectedSlashSkill, setSelectedSlashSkill] = useState<AgentSkill | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [messages, setMessages] = useState<StudioMessage[]>([
     {
@@ -617,6 +621,9 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
 
     setDraft('')
     setAttachments([])
+    const currentSkill = selectedSlashSkill
+    setSelectedSlashSkill(null)
+    setShowSlashMenu(false)
     setStreaming(true)
     onAgentStatusChange?.({ active: true, currentStep: 'Analyzing directive...' })
 
@@ -630,6 +637,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
             message: value,
             contextLabel,
             attachments: currentAttachments,
+            attachedSkill: currentSkill,
           }),
         })
 
@@ -819,7 +827,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         ))}
       </div>
 
-      <div className="chat-composer">
+      <div className="chat-composer relative">
         <input
           type="file"
           ref={fileInputRef}
@@ -828,6 +836,52 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           className="hidden"
           multiple
         />
+
+        {/* Slash Command Autocomplete Popover */}
+        {(draft.startsWith('/') || showSlashMenu) && (
+          <div className="absolute bottom-full left-0 right-0 mb-2 p-2 rounded-xl bg-[#0d0f14] border border-white/15 shadow-2xl shadow-black space-y-1 max-h-[280px] overflow-y-auto z-40 backdrop-blur-xl">
+            <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400 border-b border-white/[0.08] mb-1">
+              <span className="flex items-center gap-1.5 text-purple-300 font-semibold">
+                <Zap className="w-3 h-3 text-purple-400" />
+                <span>Agent Skills from skills.sh</span>
+              </span>
+              <span>Click or select to apply</span>
+            </div>
+
+            {CURATED_SKILLS.filter(s => {
+              const q = draft.startsWith('/') ? draft.slice(1).toLowerCase().trim() : ''
+              return !q || s.name.toLowerCase().includes(q) || s.command?.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
+            }).map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => {
+                  setSelectedSlashSkill(s)
+                  setDraft(`${s.command || `/${s.slug}`} `)
+                  setShowSlashMenu(false)
+                }}
+                className="w-full p-2 rounded-lg hover:bg-white/[0.06] transition-all flex items-start justify-between gap-3 text-left group cursor-pointer border border-transparent hover:border-white/10"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-purple-300 group-hover:text-purple-200">
+                      {s.command || `/${s.slug}`}
+                    </span>
+                    <span className="text-xs font-medium text-zinc-200">
+                      {s.name}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 line-clamp-1 mt-0.5 font-sans">
+                    {s.description}
+                  </p>
+                </div>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400 border border-white/5 shrink-0">
+                  {s.category}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-1.5 p-2 bg-zinc-900/90 border-b border-white/10 rounded-t-lg">
@@ -867,6 +921,19 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         />
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowSlashMenu(prev => !prev)}
+              className={`flex items-center gap-1 px-2 py-1 text-[11px] font-mono rounded transition cursor-pointer border ${
+                showSlashMenu
+                  ? 'bg-purple-600 text-white border-purple-500'
+                  : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border-white/10'
+              }`}
+              title="Browse and apply agent skills from skills.sh"
+            >
+              <Zap className="w-3 h-3 text-purple-400" />
+              <span>/ Skills</span>
+            </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}

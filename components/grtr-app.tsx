@@ -7,7 +7,7 @@ import {
   CircleUserRound, Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2,
   LayoutDashboard, Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
   Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw,
-  Trash2, Image as ImageIcon
+  Trash2, Image as ImageIcon, Zap
 } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
 import { UserNav } from '@/components/auth/user-nav'
 import { PaywallModal } from '@/components/auth/paywall-modal'
+import { CURATED_SKILLS, type AgentSkill } from '@/lib/skills-registry'
 
 export function formatDesignLabel(design?: string, maxLen = 32): string {
   if (!design) return 'Minimal Monochrome'
@@ -298,6 +299,8 @@ interface InputStudioProps {
   setJobDescription: (val: string) => void
   selectedDesign: string
   setSelectedDesign: (val: string) => void
+  selectedSkills?: AgentSkill[]
+  setSelectedSkills?: (skills: AgentSkill[]) => void
   onGenerate: () => void
   isGeneratingBlueprint: boolean
   error?: string | null
@@ -400,6 +403,8 @@ function InputStudio({
   setJobDescription,
   selectedDesign,
   setSelectedDesign,
+  selectedSkills = [],
+  setSelectedSkills,
   onGenerate,
   isGeneratingBlueprint,
   error,
@@ -409,8 +414,55 @@ function InputStudio({
   const [designTab, setDesignTab] = useState('moods')
   const [templateFilter, setTemplateFilter] = useState('All')
   const [templateSearch, setTemplateSearch] = useState('')
+  const [skillSearch, setSkillSearch] = useState('')
+  const [skillCategory, setSkillCategory] = useState<'all' | 'design' | 'metrics' | 'strategy' | 'motion'>('all')
+  const [skillsList, setSkillsList] = useState<AgentSkill[]>(CURATED_SKILLS)
+  const [isSearchingSkills, setIsSearchingSkills] = useState(false)
   const [parsingCv, setParsingCv] = useState(false)
   const [parsingJd, setParsingJd] = useState(false)
+
+  // Debounced search for skills.sh API
+  useEffect(() => {
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingSkills(true)
+        const params = new URLSearchParams()
+        if (skillSearch.trim()) params.set('q', skillSearch.trim())
+        if (skillCategory !== 'all') params.set('category', skillCategory)
+        const res = await fetch(`/api/skills?${params.toString()}`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.success && Array.isArray(data.skills) && !cancelled) {
+          setSkillsList(data.skills)
+        }
+      } catch (err) {
+        console.warn('Skills search error:', err)
+      } finally {
+        if (!cancelled) setIsSearchingSkills(false)
+      }
+    }, 250)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [skillSearch, skillCategory])
+
+  const toggleSkill = (skill: AgentSkill) => {
+    if (!setSelectedSkills) return
+    const current = selectedSkills || []
+    const exists = current.some(s => s.id === skill.id || s.slug === skill.slug)
+    if (exists) {
+      setSelectedSkills(current.filter(s => s.id !== skill.id && s.slug !== skill.slug))
+    } else {
+      if (current.length >= 3) {
+        alert('Maximum of 3 skills can be attached simultaneously to maintain optimal reasoning quality and avoid design collisions.')
+        return
+      }
+      setSelectedSkills([...current, skill])
+    }
+  }
 
   const handleResumeUpload = async (file: File) => {
     try {
@@ -581,6 +633,7 @@ function InputStudio({
               ['moods', 'Moods'],
               ['templates', 'Templates'],
               ['custom', 'Custom'],
+              ['skills', `Skills.sh (${(selectedSkills || []).length}/3)`],
             ].map(([id, label]) => (
               <button
                 role="tab"
@@ -798,6 +851,162 @@ function InputStudio({
                     <span>Custom architectural prompt injection</span>
                     <span>Fully editable anytime</span>
                   </div>
+                </div>
+              )}
+
+              {designTab === 'skills' && (
+                <div className="space-y-4 text-left">
+                  {/* Attached Skills Ribbon */}
+                  {(selectedSkills || []).length > 0 && (
+                    <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-500/30 flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-purple-300 font-semibold flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                          Skills Attached ({(selectedSkills || []).length}/3)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {(selectedSkills || []).map(skill => (
+                          <span
+                            key={skill.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-purple-500/10 text-purple-200 border border-purple-500/30"
+                          >
+                            <span>{skill.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleSkill(skill)}
+                              className="text-purple-400 hover:text-white ml-0.5 cursor-pointer"
+                              title="Detach skill"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Search & Category Filter Toolbar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        aria-label="Search skills from skills.sh"
+                        placeholder="Search skills.sh or local registry (telemetry, teardown, obsidian, charts)..."
+                        value={skillSearch}
+                        onChange={e => setSkillSearch(e.target.value)}
+                        className="w-full h-9 pl-9 pr-8 rounded-lg bg-[#0e1116] border border-white/10 hover:border-white/20 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 text-xs text-zinc-200 placeholder:text-zinc-500"
+                      />
+                      {skillSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setSkillSearch('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+                      {[
+                        ['all', 'All'],
+                        ['design', 'Design'],
+                        ['metrics', 'Metrics'],
+                        ['strategy', 'Strategy'],
+                        ['motion', 'Motion'],
+                      ].map(([catKey, catLabel]) => (
+                        <button
+                          key={catKey}
+                          type="button"
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-mono cursor-pointer transition-all border ${
+                            skillCategory === catKey
+                              ? 'bg-purple-600 text-white border-purple-500 font-medium'
+                              : 'bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border-white/10 hover:border-white/20'
+                          }`}
+                          onClick={() => setSkillCategory(catKey as any)}
+                        >
+                          {catLabel}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Skills Cards Grid */}
+                  {isSearchingSkills ? (
+                    <div className="py-8 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                      <span>Searching skills.sh registry...</span>
+                    </div>
+                  ) : skillsList.length === 0 ? (
+                    <div className="p-6 rounded-lg bg-white/[0.02] border border-white/10 text-center text-xs text-zinc-400 font-mono">
+                      No skills found matching &quot;{skillSearch}&quot;. Try &quot;telemetry&quot;, &quot;teardown&quot;, or &quot;obsidian&quot;.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+                      {skillsList.map(skill => {
+                        const isAttached = (selectedSkills || []).some(s => s.id === skill.id || s.slug === skill.slug)
+                        const isMaxReached = (selectedSkills || []).length >= 3 && !isAttached
+
+                        return (
+                          <div
+                            key={skill.id}
+                            className={`p-3 rounded-lg border transition-all text-left flex flex-col justify-between ${
+                              isAttached
+                                ? 'bg-gradient-to-b from-[#141226] to-[#0d0f14] border-purple-500/50 shadow-sm shadow-purple-950/30'
+                                : 'bg-[#0c0e12]/80 hover:bg-[#11141a] border-white/10 hover:border-white/20'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5">
+                                  <span>{skill.name}</span>
+                                </h4>
+                                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/10 text-zinc-400 shrink-0">
+                                  {skill.category}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-zinc-400 leading-relaxed mb-2 line-clamp-2">
+                                {skill.description}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] mt-auto">
+                              <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
+                                <span className="text-purple-400">⚡</span>
+                                <span>{skill.installs.toLocaleString()} installs</span>
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => toggleSkill(skill)}
+                                disabled={isMaxReached}
+                                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
+                                  isAttached
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
+                                    : isMaxReached
+                                    ? 'bg-white/[0.02] text-zinc-600 border border-white/5 cursor-not-allowed'
+                                    : 'bg-white/[0.05] text-zinc-200 hover:bg-purple-600 hover:text-white border border-white/10 hover:border-purple-500'
+                                }`}
+                              >
+                                {isAttached ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-400" />
+                                    <span>Attached</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus className="w-3 h-3" />
+                                    <span>Attach</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
           </div>
@@ -2339,6 +2548,7 @@ export function GrtrApp() {
   const [resumeFileName, setResumeFileName] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [selectedDesign, setSelectedDesign] = useState('Minimal Monochrome')
+  const [selectedSkills, setSelectedSkills] = useState<AgentSkill[]>([])
 
   // Pipeline State
   const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
@@ -2616,6 +2826,7 @@ export function GrtrApp() {
           selectedDirectionIndex,
           resumeText,
           jobDescription,
+          attachedSkills: selectedSkills,
         }),
       })
 
@@ -2739,6 +2950,8 @@ export function GrtrApp() {
               setJobDescription={setJobDescription}
               selectedDesign={selectedDesign}
               setSelectedDesign={setSelectedDesign}
+              selectedSkills={selectedSkills}
+              setSelectedSkills={setSelectedSkills}
               onGenerate={handleGenerateBlueprint}
               isGeneratingBlueprint={isGeneratingBlueprint}
               error={errorMessage}

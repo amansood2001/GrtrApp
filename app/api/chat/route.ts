@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v0 } from 'v0'
 import { recordPortfolioEvent } from '@/lib/analytics-tracker'
+import { CURATED_SKILLS } from '@/lib/skills-registry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatId, message, contextLabel, attachments } = await req.json()
+    const { chatId, message, contextLabel, attachments, attachedSkill } = await req.json()
 
     if (!chatId || !message) {
       return NextResponse.json(
@@ -137,6 +138,20 @@ Here is your public, recruiter-ready portfolio link:
     console.log(`Starting streaming message to portfolio chat ${chatId}: "${message.slice(0, 50)}..." (attachments: ${attachments?.length || 0})`)
 
     let enhancedMessage = message
+
+    // Check if an explicit skill was attached or if a slash command was used
+    let skillSpec = attachedSkill?.content || ''
+    if (!skillSpec) {
+      const trimmed = message.trim()
+      const match = CURATED_SKILLS.find(s => s.command && trimmed.startsWith(s.command))
+      if (match) {
+        skillSpec = match.content
+      }
+    }
+
+    if (skillSpec) {
+      enhancedMessage += `\n\n---\n### APPLIED AGENT SKILL ARCHITECTURAL SPECIFICATION:\n${skillSpec}\n\nStrictly adhere to the above architectural specification while applying the user's directive.`
+    }
 
     if (attachments && attachments.length > 0) {
       enhancedMessage += `\n\nUSER ATTACHED ASSET OVERRIDES TO INTEGRATE:
