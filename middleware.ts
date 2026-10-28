@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/api/preview(.*)',
   '/api/analytics(.*)',
+  '/api/skills(.*)',
   '/v0-runtime-dist.js',
   '/_next(.*)',
   '/favicon.ico',
