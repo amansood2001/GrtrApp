@@ -218,14 +218,15 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 }
 
 // ---------------------------------------------------------------------------
-// MODE A: Blank-Canvas Prompt Synthesizer (Moods & Custom)
+// MODE A: Blank-Canvas Prompt Synthesizer (Moods, Custom & Skills)
 // ---------------------------------------------------------------------------
 async function synthesizeV0Prompt(
   blueprint: StrategicBlueprint,
   designSystem: string,
   selectedDirectionIndex: number = 0,
   resumeText: string = '',
-  jobDescription: string = ''
+  jobDescription: string = '',
+  attachedSkills: Array<{ id: string; name: string; content?: string }> = []
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -234,6 +235,9 @@ async function synthesizeV0Prompt(
 
   const openai = new OpenAI({ apiKey })
   const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
+
+  const hasAttachedSkills = attachedSkills && attachedSkills.length > 0
+  const attachedSkillNames = hasAttachedSkills ? attachedSkills.map(s => `"${s.name}"`).join(', ') : ''
 
   const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface to have it build your executive career portfolio.
 
@@ -244,10 +248,12 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 - NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
 - Talk to v0 with authority, taste, and clarity.
 
-HIGH-AGENCY & VISUAL DIRECTION (DO NOT OVER-SPECIFY):
-- Avoid walls of plain text. Make this portfolio visually driven, engaging, and interactive with interesting elements.
+HIGH-AGENCY & VISUAL DIRECTION:
+${hasAttachedSkills ? `- ATTACHED AGENT SKILLS OVERRIDE: I have explicitly attached ${attachedSkills.length} verified Agent Skill(s) (${attachedSkillNames}) to establish the core architectural system.
+- In Section 5 (Aesthetic Atmosphere) and Section 7 (Motion & Physics): Instruct v0 that the portfolio's visual hierarchy, layout framework, typography scale, component blueprints, and interaction physics are STRICTLY GOVERNED by the attached Agent Skills (${attachedSkillNames}). Instruct v0 to strictly adhere to the contracts, layout models, and design systems defined in the attached skills specifications appended below.
+- Do NOT invent conflicting aesthetic styles that contradict these skills.` : `- Avoid walls of plain text. Make this portfolio visually driven, engaging, and interactive with interesting elements.
 - DO NOT micromanage or hardcode minute component details, exact pixel dimensions, or rigid borders. Give v0 room to exercise its frontend design reasoning intelligence.
-- Clearly set the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).
+- Clearly set the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).`}
 
 JD & CV SEMANTIC ALIGNMENT (CRITICAL):
 - Carefully analyze my attached Full CV in the direct context of the attached Job Description.
@@ -272,20 +278,20 @@ DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx so that client browser extensions (e.g. password managers, form fillers, translators) do not cause React hydration warnings.
 
-MOTION DESIGN & INTERACTION PHYSICS (INTELLIGENTLY TAILORED VIA CV & JD):
-- Analyze the unique intersection of my work style, domain, and seniority from my Full CV against the target company's culture, product caliber, and technical expectations in the Job Description.
+MOTION DESIGN & INTERACTION PHYSICS:
+${hasAttachedSkills ? `- The motion curves, transition durations, and interaction physics are governed by the attached skills (${attachedSkillNames}). Instruct v0 to follow the exact interaction specs defined in the attached skills specifications below.` : `- Analyze the unique intersection of my work style, domain, and seniority from my Full CV against the target company's culture, product caliber, and technical expectations in the Job Description.
 - Based on that analysis, dynamically determine the most fitting motion physics, interaction rhythm, and visual transitions for this specific profile:
   * Decide how interactive elements should physically feel and respond (e.g. transition pacing, hover feedback, tab switching dynamics, and visual state changes) so the interactive feel authentically mirrors how an elite operator in this specific discipline works.
-  * Explicitly instruct v0 on this bespoke visual rhythm and motion style in Section 7.
+  * Explicitly instruct v0 on this bespoke visual rhythm and motion style in Section 7.`}
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Executive Positioning Thesis
 2. My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win VERBATIM without condensing, followed by the explicit directive instructing v0 to render it with interactive elements, animations, and motion rather than plain text)
 3. Verified Metrics & Highlighted Proof Cases (rendered as visual, interactive components)
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
-5. Aesthetic Atmosphere & Signature Interactive Concept (${designSystem})
+5. Aesthetic Atmosphere & Signature Interactive Concept (${hasAttachedSkills ? `Governed by attached skills: ${attachedSkillNames}` : designSystem})
 6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany}
-7. Motion Design, Tailored Physics & Visual Effects (bespoke animation pacing and visual transitions dynamically derived from my profile and the JD)
+7. Motion Design, Tailored Physics & Visual Effects (${hasAttachedSkills ? `Governed by attached skills: ${attachedSkillNames}` : 'bespoke animation pacing dynamically derived from my profile and the JD'})
 8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
@@ -304,7 +310,8 @@ STRUCTURE OF YOUR PROMPT FOR V0:
       rightToWinProof: activeDirection.rightToWinProof,
     } : undefined,
     highlightedProofCases: blueprint.caseStudies,
-    selectedDesignSystem: designSystem,
+    selectedDesignSystem: hasAttachedSkills ? `Skills-Governed: ${attachedSkillNames}` : designSystem,
+    attachedSkills: hasAttachedSkills ? attachedSkills.map(s => s.name) : undefined,
     fullCvText: safeResumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
     fullJobDescription: safeJobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
   }
@@ -416,7 +423,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
     // Default Flow: Master First-Person Synthesizer (OpenAI) writes the bespoke prompt for v0
     console.log(`[Prompt Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}"...`)
     const startTime = Date.now()
-    const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription)
+    const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription, attachedSkills)
     console.log(`[Prompt Synthesizer] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)

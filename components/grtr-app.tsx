@@ -417,6 +417,7 @@ function InputStudio({
   const [skillSearch, setSkillSearch] = useState('')
   const [skillCategory, setSkillCategory] = useState<'all' | 'design' | 'metrics' | 'strategy' | 'motion'>('all')
   const [skillsList, setSkillsList] = useState<AgentSkill[]>(CURATED_SKILLS)
+  const [activeModalSkill, setActiveModalSkill] = useState<AgentSkill | null>(null)
   const [isSearchingSkills, setIsSearchingSkills] = useState(false)
   const [parsingCv, setParsingCv] = useState(false)
   const [parsingJd, setParsingJd] = useState(false)
@@ -633,7 +634,7 @@ function InputStudio({
               ['moods', 'Moods'],
               ['templates', 'Templates'],
               ['custom', 'Custom'],
-              ['skills', `Skills.sh (${(selectedSkills || []).length}/3)`],
+              ['skills', `Skills (${(selectedSkills || []).length}/3)`],
             ].map(([id, label]) => (
               <button
                 role="tab"
@@ -951,15 +952,16 @@ function InputStudio({
                         return (
                           <div
                             key={skill.id}
-                            className={`p-3 rounded-lg border transition-all text-left flex flex-col justify-between ${
+                            onClick={() => setActiveModalSkill(skill)}
+                            className={`p-3.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer group select-none ${
                               isAttached
-                                ? 'bg-gradient-to-b from-[#141226] to-[#0d0f14] border-purple-500/50 shadow-sm shadow-purple-950/30'
-                                : 'bg-[#0c0e12]/80 hover:bg-[#11141a] border-white/10 hover:border-white/20'
+                                ? 'bg-gradient-to-b from-[#141226] to-[#0d0f14] border-purple-500/60 shadow-sm shadow-purple-950/30 ring-1 ring-purple-500/30'
+                                : 'bg-[#0c0e12]/80 hover:bg-[#11141c] border-white/10 hover:border-purple-500/40 hover:shadow-md hover:shadow-black/40'
                             }`}
                           >
                             <div>
-                              <div className="flex items-start justify-between gap-2 mb-1">
-                                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5 flex-wrap">
+                              <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5 flex-wrap group-hover:text-purple-300 transition-colors">
                                   <span>{skill.name}</span>
                                   {skill.command && (
                                     <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
@@ -976,40 +978,192 @@ function InputStudio({
                               </p>
                             </div>
 
-                            <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] mt-auto">
+                            <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.06] mt-auto">
                               <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
                                 <span className="text-purple-400">⚡</span>
                                 <span>{skill.installs.toLocaleString()} installs</span>
                               </span>
 
-                              <button
-                                type="button"
-                                onClick={() => toggleSkill(skill)}
-                                disabled={isMaxReached}
-                                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
-                                  isAttached
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
-                                    : isMaxReached
-                                    ? 'bg-white/[0.02] text-zinc-600 border border-white/5 cursor-not-allowed'
-                                    : 'bg-white/[0.05] text-zinc-200 hover:bg-purple-600 hover:text-white border border-white/10 hover:border-purple-500'
-                                }`}
-                              >
-                                {isAttached ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-emerald-400" />
-                                    <span>Attached</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Plus className="w-3 h-3" />
-                                    <span>Attach</span>
-                                  </>
-                                )}
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono text-zinc-400 group-hover:text-purple-300 transition-colors hidden sm:inline">
+                                  Specs →
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleSkill(skill)
+                                  }}
+                                  disabled={isMaxReached}
+                                  className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
+                                    isAttached
+                                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                                      : isMaxReached
+                                      ? 'bg-white/[0.02] text-zinc-600 border border-white/5 cursor-not-allowed'
+                                      : 'bg-white/[0.05] text-zinc-200 hover:bg-purple-600 hover:text-white border border-white/10 hover:border-purple-500'
+                                  }`}
+                                >
+                                  {isAttached ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-emerald-400" />
+                                      <span>Attached</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="w-3 h-3" />
+                                      <span>Attach</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )
                       })}
+                    </div>
+                  )}
+
+                  {/* Skill Summary & Specification Modal */}
+                  {activeModalSkill && (
+                    <div
+                      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+                      onClick={() => setActiveModalSkill(null)}
+                    >
+                      <div
+                        className="relative w-full max-w-2xl max-h-[88vh] bg-[#0c0e14] border border-purple-500/40 rounded-2xl shadow-2xl shadow-purple-950/60 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {/* Modal Header */}
+                        <div className="p-5 border-b border-white/10 flex items-start justify-between gap-4 bg-gradient-to-r from-purple-950/40 via-transparent to-transparent">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 font-semibold tracking-wider">
+                                {activeModalSkill.category}
+                              </span>
+                              {activeModalSkill.command && (
+                                <span className="text-[11px] font-mono text-purple-300 bg-black/70 px-2 py-0.5 rounded-md border border-purple-500/30 font-semibold">
+                                  {activeModalSkill.command}
+                                </span>
+                              )}
+                              <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-1">
+                                <span className="text-purple-400">⚡</span>
+                                {activeModalSkill.installs.toLocaleString()} community installs
+                              </span>
+                              {activeModalSkill.author && (
+                                <span className="text-[10px] font-mono text-zinc-500">
+                                  by {activeModalSkill.author}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                              <span>{activeModalSkill.name}</span>
+                            </h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setActiveModalSkill(null)}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                            title="Close modal"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Modal Scrollable Body */}
+                        <div className="p-5 overflow-y-auto space-y-4 text-left custom-scrollbar text-xs">
+                          {/* Summary Card */}
+                          <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/20">
+                            <div className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold mb-1">
+                              Skill Overview & Architectural Mission
+                            </div>
+                            <p className="text-xs text-zinc-200 leading-relaxed">
+                              {activeModalSkill.description}
+                            </p>
+                          </div>
+
+                          {/* Architectural Directives & Component Specifications */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+                                Architectural Contract & Directives
+                              </span>
+                              <span className="text-[9px] font-mono text-purple-400">
+                                Injected directly into v0 build prompt
+                              </span>
+                            </div>
+                            <div className="p-4 rounded-xl bg-[#06080c] border border-white/10 font-mono text-[11px] text-zinc-300 leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto selection:bg-purple-500/40">
+                              {activeModalSkill.content || activeModalSkill.description}
+                            </div>
+                          </div>
+
+                          {/* How this works info */}
+                          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 text-[11px] text-zinc-400 flex items-start gap-2">
+                            <Sparkles className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                            <p>
+                              Attaching this skill instructs v0 to strictly adhere to these component patterns and layout paradigms. Your authentic CV narrative, case studies, and company-specific thesis are fully preserved.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-4 border-t border-white/10 bg-[#080a0e] flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 text-[11px] font-mono">
+                            {(() => {
+                              const isAttached = (selectedSkills || []).some(s => s.id === activeModalSkill.id || s.slug === activeModalSkill.slug)
+                              return (
+                                <span className={isAttached ? 'text-emerald-400 font-medium flex items-center gap-1.5' : 'text-zinc-400'}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${isAttached ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
+                                  {isAttached ? 'Attached to portfolio' : `${(selectedSkills || []).length}/3 skills attached`}
+                                </span>
+                              )
+                            })()}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setActiveModalSkill(null)}
+                              className="px-3.5 py-1.5 rounded-lg text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 transition-colors cursor-pointer"
+                            >
+                              Close
+                            </button>
+
+                            {(() => {
+                              const isAttached = (selectedSkills || []).some(s => s.id === activeModalSkill.id || s.slug === activeModalSkill.slug)
+                              const isMaxReached = (selectedSkills || []).length >= 3 && !isAttached
+
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    toggleSkill(activeModalSkill)
+                                  }}
+                                  disabled={isMaxReached}
+                                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-md ${
+                                    isAttached
+                                      ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30'
+                                      : isMaxReached
+                                      ? 'bg-white/[0.04] text-zinc-500 border border-white/5 cursor-not-allowed'
+                                      : 'bg-purple-600 hover:bg-purple-500 text-white border border-purple-500 shadow-purple-900/40'
+                                  }`}
+                                >
+                                  {isAttached ? (
+                                    <>
+                                      <X className="w-3.5 h-3.5 text-red-300" />
+                                      <span>Detach Skill</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Attach Skill ({(selectedSkills || []).length}/3)</span>
+                                    </>
+                                  )}
+                                </button>
+                              )
+                            })()}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
