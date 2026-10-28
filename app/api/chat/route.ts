@@ -137,32 +137,42 @@ Here is your public, recruiter-ready portfolio link:
 
     console.log(`Starting streaming message to portfolio chat ${chatId}: "${message.slice(0, 50)}..." (attachments: ${attachments?.length || 0})`)
 
-    let enhancedMessage = message
+    const finalAttachments: Array<{ name?: string; content?: string; url?: string }> = Array.isArray(attachments)
+      ? [...attachments]
+      : []
 
     // Check if an explicit skill was attached or if a slash command was used
     let skillSpec = attachedSkill?.content || ''
+    let skillName = attachedSkill?.name || ''
+    let skillId = attachedSkill?.id || ''
+
     if (!skillSpec) {
       const trimmed = message.trim()
       const match = CURATED_SKILLS.find(s => s.command && trimmed.startsWith(s.command))
       if (match) {
         skillSpec = match.content
+        skillName = match.name
+        skillId = match.id
       }
     }
 
+    // Attach skill as a first-class file attachment rather than dumping raw markdown into the chat box
     if (skillSpec) {
-      enhancedMessage += `\n\n---\n### APPLIED AGENT SKILL ARCHITECTURAL SPECIFICATION:\n${skillSpec}\n\nStrictly adhere to the above architectural specification while applying the user's directive.`
+      finalAttachments.push({
+        name: `${(skillName || 'applied-skill').toLowerCase().replace(/[^a-z0-9]/g, '-')}-skill.md`,
+        content: skillSpec,
+      })
     }
 
-    if (attachments && attachments.length > 0) {
-      enhancedMessage += `\n\nUSER ATTACHED ASSET OVERRIDES TO INTEGRATE:
-${attachments.map((a: any, i: number) => `Asset ${i + 1} (${a.name || 'custom asset'}): Replace the target slot, photo, or mock component with this exact user-provided asset.`).join('\n')}
-Surgically integrate these user assets into the relevant component slots.`
-    }
+    const v0Skills = skillId && !skillId.startsWith('local-')
+      ? [{ type: 'remote' as const, id: skillId }]
+      : undefined
 
     const streamResult = await v0.messages.sendStream({
       chatId,
-      message: enhancedMessage,
-      attachments: attachments && attachments.length > 0 ? attachments : undefined,
+      message,
+      attachments: finalAttachments.length > 0 ? (finalAttachments as any) : undefined,
+      skills: v0Skills,
     })
 
     const encoder = new TextEncoder()

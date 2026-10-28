@@ -226,7 +226,7 @@ async function synthesizeV0Prompt(
   selectedDirectionIndex: number = 0,
   resumeText: string = '',
   jobDescription: string = '',
-  attachedSkills: Array<{ id: string; name: string; content?: string }> = []
+  attachedSkills: Array<{ id: string; name: string; description?: string; content?: string }> = []
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -348,7 +348,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       selectedDirectionIndex?: number
       resumeText?: string
       jobDescription?: string
-      attachedSkills?: Array<{ id: string; name: string; content?: string }>
+      attachedSkills?: Array<{ id: string; name: string; description?: string; content?: string }>
     } = await req.json()
 
     if (!blueprint || !blueprint.candidateName) {
@@ -397,13 +397,21 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       )
       console.log(`[Community Template Workflow] Adaptation prompt synthesized in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${adaptationMessage.length} chars)`)
 
-      const skillsBlock = attachedSkills && attachedSkills.length > 0
-        ? `\n\n---\n### ATTACHED AGENT SKILLS & ARCHITECTURAL CONTRACTS (Strictly adhere to these patterns):\n${attachedSkills.slice(0, 3).map(s => s.content || `## SKILL: ${s.name}`).join('\n\n')}`
-        : ''
+      // Format skills as first-class file attachments and remote skills for v0
+      const skillAttachments = (attachedSkills || []).map(s => ({
+        name: `${(s.name || s.id).toLowerCase().replace(/[^a-z0-9]/g, '-')}-skill.md`,
+        content: s.content || s.description || `## Skill: ${s.name}`,
+      }))
+
+      const v0Skills = (attachedSkills || [])
+        .filter(s => s.id && !s.id.startsWith('local-'))
+        .map(s => ({ type: 'remote' as const, id: s.id }))
 
       await v0.messages.sendAsync({
         chatId: newChatId,
-        message: adaptationMessage + skillsBlock,
+        message: adaptationMessage,
+        attachments: skillAttachments.length > 0 ? skillAttachments : undefined,
+        skills: v0Skills.length > 0 ? v0Skills : undefined,
       })
 
       recordPortfolioEvent(newChatId, {
@@ -426,22 +434,31 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
     const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription, attachedSkills)
     console.log(`[Prompt Synthesizer] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
 
-    console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})`)
+    console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem}) with ${attachedSkills.length} attached skill(s)`)
 
-    const skillsBlock = attachedSkills && attachedSkills.length > 0
-      ? `\n\n---\n### ATTACHED AGENT SKILLS & ARCHITECTURAL CONTRACTS (Strictly adhere to these patterns):\n${attachedSkills.slice(0, 3).map(s => s.content || `## SKILL: ${s.name}`).join('\n\n')}`
-      : ''
-    const finalMessage = message + skillsBlock
+    // Format skills as first-class file attachments and remote skills for v0
+    const skillAttachments = (attachedSkills || []).map(s => ({
+      name: `${(s.name || s.id).toLowerCase().replace(/[^a-z0-9]/g, '-')}-skill.md`,
+      content: s.content || s.description || `## Skill: ${s.name}`,
+    }))
+
+    const v0Skills = (attachedSkills || [])
+      .filter(s => s.id && !s.id.startsWith('local-'))
+      .map(s => ({ type: 'remote' as const, id: s.id }))
 
     let chatResponse: any
     try {
       chatResponse = await v0.chats.createAsync({
-        message: finalMessage,
+        message,
+        attachments: skillAttachments.length > 0 ? skillAttachments : undefined,
+        skills: v0Skills.length > 0 ? v0Skills : undefined,
       })
     } catch (asyncErr) {
       console.warn('v0.chats.createAsync failed, attempting synchronous fallback:', asyncErr)
       chatResponse = await v0.chats.create({
-        message: finalMessage,
+        message,
+        attachments: skillAttachments.length > 0 ? skillAttachments : undefined,
+        skills: v0Skills.length > 0 ? v0Skills : undefined,
       })
     }
 
