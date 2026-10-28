@@ -910,16 +910,16 @@ function InputStudio({
 
                     <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
                       {[
-                        ['all', 'All'],
-                        ['design', 'Design'],
-                        ['metrics', 'Metrics'],
-                        ['strategy', 'Strategy'],
-                        ['motion', 'Motion'],
+                        ['all', `All (${CURATED_SKILLS.length})`],
+                        ['design', `Design (${CURATED_SKILLS.filter(s => s.category === 'design').length})`],
+                        ['strategy', `Strategy (${CURATED_SKILLS.filter(s => s.category === 'strategy').length})`],
+                        ['metrics', `Metrics (${CURATED_SKILLS.filter(s => s.category === 'metrics').length})`],
+                        ['motion', `Motion (${CURATED_SKILLS.filter(s => s.category === 'motion').length})`],
                       ].map(([catKey, catLabel]) => (
                         <button
                           key={catKey}
                           type="button"
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-mono cursor-pointer transition-all border ${
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-mono whitespace-nowrap cursor-pointer transition-all border ${
                             skillCategory === catKey
                               ? 'bg-purple-600 text-white border-purple-500 font-medium'
                               : 'bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border-white/10 hover:border-white/20'
@@ -940,10 +940,10 @@ function InputStudio({
                     </div>
                   ) : skillsList.length === 0 ? (
                     <div className="p-6 rounded-lg bg-white/[0.02] border border-white/10 text-center text-xs text-zinc-400 font-mono">
-                      No skills found matching &quot;{skillSearch}&quot;. Try &quot;telemetry&quot;, &quot;teardown&quot;, or &quot;obsidian&quot;.
+                      No skills found matching &quot;{skillSearch}&quot;. Try &quot;telemetry&quot;, &quot;teardown&quot;, &quot;bento&quot;, or &quot;obsidian&quot;.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto pr-1">
                       {skillsList.map(skill => {
                         const isAttached = (selectedSkills || []).some(s => s.id === skill.id || s.slug === skill.slug)
                         const isMaxReached = (selectedSkills || []).length >= 3 && !isAttached
@@ -959,8 +959,13 @@ function InputStudio({
                           >
                             <div>
                               <div className="flex items-start justify-between gap-2 mb-1">
-                                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5">
+                                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5 flex-wrap">
                                   <span>{skill.name}</span>
+                                  {skill.command && (
+                                    <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                      {skill.command}
+                                    </span>
+                                  )}
                                 </h4>
                                 <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/10 text-zinc-400 shrink-0">
                                   {skill.category}

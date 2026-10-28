@@ -47,6 +47,15 @@ export async function GET(req: NextRequest) {
       return nameMatch || descMatch || tagMatch || commandMatch
     })
 
+    matchedCurated.sort((a, b) => {
+      if (query) {
+        const aExact = a.name.toLowerCase().startsWith(query) || a.command?.toLowerCase().startsWith(query) ? 1 : 0
+        const bExact = b.name.toLowerCase().startsWith(query) || b.command?.toLowerCase().startsWith(query) ? 1 : 0
+        if (aExact !== bExact) return bExact - aExact
+      }
+      return b.installs - a.installs
+    })
+
     // Try fetching from skills.sh official API if available
     const oidcToken = process.env.VERCEL_OIDC_TOKEN
     let externalSkills: AgentSkill[] = []
