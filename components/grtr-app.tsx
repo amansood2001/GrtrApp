@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import type { StrategicBlueprint, CaseStudyItem } from '@/lib/types'
 import { UserNav } from '@/components/auth/user-nav'
 import { PaywallModal } from '@/components/auth/paywall-modal'
-import { CURATED_SKILLS, type AgentSkill } from '@/lib/skills-registry'
+import type { AgentSkill } from '@/lib/skills-registry'
 
 export function formatDesignLabel(design?: string, maxLen = 32): string {
   if (!design) return 'Minimal Monochrome'
@@ -415,23 +415,27 @@ function InputStudio({
   const [templateFilter, setTemplateFilter] = useState('All')
   const [templateSearch, setTemplateSearch] = useState('')
   const [skillSearch, setSkillSearch] = useState('')
-  const [skillCategory, setSkillCategory] = useState<'all' | 'design' | 'metrics' | 'strategy' | 'motion'>('all')
-  const [skillsList, setSkillsList] = useState<AgentSkill[]>(CURATED_SKILLS)
-  const [activeModalSkill, setActiveModalSkill] = useState<AgentSkill | null>(null)
+  const [skillsList, setSkillsList] = useState<any[]>([])
+  const [activeModalSkill, setActiveModalSkill] = useState<any | null>(null)
   const [isSearchingSkills, setIsSearchingSkills] = useState(false)
   const [parsingCv, setParsingCv] = useState(false)
   const [parsingJd, setParsingJd] = useState(false)
 
-  // Debounced search for skills.sh API
+  // Real-time live search against skills.sh API (exact v0 parity)
   useEffect(() => {
+    const trimmed = skillSearch.trim()
+    if (!trimmed) {
+      setSkillsList([])
+      setIsSearchingSkills(false)
+      return
+    }
+
     let cancelled = false
+    setIsSearchingSkills(true)
+
     const timer = setTimeout(async () => {
       try {
-        setIsSearchingSkills(true)
-        const params = new URLSearchParams()
-        if (skillSearch.trim()) params.set('q', skillSearch.trim())
-        if (skillCategory !== 'all') params.set('category', skillCategory)
-        const res = await fetch(`/api/skills?${params.toString()}`)
+        const res = await fetch(`/api/skills?q=${encodeURIComponent(trimmed)}`)
         if (!res.ok) return
         const data = await res.json()
         if (data.success && Array.isArray(data.skills) && !cancelled) {
@@ -442,13 +446,13 @@ function InputStudio({
       } finally {
         if (!cancelled) setIsSearchingSkills(false)
       }
-    }, 250)
+    }, 200)
 
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [skillSearch, skillCategory])
+  }, [skillSearch])
 
   const toggleSkill = (skill: AgentSkill) => {
     if (!setSelectedSkills) return
@@ -887,13 +891,13 @@ function InputStudio({
                     </div>
                   )}
 
-                  {/* Search & Category Filter Toolbar */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  {/* Open Real-Time Search Bar */}
+                  <div className="flex items-center gap-2">
                     <div className="relative flex-1">
                       <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         aria-label="Search skills from skills.sh"
-                        placeholder="Search skills.sh or local registry (telemetry, teardown, obsidian, charts)..."
+                        placeholder="Type any skill name to search skills.sh (e.g. ui-ux-pro-max, shadcn, tailwind, charts)..."
                         value={skillSearch}
                         onChange={e => setSkillSearch(e.target.value)}
                         className="w-full h-9 pl-9 pr-8 rounded-lg bg-[#0e1116] border border-white/10 hover:border-white/20 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 text-xs text-zinc-200 placeholder:text-zinc-500"
@@ -908,46 +912,56 @@ function InputStudio({
                         </button>
                       )}
                     </div>
-
-                    <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
-                      {[
-                        ['all', `All (${CURATED_SKILLS.length})`],
-                        ['design', `Design (${CURATED_SKILLS.filter(s => s.category === 'design').length})`],
-                        ['strategy', `Strategy (${CURATED_SKILLS.filter(s => s.category === 'strategy').length})`],
-                        ['metrics', `Metrics (${CURATED_SKILLS.filter(s => s.category === 'metrics').length})`],
-                        ['motion', `Motion (${CURATED_SKILLS.filter(s => s.category === 'motion').length})`],
-                      ].map(([catKey, catLabel]) => (
-                        <button
-                          key={catKey}
-                          type="button"
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-mono whitespace-nowrap cursor-pointer transition-all border ${
-                            skillCategory === catKey
-                              ? 'bg-purple-600 text-white border-purple-500 font-medium'
-                              : 'bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border-white/10 hover:border-white/20'
-                          }`}
-                          onClick={() => setSkillCategory(catKey as any)}
-                        >
-                          {catLabel}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
-                  {/* Skills Cards Grid */}
+                  {/* Skills Cards Grid or Empty Search State */}
                   {isSearchingSkills ? (
-                    <div className="py-8 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
+                    <div className="py-12 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-                      <span>Searching skills.sh registry...</span>
+                      <span>Searching skills.sh registry in real time...</span>
+                    </div>
+                  ) : !skillSearch.trim() ? (
+                    <div className="py-10 px-6 rounded-xl bg-white/[0.02] border border-white/10 text-center flex flex-col items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                        <Search className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-zinc-100 mb-1">Search skills.sh in Real Time</h4>
+                      <p className="text-xs text-zinc-400 max-w-md leading-relaxed mb-4">
+                        Search the open skills.sh ecosystem. Attached skills are invoked natively in v0 to guide component patterns, styling rules, and layout craftsmanship.
+                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-lg">
+                        <span className="text-[11px] text-zinc-500 font-mono mr-1">Popular searches:</span>
+                        {[
+                          'ui-ux-pro-max',
+                          'web-design-guidelines',
+                          'ui-taste',
+                          'minimalist-ui',
+                          'shadcn',
+                          'tailwind',
+                          'charts',
+                        ].map(tag => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => setSkillSearch(tag)}
+                            className="px-2.5 py-1 rounded-md text-[11px] font-mono bg-white/[0.04] hover:bg-purple-500/15 border border-white/10 hover:border-purple-500/30 text-zinc-300 hover:text-purple-200 transition-colors cursor-pointer"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   ) : skillsList.length === 0 ? (
-                    <div className="p-6 rounded-lg bg-white/[0.02] border border-white/10 text-center text-xs text-zinc-400 font-mono">
-                      No skills found matching &quot;{skillSearch}&quot;. Try &quot;telemetry&quot;, &quot;teardown&quot;, &quot;bento&quot;, or &quot;obsidian&quot;.
+                    <div className="p-8 rounded-xl bg-white/[0.02] border border-white/10 text-center text-xs text-zinc-400 font-mono">
+                      No skills found on skills.sh matching &quot;{skillSearch}&quot;. Try searching for &quot;design&quot;, &quot;ui&quot;, &quot;tailwind&quot;, or &quot;charts&quot;.
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto pr-1">
                       {skillsList.map(skill => {
                         const isAttached = (selectedSkills || []).some(s => s.id === skill.id || s.slug === skill.slug)
                         const isMaxReached = (selectedSkills || []).length >= 3 && !isAttached
+                        const displayAuthor = skill.author || (skill.source ? skill.source.split('/')[0] : 'skills.sh')
+                        const displayCommand = `/${skill.skillId || skill.name}`
 
                         return (
                           <div
@@ -963,30 +977,28 @@ function InputStudio({
                               <div className="flex items-start justify-between gap-2 mb-1.5">
                                 <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5 flex-wrap group-hover:text-purple-300 transition-colors">
                                   <span>{skill.name}</span>
-                                  {skill.command && (
-                                    <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
-                                      {skill.command}
-                                    </span>
-                                  )}
+                                  <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                    {displayCommand}
+                                  </span>
                                 </h4>
-                                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/10 text-zinc-400 shrink-0">
-                                  {skill.category}
+                                <span className="text-[9px] font-mono text-zinc-500 shrink-0">
+                                  by {displayAuthor}
                                 </span>
                               </div>
                               <p className="text-[11px] text-zinc-400 leading-relaxed mb-2 line-clamp-2">
-                                {skill.description}
+                                {skill.description || 'Authentic remote skill from the skills.sh registry.'}
                               </p>
                             </div>
 
                             <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.06] mt-auto">
                               <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
                                 <span className="text-purple-400">⚡</span>
-                                <span>{skill.installs.toLocaleString()} installs</span>
+                                <span>{(skill.installs || 0).toLocaleString()} installs</span>
                               </span>
 
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-mono text-zinc-400 group-hover:text-purple-300 transition-colors hidden sm:inline">
-                                  Specs →
+                                  View Specs →
                                 </span>
                                 <button
                                   type="button"
@@ -1037,17 +1049,12 @@ function InputStudio({
                         <div className="p-5 border-b border-white/10 flex items-start justify-between gap-4 bg-gradient-to-r from-purple-950/40 via-transparent to-transparent">
                           <div>
                             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 font-semibold tracking-wider">
-                                {activeModalSkill.category}
+                              <span className="text-[10px] font-mono text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded border border-purple-500/30 font-semibold">
+                                /{activeModalSkill.skillId || activeModalSkill.name}
                               </span>
-                              {activeModalSkill.command && (
-                                <span className="text-[11px] font-mono text-purple-300 bg-black/70 px-2 py-0.5 rounded-md border border-purple-500/30 font-semibold">
-                                  {activeModalSkill.command}
-                                </span>
-                              )}
                               <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-1">
                                 <span className="text-purple-400">⚡</span>
-                                {activeModalSkill.installs.toLocaleString()} community installs
+                                {(activeModalSkill.installs || 0).toLocaleString()} community installs
                               </span>
                               {activeModalSkill.author && (
                                 <span className="text-[10px] font-mono text-zinc-500">
@@ -1072,35 +1079,39 @@ function InputStudio({
                         {/* Modal Scrollable Body */}
                         <div className="p-5 overflow-y-auto space-y-4 text-left custom-scrollbar text-xs">
                           {/* Summary Card */}
-                          <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/20">
-                            <div className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold mb-1">
-                              Skill Overview & Architectural Mission
+                          <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20">
+                            <div className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold mb-1.5">
+                              Skill Overview from skills.sh
                             </div>
                             <p className="text-xs text-zinc-200 leading-relaxed">
-                              {activeModalSkill.description}
+                              {activeModalSkill.description || 'Authentic remote skill from skills.sh registry.'}
                             </p>
+                            {activeModalSkill.id && (
+                              <div className="mt-3 pt-3 border-t border-purple-500/20 flex items-center justify-between">
+                                <span className="text-[10px] font-mono text-zinc-400">
+                                  Registry ID: <code className="text-purple-300">{activeModalSkill.id}</code>
+                                </span>
+                                <a
+                                  href={`https://skills.sh/${activeModalSkill.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] font-mono text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
+                                >
+                                  <span>View on skills.sh</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
+                            )}
                           </div>
 
-                          {/* Architectural Directives & Component Specifications */}
-                          <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
-                                Architectural Contract & Directives
-                              </span>
-                              <span className="text-[9px] font-mono text-purple-400">
-                                Injected directly into v0 build prompt
-                              </span>
+                          {/* How v0 handles this skill */}
+                          <div className="p-4 rounded-xl bg-[#06080c] border border-white/10">
+                            <div className="flex items-center gap-2 text-zinc-200 font-medium mb-1.5">
+                              <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+                              <span>Native Remote Skill Integration</span>
                             </div>
-                            <div className="p-4 rounded-xl bg-[#06080c] border border-white/10 font-mono text-[11px] text-zinc-300 leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto selection:bg-purple-500/40">
-                              {activeModalSkill.content || activeModalSkill.description}
-                            </div>
-                          </div>
-
-                          {/* How this works info */}
-                          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 text-[11px] text-zinc-400 flex items-start gap-2">
-                            <Sparkles className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                            <p>
-                              Attaching this skill instructs v0 to strictly adhere to these component patterns and layout paradigms. Your authentic CV narrative, case studies, and company-specific thesis are fully preserved.
+                            <p className="text-zinc-400 leading-relaxed text-[11px]">
+                              When attached, this skill is passed natively to v0 as <code className="text-purple-300 font-mono">type: &apos;remote&apos;</code>. v0 fetches and runs the complete, authoritative skill specification directly from the skills.sh registry to guide component layout, styling, and interactivity, without overriding your CV narrative or hardcoding styles.
                             </p>
                           </div>
                         </div>

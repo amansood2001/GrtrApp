@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v0 } from 'v0'
 import { recordPortfolioEvent } from '@/lib/analytics-tracker'
-import { CURATED_SKILLS } from '@/lib/skills-registry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -137,41 +136,29 @@ Here is your public, recruiter-ready portfolio link:
 
     console.log(`Starting streaming message to portfolio chat ${chatId}: "${message.slice(0, 50)}..." (attachments: ${attachments?.length || 0})`)
 
-    const finalAttachments: Array<{ name?: string; content?: string; url?: string }> = Array.isArray(attachments)
-      ? [...attachments]
-      : []
+    // Extract remote skill from attachedSkill or from slash command (e.g. /ui-ux-pro-max)
+    let skillId = attachedSkill?.id || attachedSkill?.skillId || ''
+    let cleanedMessage = message
 
-    // Check if an explicit skill was attached or if a slash command was used
-    let skillSpec = attachedSkill?.content || ''
-    let skillName = attachedSkill?.name || ''
-    let skillId = attachedSkill?.id || ''
-
-    if (!skillSpec) {
+    if (!skillId) {
       const trimmed = message.trim()
-      const match = CURATED_SKILLS.find(s => s.command && trimmed.startsWith(s.command))
-      if (match) {
-        skillSpec = match.content
-        skillName = match.name
-        skillId = match.id
+      if (trimmed.startsWith('/')) {
+        const potentialSlug = trimmed.slice(1).split(/\s+/)[0]
+        if (potentialSlug) {
+          skillId = potentialSlug
+          cleanedMessage = trimmed.replace(new RegExp(`^\\/${potentialSlug}\\s*`), '').trim() || `Apply the ${potentialSlug} design system and standards.`
+        }
       }
     }
 
-    // Attach skill as a first-class file attachment rather than dumping raw markdown into the chat box
-    if (skillSpec) {
-      finalAttachments.push({
-        name: `${(skillName || 'applied-skill').toLowerCase().replace(/[^a-z0-9]/g, '-')}-skill.md`,
-        content: skillSpec,
-      })
-    }
-
-    const v0Skills = skillId && !skillId.startsWith('local-')
+    const v0Skills = skillId
       ? [{ type: 'remote' as const, id: skillId }]
       : undefined
 
     const streamResult = await v0.messages.sendStream({
       chatId,
-      message,
-      attachments: finalAttachments.length > 0 ? (finalAttachments as any) : undefined,
+      message: cleanedMessage,
+      attachments: attachments && attachments.length > 0 ? (attachments as any) : undefined,
       skills: v0Skills,
     })
 

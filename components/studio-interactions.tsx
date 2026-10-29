@@ -24,7 +24,7 @@ import {
   Check,
 } from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
-import { CURATED_SKILLS, type AgentSkill } from '@/lib/skills-registry'
+import type { AgentSkill } from '@/lib/skills-registry'
 import { Zap, Command } from 'lucide-react'
 
 export const portfolioPlaceholders = {
@@ -489,8 +489,46 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
   const [draft, setDraft] = useState('')
   const [attachments, setAttachments] = useState<ChatAttachment[]>([])
   const [showSlashMenu, setShowSlashMenu] = useState(false)
-  const [selectedSlashSkill, setSelectedSlashSkill] = useState<AgentSkill | null>(null)
+  const [selectedSlashSkill, setSelectedSlashSkill] = useState<any | null>(null)
+  const [slashSkills, setSlashSkills] = useState<any[]>([])
+  const [isSearchingSlashSkills, setIsSearchingSlashSkills] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Live skills.sh autocomplete for slash commands
+  useEffect(() => {
+    const isSlashActive = draft.startsWith('/') || showSlashMenu
+    if (!isSlashActive) {
+      setSlashSkills([])
+      setIsSearchingSlashSkills(false)
+      return
+    }
+
+    const query = draft.startsWith('/') ? draft.slice(1).trim() : ''
+    const searchQuery = query || 'ui'
+
+    let cancelled = false
+    setIsSearchingSlashSkills(true)
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/skills?q=${encodeURIComponent(searchQuery)}`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.success && Array.isArray(data.skills) && !cancelled) {
+          setSlashSkills(data.skills)
+        }
+      } catch (err) {
+        console.warn('Slash skills search error:', err)
+      } finally {
+        if (!cancelled) setIsSearchingSlashSkills(false)
+      }
+    }, 150)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [draft, showSlashMenu])
   const [messages, setMessages] = useState<StudioMessage[]>([
     {
       role: 'assistant',
@@ -848,38 +886,50 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
               <span>Click or select to apply</span>
             </div>
 
-            {CURATED_SKILLS.filter(s => {
-              const q = draft.startsWith('/') ? draft.slice(1).toLowerCase().trim() : ''
-              return !q || s.name.toLowerCase().includes(q) || s.command?.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
-            }).map(s => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => {
-                  setSelectedSlashSkill(s)
-                  setDraft(`${s.command || `/${s.slug}`} `)
-                  setShowSlashMenu(false)
-                }}
-                className="w-full p-2 rounded-lg hover:bg-white/[0.06] transition-all flex items-start justify-between gap-3 text-left group cursor-pointer border border-transparent hover:border-white/10"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold text-purple-300 group-hover:text-purple-200">
-                      {s.command || `/${s.slug}`}
+            {isSearchingSlashSkills && slashSkills.length === 0 ? (
+              <div className="p-4 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                <span>Searching skills.sh...</span>
+              </div>
+            ) : slashSkills.length === 0 ? (
+              <div className="p-3 text-center text-xs text-zinc-400 font-mono">
+                No matching skills found on skills.sh
+              </div>
+            ) : (
+              slashSkills.map(s => {
+                const cmd = `/${s.skillId || s.name}`
+                const author = s.author || (s.source ? s.source.split('/')[0] : 'skills.sh')
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedSlashSkill(s)
+                      setDraft(`${cmd} `)
+                      setShowSlashMenu(false)
+                    }}
+                    className="w-full p-2 rounded-lg hover:bg-white/[0.06] transition-all flex items-start justify-between gap-3 text-left group cursor-pointer border border-transparent hover:border-white/10"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-purple-300 group-hover:text-purple-200">
+                          {cmd}
+                        </span>
+                        <span className="text-xs font-medium text-zinc-200 truncate">
+                          {s.name}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 line-clamp-1 mt-0.5 font-sans">
+                        {s.description || 'Native skill from skills.sh'}
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400 border border-white/5 shrink-0">
+                      by {author}
                     </span>
-                    <span className="text-xs font-medium text-zinc-200">
-                      {s.name}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400 line-clamp-1 mt-0.5 font-sans">
-                    {s.description}
-                  </p>
-                </div>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400 border border-white/5 shrink-0">
-                  {s.category}
-                </span>
-              </button>
-            ))}
+                  </button>
+                )
+              })
+            )}
           </div>
         )}
 

@@ -1,117 +1,117 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { CURATED_SKILLS, type AgentSkill } from '@/lib/skills-registry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-interface SkillsShItem {
+export interface RemoteSkillItem {
   id: string
-  slug: string
+  skillId: string
   name: string
   source: string
   installs: number
-  sourceType: string
-  installUrl: string
+  author: string
+  description: string
   url: string
-  description?: string
+}
+
+// In-memory cache for official descriptions fetched from skills.sh
+const descriptionCache = new Map<string, string>()
+
+async function fetchSkillDescription(slug: string): Promise<string> {
+  if (descriptionCache.has(slug)) {
+    return descriptionCache.get(slug)!
+  }
+
+  try {
+    const res = await fetch(`https://skills.sh/${slug}`, {
+      signal: AbortSignal.timeout(2500),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GRTR/1.0; +https://grtr.app)',
+      },
+    })
+    if (!res.ok) return ''
+    const html = await res.text()
+    const match = html.match(/<meta name="description" content="([^"]+)"/)
+    if (match && match[1]) {
+      const cleaned = match[1]
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .trim()
+      descriptionCache.set(slug, cleaned)
+      return cleaned
+    }
+  } catch {
+    // Non-blocking fallback
+  }
+
+  return ''
 }
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const query = (searchParams.get('q') || '').trim().toLowerCase()
-    const category = searchParams.get('category') || 'all'
-    const id = searchParams.get('id')
+    const query = (searchParams.get('q') || '').trim()
 
-    // Direct single skill lookup
-    if (id) {
-      const found = CURATED_SKILLS.find(s => s.id === id || s.slug === id)
-      if (found) {
-        return NextResponse.json({ success: true, skill: found })
-      }
-      return NextResponse.json({ success: false, error: 'Skill not found' }, { status: 404 })
+    // Exactly like v0: If the search query is empty, do not preload any restricted subset.
+    // Return an empty list so the user is prompted to type.
+    if (!query) {
+      return NextResponse.json({
+        success: true,
+        skills: [],
+        count: 0,
+      })
     }
 
-    // Filter curated skills first
-    let matchedCurated = CURATED_SKILLS.filter(skill => {
-      const matchesCategory = category === 'all' || skill.category === category
-      if (!matchesCategory) return false
-
-      if (!query) return true
-
-      const nameMatch = skill.name.toLowerCase().includes(query)
-      const descMatch = skill.description.toLowerCase().includes(query)
-      const tagMatch = skill.tags.some(t => t.toLowerCase().includes(query))
-      const commandMatch = skill.command?.toLowerCase().includes(query)
-
-      return nameMatch || descMatch || tagMatch || commandMatch
+    const skillsShUrl = `https://skills.sh/api/search?q=${encodeURIComponent(query)}&limit=25`
+    const searchRes = await fetch(skillsShUrl, {
+      signal: AbortSignal.timeout(4000),
+      headers: {
+        'Accept': 'application/json',
+      },
     })
 
-    matchedCurated.sort((a, b) => {
-      if (query) {
-        const aExact = a.name.toLowerCase().startsWith(query) || a.command?.toLowerCase().startsWith(query) ? 1 : 0
-        const bExact = b.name.toLowerCase().startsWith(query) || b.command?.toLowerCase().startsWith(query) ? 1 : 0
-        if (aExact !== bExact) return bExact - aExact
-      }
-      return b.installs - a.installs
-    })
-
-    // Try fetching from skills.sh official API if available
-    const oidcToken = process.env.VERCEL_OIDC_TOKEN
-    let externalSkills: AgentSkill[] = []
-
-    if (query) {
-      try {
-        const skillsShUrl = `https://skills.sh/api/v1/skills/search?q=${encodeURIComponent(query)}&limit=10`
-        const headers: Record<string, string> = {
-          'Accept': 'application/json',
-        }
-        if (oidcToken) {
-          headers['Authorization'] = `Bearer ${oidcToken}`
-        }
-
-        const res = await fetch(skillsShUrl, {
-          headers,
-          next: { revalidate: 300 }, // 5 min cache
-          signal: AbortSignal.timeout(3000), // 3s timeout
-        })
-
-        if (res.ok) {
-          const json = await res.json()
-          const items: SkillsShItem[] = json.data || json.skills || []
-
-          externalSkills = items
-            .filter(item => !matchedCurated.some(c => c.id === item.id || c.slug === item.slug))
-            .map(item => ({
-              id: item.id || item.slug,
-              name: item.name || item.slug,
-              slug: item.slug || item.id,
-              category: 'design' as const,
-              author: item.source || 'skills.sh',
-              source: item.source || item.installUrl,
-              installs: item.installs || 100,
-              description: item.description || `Agent skill from ${item.source} on skills.sh`,
-              tags: ['community', 'skills.sh'],
-              content: `## SKILL: ${item.name}\nSource: ${item.source}\nStrictly adhere to modern Next.js and Tailwind CSS standards.`,
-            }))
-        }
-      } catch (externalErr) {
-        // Silently fallback to curated skills on external network timeout
-        console.warn('[skills.sh API search fallback]:', externalErr)
-      }
+    if (!searchRes.ok) {
+      return NextResponse.json({
+        success: false,
+        skills: [],
+        error: `skills.sh returned status ${searchRes.status}`,
+      })
     }
 
-    const combined = [...matchedCurated, ...externalSkills]
+    const data = await searchRes.json()
+    const rawSkills = Array.isArray(data.skills) ? data.skills : []
+
+    // Fetch official creator descriptions for the top matching results in parallel
+    const enrichedSkills: RemoteSkillItem[] = await Promise.all(
+      rawSkills.map(async (item: any) => {
+        const id = item.id || `${item.source}/${item.skillId}`
+        const author = item.source ? item.source.split('/')[0] : 'skills.sh'
+        const desc = await fetchSkillDescription(id)
+
+        return {
+          id,
+          skillId: item.skillId || item.name || id,
+          name: item.name || item.skillId || id,
+          source: item.source || '',
+          installs: typeof item.installs === 'number' ? item.installs : 0,
+          author,
+          description: desc || `Open-source agent skill by ${author} from skills.sh (${(item.installs || 0).toLocaleString()} installs)`,
+          url: `https://skills.sh/${id}`,
+        }
+      })
+    )
 
     return NextResponse.json({
       success: true,
-      skills: combined,
-      count: combined.length,
-      isLiveConnected: !!oidcToken,
+      skills: enrichedSkills,
+      count: enrichedSkills.length,
     })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch skills'
+    const message = err instanceof Error ? err.message : 'Failed to search skills.sh'
     console.error('api/skills error:', err)
-    return NextResponse.json({ success: false, error: message }, { status: 500 })
+    return NextResponse.json({ success: false, skills: [], error: message }, { status: 500 })
   }
 }
