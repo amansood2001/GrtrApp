@@ -5,7 +5,7 @@ import type { GenerateResponse, StrategicBlueprint } from '@/lib/types'
 import { recordPortfolioEvent } from '@/lib/analytics-tracker'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+export const maxDuration = 300
 
 // Curated Seed Chats existing directly inside your authenticated v0 workspace
 export const WORKSPACE_SEED_CHATS: Record<string, string> = {

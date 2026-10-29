@@ -5,7 +5,7 @@ import { recordPortfolioEvent } from '@/lib/analytics-tracker'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const maxDuration = 120
+export const maxDuration = 300
 
 export async function GET(req: NextRequest) {
   try {
@@ -183,6 +183,25 @@ Here is your public, recruiter-ready portfolio link:
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       async start(controller) {
+        // Immediately emit an initial event so client receives headers and establishes the SSE stream instantly
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              status: 'streaming',
+              parts: [{ type: 'thinking', text: 'Analyzing inquiry and inspecting workspace...' }],
+            })}\n\n`
+          )
+        )
+
+        // Send keepalive pings every 8 seconds to prevent proxy / Vercel edge idle timeouts
+        const keepAliveInterval = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode(': keepalive\n\n'))
+          } catch {
+            clearInterval(keepAliveInterval)
+          }
+        }, 8000)
+
         try {
           for await (const update of streamResult.stream) {
             const payload = JSON.stringify({
@@ -216,6 +235,8 @@ Here is your public, recruiter-ready portfolio link:
             )
           )
           controller.close()
+        } finally {
+          clearInterval(keepAliveInterval)
         }
       },
     })

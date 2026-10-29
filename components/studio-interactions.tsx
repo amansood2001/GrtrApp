@@ -769,19 +769,80 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Network error'
-        setMessages(prev => {
-          const next = [...prev]
-          const lastIdx = next.length - 1
-          if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
-            next[lastIdx] = {
-              ...next[lastIdx],
-              status: 'error',
-              error: msg,
-              text: `Connection error: ${msg}. Please retry.`,
+        console.warn('Streaming error, attempting auto-recovery from v0 chat history:', msg)
+
+        // If the server timed out (e.g. 504) or network dropped, v0 is often still completing the run in the background.
+        // Poll /api/chat up to 8 times to retrieve the completed assistant reply!
+        let recovered = false
+        if (chatId) {
+          setMessages(prev => {
+            const next = [...prev]
+            const lastIdx = next.length - 1
+            if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+              next[lastIdx] = {
+                ...next[lastIdx],
+                status: 'streaming',
+                text: 'v0 is compiling your response. Syncing completed reply...',
+                error: undefined,
+              }
+            }
+            return next
+          })
+
+          for (let attempt = 0; attempt < 8; attempt++) {
+            await new Promise(r => setTimeout(r, 3000))
+            try {
+              const checkRes = await fetch(`/api/chat?chatId=${encodeURIComponent(chatId)}&_t=${Date.now()}`, { cache: 'no-store' })
+              if (checkRes.ok) {
+                const checkData = await checkRes.json()
+                if (checkData.success && Array.isArray(checkData.messages)) {
+                  const lastMsg = checkData.messages[checkData.messages.length - 1]
+                  if (lastMsg && lastMsg.role === 'assistant' && (lastMsg.content || lastMsg.finishReason)) {
+                    const loaded: StudioMessage[] = checkData.messages.map((m: any) => {
+                      let text = m.text || m.content || ''
+                      if (!text && Array.isArray(m.parts)) {
+                        const textParts = (m.parts as any[])
+                          .filter((p: any) => p && (p.type === 'text' || typeof p.text === 'string'))
+                          .map((p: any) => p.text || '')
+                          .filter(Boolean)
+                        if (textParts.length > 0) text = textParts.join('\n\n')
+                      }
+                      return {
+                        id: m.id,
+                        role: m.role,
+                        text,
+                        parts: m.parts || [],
+                        status: 'done' as const,
+                      }
+                    })
+                    setMessages(loaded)
+                    onUpdatePreview?.()
+                    recovered = true
+                    break
+                  }
+                }
+              }
+            } catch (pollErr) {
+              console.warn('Recovery poll error:', pollErr)
             }
           }
-          return next
-        })
+        }
+
+        if (!recovered) {
+          setMessages(prev => {
+            const next = [...prev]
+            const lastIdx = next.length - 1
+            if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+              next[lastIdx] = {
+                ...next[lastIdx],
+                status: 'error',
+                error: msg,
+                text: `Request timed out while v0 was reasoning (HTTP 504). Please refresh to sync v0's reply.`,
+              }
+            }
+            return next
+          })
+        }
       } finally {
         busy.current = false
         setStreaming(false)
