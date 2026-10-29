@@ -404,11 +404,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
         .filter(s => s.id)
         .map(s => ({ type: 'remote' as const, id: s.id }))
 
-      await v0.messages.sendAsync({
+      const sendRes = await v0.messages.sendAsync({
         chatId: newChatId,
         message: adaptationMessage,
         skills: v0Skills.length > 0 ? v0Skills : undefined,
       })
+
+      if (sendRes?.error) {
+        console.error('Failed to send template adaptation message:', sendRes.error)
+        const rawMsg = sendRes.error.message || 'Failed to initiate portfolio generation.'
+        const friendlyMsg = rawMsg.toLowerCase().includes('daily message limit') || rawMsg.toLowerCase().includes('quota')
+          ? 'You have reached your daily v0 message limit. Please upgrade your plan on v0.app (Activate v0 Plus) or wait for your daily quota to reset.'
+          : rawMsg
+        return NextResponse.json(
+          {
+            success: false,
+            error: friendlyMsg,
+          },
+          { status: sendRes.error.message?.includes('daily message limit') ? 429 : 502 }
+        )
+      }
 
       recordPortfolioEvent(newChatId, {
         type: 'deployed',
@@ -456,12 +471,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     if (chatResponse.error || !chatId) {
       console.error('Portfolio generation failed:', chatResponse.error)
+      const rawMsg = chatResponse.error?.message || 'Failed to initiate portfolio generation.'
+      const friendlyMsg = rawMsg.toLowerCase().includes('daily message limit') || rawMsg.toLowerCase().includes('quota')
+        ? 'You have reached your daily v0 message limit. Please upgrade your plan on v0.app (Activate v0 Plus) or wait for your daily quota to reset.'
+        : rawMsg
       return NextResponse.json(
         {
           success: false,
-          error: chatResponse.error?.message || 'Failed to initiate portfolio generation.',
+          error: friendlyMsg,
         },
-        { status: 502 }
+        { status: rawMsg.toLowerCase().includes('daily message limit') ? 429 : 502 }
       )
     }
 

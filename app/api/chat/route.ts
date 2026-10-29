@@ -173,14 +173,61 @@ Here is your public, recruiter-ready portfolio link:
       ? [{ type: 'remote' as const, id: skillId }]
       : undefined
 
-    const streamResult = await v0.messages.sendStream({
-      chatId,
+    const v0ApiKey = process.env.V0_API_KEY
+    if (!v0ApiKey) {
+      return NextResponse.json({ success: false, error: 'V0_API_KEY is not configured on server.' }, { status: 500 })
+    }
+
+    const payload: Record<string, any> = {
       message: cleanedMessage,
-      attachments: attachments && attachments.length > 0 ? (attachments as any) : undefined,
-      skills: v0Skills,
+    }
+    if (attachments && attachments.length > 0) {
+      payload.attachments = attachments
+    }
+    if (v0Skills && v0Skills.length > 0) {
+      payload.skills = v0Skills
+    }
+
+    // Call v0 direct streaming endpoint. This guarantees immediate detection of quota limits (403)
+    // or plan blocks without falling into the SDK's infinite retry loop.
+    const v0Res = await fetch(`https://api.v0.dev/v2/chats/${chatId}/messages/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${v0ApiKey}`,
+        'Accept': 'text/event-stream',
+      },
+      body: JSON.stringify(payload),
     })
 
+    if (!v0Res.ok) {
+      const errData = await v0Res.json().catch(() => ({ message: v0Res.statusText }))
+      const rawMsg = errData?.message || `v0 API error (${v0Res.status})`
+      console.error(`v0 API error ${v0Res.status}:`, rawMsg)
+
+      let friendlyMsg = rawMsg
+      if (v0Res.status === 403 || rawMsg.toLowerCase().includes('daily message limit') || rawMsg.toLowerCase().includes('quota')) {
+        friendlyMsg = 'You have reached your daily message limit. Please upgrade your plan to continue.'
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: friendlyMsg,
+          statusCode: v0Res.status,
+        },
+        { status: v0Res.status === 403 ? 429 : 502 }
+      )
+    }
+
+    if (!v0Res.body) {
+      return NextResponse.json({ success: false, error: 'No response body stream received from v0.' }, { status: 502 })
+    }
+
     const encoder = new TextEncoder()
+    const reader = v0Res.body.getReader()
+    const decoder = new TextDecoder()
+
     const stream = new ReadableStream({
       async start(controller) {
         // Immediately emit an initial event so client receives headers and establishes the SSE stream instantly
@@ -202,26 +249,91 @@ Here is your public, recruiter-ready portfolio link:
           }
         }, 8000)
 
+        let buffer = ''
+        let hasDone = false
+
         try {
-          for await (const update of streamResult.stream) {
-            const payload = JSON.stringify({
-              status: update.status || 'streaming',
-              parts: update.parts || [],
-              title: update.title,
-            })
-            controller.enqueue(encoder.encode(`data: ${payload}\n\n`))
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            buffer += decoder.decode(value, { stream: true })
+            const blocks = buffer.split('\n\n')
+            buffer = blocks.pop() || ''
+
+            for (const block of blocks) {
+              const lines = block.split('\n')
+              let eventType = 'update'
+              const dataLines: string[] = []
+
+              for (const line of lines) {
+                if (line.startsWith('event:')) {
+                  eventType = line.replace(/^event:\s*/, '').trim()
+                } else if (line.startsWith('data:')) {
+                  dataLines.push(line.replace(/^data:\s*/, ''))
+                }
+              }
+
+              if (dataLines.length === 0) continue
+              const dataStr = dataLines.join('\n')
+
+              let parsed: any
+              try {
+                parsed = JSON.parse(dataStr)
+              } catch {
+                parsed = { text: dataStr }
+              }
+
+              if (eventType === 'error') {
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({
+                      status: 'error',
+                      error: parsed.message || 'v0 generation error',
+                    })}\n\n`
+                  )
+                )
+                continue
+              }
+
+              if (eventType === 'done') {
+                hasDone = true
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({
+                      status: 'done',
+                      parts: parsed.parts || [],
+                      publicUrl,
+                    })}\n\n`
+                  )
+                )
+                continue
+              }
+
+              // Normal update event
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    status: parsed.status || 'streaming',
+                    parts: parsed.parts || [],
+                    title: parsed.title,
+                  })}\n\n`
+                )
+              )
+            }
           }
 
-          const final = await streamResult.final
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                status: 'done',
-                parts: final.parts || [],
-                publicUrl,
-              })}\n\n`
+          if (!hasDone) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  status: 'done',
+                  parts: [],
+                  publicUrl,
+                })}\n\n`
+              )
             )
-          )
+          }
           controller.close()
         } catch (streamErr: unknown) {
           console.error('v0 streaming error:', streamErr)
@@ -238,6 +350,9 @@ Here is your public, recruiter-ready portfolio link:
         } finally {
           clearInterval(keepAliveInterval)
         }
+      },
+      cancel() {
+        reader.cancel().catch(() => {})
       },
     })
 

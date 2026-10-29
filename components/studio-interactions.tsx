@@ -701,7 +701,27 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         })
 
         if (!res.ok) {
-          throw new Error(`Server returned HTTP ${res.status}`)
+          const errData = await res.json().catch(() => ({ error: `Server returned HTTP ${res.status}` }))
+          const errMsg = errData.error || `Server returned HTTP ${res.status}`
+          const isQuota = errMsg.toLowerCase().includes('daily message limit') || errMsg.toLowerCase().includes('quota')
+
+          setMessages(prev => {
+            const next = [...prev]
+            const lastIdx = next.length - 1
+            if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+              next[lastIdx] = {
+                ...next[lastIdx],
+                status: 'error',
+                error: errMsg,
+                text: isQuota
+                  ? `⚠️ **Daily Message Limit Reached**\n\nYour v0 account has hit its daily message quota limit.\n\nTo continue chatting and refining your portfolio, please upgrade your v0 plan to [v0 Plus](https://v0.app/settings) or wait for your daily quota to reset.`
+                  : `⚠️ **Request Error**\n\n${errMsg}`,
+              }
+            }
+            return next
+          })
+          onAgentStatusChange?.({ active: false, currentStep: isQuota ? 'Quota Exceeded' : 'Error' })
+          return
         }
 
         const reader = res.body?.getReader()
@@ -770,6 +790,23 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Network error'
         console.warn('Streaming error, attempting auto-recovery from v0 chat history:', msg)
+
+        if (msg.toLowerCase().includes('daily message limit') || msg.toLowerCase().includes('quota')) {
+          setMessages(prev => {
+            const next = [...prev]
+            const lastIdx = next.length - 1
+            if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+              next[lastIdx] = {
+                ...next[lastIdx],
+                status: 'error',
+                error: msg,
+                text: `⚠️ **Daily Message Limit Reached**\n\nYour v0 account has hit its daily message quota limit.\n\nPlease upgrade your v0 plan to [v0 Plus](https://v0.app/settings) or wait for your daily quota to reset.`,
+              }
+            }
+            return next
+          })
+          return
+        }
 
         // If the server timed out (e.g. 504) or network dropped, v0 is often still completing the run in the background.
         // Poll /api/chat up to 8 times to retrieve the completed assistant reply!
