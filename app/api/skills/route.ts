@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 export interface RemoteSkillItem {
   id: string
   skillId: string
+  slug: string
   name: string
   source: string
   installs: number
@@ -91,9 +92,11 @@ export async function GET(req: NextRequest) {
         const author = item.source ? item.source.split('/')[0] : 'skills.sh'
         const desc = await fetchSkillDescription(id)
 
+        const skillId = item.skillId || item.name || id
         return {
           id,
-          skillId: item.skillId || item.name || id,
+          skillId,
+          slug: skillId,
           name: item.name || item.skillId || id,
           source: item.source || '',
           installs: typeof item.installs === 'number' ? item.installs : 0,

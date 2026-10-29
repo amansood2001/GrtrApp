@@ -454,12 +454,25 @@ function InputStudio({
     }
   }, [skillSearch])
 
+  const isSkillSelected = (skill: any, list = selectedSkills || []) => {
+    if (!skill) return false
+    return list.some(s => {
+      if (s.id && skill.id && s.id === skill.id) return true
+      if (s.slug && skill.slug && s.slug === skill.slug) return true
+      return false
+    })
+  }
+
   const toggleSkill = (skill: AgentSkill) => {
-    if (!setSelectedSkills) return
+    if (!setSelectedSkills || !skill) return
     const current = selectedSkills || []
-    const exists = current.some(s => s.id === skill.id || s.slug === skill.slug)
+    const exists = isSkillSelected(skill, current)
     if (exists) {
-      setSelectedSkills(current.filter(s => s.id !== skill.id && s.slug !== skill.slug))
+      setSelectedSkills(current.filter(s => {
+        if (s.id && skill.id && s.id === skill.id) return false
+        if (s.slug && skill.slug && s.slug === skill.slug) return false
+        return true
+      }))
     } else {
       if (current.length >= 3) {
         alert('Maximum of 3 skills can be attached simultaneously to maintain optimal reasoning quality and avoid design collisions.')
@@ -958,7 +971,7 @@ function InputStudio({
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto pr-1">
                       {skillsList.map(skill => {
-                        const isAttached = (selectedSkills || []).some(s => s.id === skill.id || s.slug === skill.slug)
+                        const isAttached = isSkillSelected(skill)
                         const isMaxReached = (selectedSkills || []).length >= 3 && !isAttached
                         const displayAuthor = skill.author || (skill.source ? skill.source.split('/')[0] : 'skills.sh')
                         const displayCommand = `/${skill.skillId || skill.name}`
@@ -1120,7 +1133,7 @@ function InputStudio({
                         <div className="p-4 border-t border-white/10 bg-[#080a0e] flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2 text-[11px] font-mono">
                             {(() => {
-                              const isAttached = (selectedSkills || []).some(s => s.id === activeModalSkill.id || s.slug === activeModalSkill.slug)
+                              const isAttached = isSkillSelected(activeModalSkill)
                               return (
                                 <span className={isAttached ? 'text-emerald-400 font-medium flex items-center gap-1.5' : 'text-zinc-400'}>
                                   <span className={`w-1.5 h-1.5 rounded-full ${isAttached ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
@@ -1140,7 +1153,7 @@ function InputStudio({
                             </button>
 
                             {(() => {
-                              const isAttached = (selectedSkills || []).some(s => s.id === activeModalSkill.id || s.slug === activeModalSkill.slug)
+                              const isAttached = isSkillSelected(activeModalSkill)
                               const isMaxReached = (selectedSkills || []).length >= 3 && !isAttached
 
                               return (
