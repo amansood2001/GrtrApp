@@ -28,19 +28,37 @@ export async function GET(req: NextRequest) {
     const assistantMsg = rawMessages.find((m: any) => m.role === 'assistant')
     const isReady = !!assistantMsg && (assistantMsg.finishReason === 'stop' || assistantMsg.finishReason === 'length')
 
-    // v0.messages.list returns newest first. Sort chronologically (oldest to newest) for proper chat stream display.
-    const sortedRaw = [...rawMessages].sort(
-      (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )
+    // v0.messages.list returns newest first. Sort chronologically (oldest to newest) with turn stability.
+    const sortedRaw = [...rawMessages].sort((a: any, b: any) => {
+      const timeDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      if (timeDiff !== 0) return timeDiff
+      if (a.role === 'user' && b.role === 'assistant') return -1
+      if (a.role === 'assistant' && b.role === 'user') return 1
+      return 0
+    })
 
-    const messages = sortedRaw.map((m: any) => ({
-      id: m.id,
-      role: m.role,
-      content: m.content || '',
-      parts: m.parts || [],
-      finishReason: m.finishReason,
-      createdAt: m.createdAt,
-    }))
+    const messages = sortedRaw.map((m: any) => {
+      let content = m.content || ''
+      // If content is empty string, extract conversational text from parts
+      if (!content && Array.isArray(m.parts)) {
+        const textParts = m.parts
+          .filter((p: any) => p && (p.type === 'text' || typeof p.text === 'string'))
+          .map((p: any) => p.text || '')
+          .filter(Boolean)
+        if (textParts.length > 0) {
+          content = textParts.join('\n\n')
+        }
+      }
+
+      return {
+        id: m.id,
+        role: m.role,
+        content,
+        parts: m.parts || [],
+        finishReason: m.finishReason,
+        createdAt: m.createdAt,
+      }
+    })
 
     return NextResponse.json(
       {

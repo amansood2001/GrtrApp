@@ -432,7 +432,16 @@ function renderFormattedInline(text: string) {
 
 function UserMessageBubble({ message }: { message: StudioMessage }) {
   const [expanded, setExpanded] = useState(false)
-  const textContent = message.text || ''
+  let textContent = message.text || ''
+  if (!textContent && Array.isArray(message.parts)) {
+    const textParts = (message.parts as any[])
+      .filter((p: any) => p && (p.type === 'text' || typeof p.text === 'string'))
+      .map((p: any) => p.text || '')
+      .filter(Boolean)
+    if (textParts.length > 0) {
+      textContent = textParts.join('\n\n')
+    }
+  }
   const isGiantPrompt =
     textContent.length > 800 ||
     textContent.includes('Build an extraordinary, bespoke executive career portfolio')
@@ -559,13 +568,25 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         if (!res.ok) return
         const data = await res.json()
         if (data.success && Array.isArray(data.messages) && data.messages.length > 0 && !cancelled) {
-          const loaded: StudioMessage[] = data.messages.map((m: any) => ({
-            id: m.id,
-            role: m.role,
-            text: m.content || '',
-            parts: m.parts || [],
-            status: 'done',
-          }))
+          const loaded: StudioMessage[] = data.messages.map((m: any) => {
+            let text = m.text || m.content || ''
+            if (!text && Array.isArray(m.parts)) {
+              const textParts = m.parts
+                .filter((p: any) => p && (p.type === 'text' || typeof p.text === 'string'))
+                .map((p: any) => p.text || '')
+                .filter(Boolean)
+              if (textParts.length > 0) {
+                text = textParts.join('\n\n')
+              }
+            }
+            return {
+              id: m.id,
+              role: m.role,
+              text,
+              parts: m.parts || [],
+              status: 'done',
+            }
+          })
           setMessages(loaded)
           if (data.isReady && onReady) {
             onReady()
@@ -800,7 +821,16 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           // Assistant message
           const parts = m.parts || []
           const hasParts = parts.length > 0
-          const textContent = m.text || ''
+          let textContent = m.text || ''
+          if (!textContent && hasParts) {
+            const textParts = (parts as any[])
+              .filter((p: any) => p && (p.type === 'text' || typeof p.text === 'string'))
+              .map((p: any) => p.text || '')
+              .filter(Boolean)
+            if (textParts.length > 0) {
+              textContent = textParts.join('\n\n')
+            }
+          }
 
           return (
             <div key={i} className="ai-message w-full flex flex-col space-y-3">
