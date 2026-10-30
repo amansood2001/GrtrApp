@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatId, message, contextLabel, attachments, attachedSkill } = await req.json()
+    const { chatId, message, contextLabel, attachments, attachedSkill, attachedSkills } = await req.json()
 
     if (!chatId || !message) {
       return NextResponse.json(
@@ -154,23 +154,34 @@ Here is your public, recruiter-ready portfolio link:
 
     console.log(`Starting streaming message to portfolio chat ${chatId}: "${message.slice(0, 50)}..." (attachments: ${attachments?.length || 0})`)
 
-    // Extract remote skill from attachedSkill or from slash command (e.g. /ui-ux-pro-max)
-    let skillId = attachedSkill?.id || attachedSkill?.skillId || ''
-    let cleanedMessage = message
+    // Extract remote skills from attachedSkills array, single attachedSkill, or slash command
+    const skillsList: Array<{ id: string }> = []
+    if (Array.isArray(attachedSkills) && attachedSkills.length > 0) {
+      attachedSkills.forEach((s: any) => {
+        const id = s.id || s.skillId || (typeof s === 'string' ? s : '')
+        if (id && !skillsList.some(item => item.id === id)) {
+          skillsList.push({ id })
+        }
+      })
+    } else if (attachedSkill) {
+      const id = attachedSkill.id || attachedSkill.skillId || (typeof attachedSkill === 'string' ? attachedSkill : '')
+      if (id) skillsList.push({ id })
+    }
 
-    if (!skillId) {
+    let cleanedMessage = message
+    if (skillsList.length === 0) {
       const trimmed = message.trim()
       if (trimmed.startsWith('/')) {
         const potentialSlug = trimmed.slice(1).split(/\s+/)[0]
         if (potentialSlug) {
-          skillId = potentialSlug
+          skillsList.push({ id: potentialSlug })
           cleanedMessage = trimmed.replace(new RegExp(`^\\/${potentialSlug}\\s*`), '').trim() || `Apply the ${potentialSlug} design system and standards.`
         }
       }
     }
 
-    const v0Skills = skillId
-      ? [{ type: 'remote' as const, id: skillId }]
+    const v0Skills = skillsList.length > 0
+      ? skillsList.slice(0, 3).map(s => ({ type: 'remote' as const, id: s.id }))
       : undefined
 
     const v0ApiKey = process.env.V0_API_KEY

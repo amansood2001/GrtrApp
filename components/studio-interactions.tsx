@@ -22,9 +22,11 @@ import {
   Sparkles,
   Wrench,
   Check,
+  Search,
+  Lock,
 } from 'lucide-react'
 import type { CaseStudyItem } from '@/lib/types'
-import type { AgentSkill } from '@/lib/skills-registry'
+import { CURATED_SKILLS, type AgentSkill } from '@/lib/skills-registry'
 import { Zap, Command } from 'lucide-react'
 
 export const portfolioPlaceholders = {
@@ -172,6 +174,7 @@ export interface StudioMessage {
   content?: string
   parts?: MessagePart[]
   attachedFiles?: string[]
+  attachedSkills?: string[]
   status?: 'streaming' | 'done' | 'error'
   error?: string
   publicUrl?: string
@@ -449,14 +452,23 @@ function UserMessageBubble({ message }: { message: StudioMessage }) {
   if (!isGiantPrompt) {
     return (
       <div className="user-message">
-        {message.attachedFiles && message.attachedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {message.attachedFiles.map((name, fIdx) => (
+        {((message.attachedSkills && message.attachedSkills.length > 0) || (message.attachedFiles && message.attachedFiles.length > 0)) && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {message.attachedSkills?.map((skillName, sIdx) => (
               <span
-                key={fIdx}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono"
+                key={`s-${sIdx}`}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-mono border border-purple-500/30"
               >
-                <Paperclip className="w-2.5 h-2.5" />
+                <Zap className="w-2.5 h-2.5 text-purple-400" />
+                <span>{skillName}</span>
+              </span>
+            ))}
+            {message.attachedFiles?.map((name, fIdx) => (
+              <span
+                key={`f-${fIdx}`}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 text-[10px] font-mono border border-white/10"
+              >
+                <Paperclip className="w-2.5 h-2.5 text-zinc-400" />
                 <span>{name}</span>
               </span>
             ))}
@@ -497,47 +509,94 @@ function UserMessageBubble({ message }: { message: StudioMessage }) {
 export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, contextLabel, onReady, refreshKey }: StudioChatProps) {
   const [draft, setDraft] = useState('')
   const [attachments, setAttachments] = useState<ChatAttachment[]>([])
-  const [showSlashMenu, setShowSlashMenu] = useState(false)
-  const [selectedSlashSkill, setSelectedSlashSkill] = useState<any | null>(null)
-  const [slashSkills, setSlashSkills] = useState<any[]>([])
-  const [isSearchingSlashSkills, setIsSearchingSlashSkills] = useState(false)
+  const [attachedSkills, setAttachedSkills] = useState<any[]>([])
+  const [showSkillPicker, setShowSkillPicker] = useState(false)
+  const [skillSearchInput, setSkillSearchInput] = useState('')
+  const [remoteSkills, setRemoteSkills] = useState<any[]>([])
+  const [isSearchingSkills, setIsSearchingSkills] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const skillPickerRef = useRef<HTMLDivElement>(null)
 
-  // Live skills.sh autocomplete for slash commands
+  // Close skill picker when clicking outside
   useEffect(() => {
-    const isSlashActive = draft.startsWith('/') || showSlashMenu
-    if (!isSlashActive) {
-      setSlashSkills([])
-      setIsSearchingSlashSkills(false)
+    function handleClickOutside(e: MouseEvent) {
+      if (skillPickerRef.current && !skillPickerRef.current.contains(e.target as Node)) {
+        setShowSkillPicker(false)
+      }
+    }
+    if (showSkillPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showSkillPicker])
+
+  // Live skills.sh search with debounce
+  useEffect(() => {
+    const trimmed = skillSearchInput.trim()
+    if (!trimmed) {
+      setRemoteSkills([])
+      setIsSearchingSkills(false)
       return
     }
 
-    const query = draft.startsWith('/') ? draft.slice(1).trim() : ''
-    const searchQuery = query || 'ui'
-
     let cancelled = false
-    setIsSearchingSlashSkills(true)
+    setIsSearchingSkills(true)
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/skills?q=${encodeURIComponent(searchQuery)}`)
+        const res = await fetch(`/api/skills?q=${encodeURIComponent(trimmed)}`)
         if (!res.ok) return
         const data = await res.json()
         if (data.success && Array.isArray(data.skills) && !cancelled) {
-          setSlashSkills(data.skills)
+          setRemoteSkills(data.skills)
         }
       } catch (err) {
-        console.warn('Slash skills search error:', err)
+        console.warn('Skills search error:', err)
       } finally {
-        if (!cancelled) setIsSearchingSlashSkills(false)
+        if (!cancelled) setIsSearchingSkills(false)
       }
-    }, 150)
+    }, 200)
 
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [draft, showSlashMenu])
+  }, [skillSearchInput])
+
+  const toggleAttachSkill = (skill: any) => {
+    const skillKey = skill.id || skill.slug || skill.name
+    const isAlreadyAttached = attachedSkills.some(s => (s.id || s.slug || s.name) === skillKey)
+
+    if (isAlreadyAttached) {
+      setAttachedSkills(prev => prev.filter(s => (s.id || s.slug || s.name) !== skillKey))
+    } else {
+      if (attachedSkills.length >= 3) return
+      setAttachedSkills(prev => [...prev, skill])
+      if (draft.startsWith('/')) {
+        setDraft('')
+      }
+    }
+  }
+
+  const removeAttachedSkill = (skillKey: string) => {
+    setAttachedSkills(prev => prev.filter(s => (s.id || s.slug || s.name) !== skillKey))
+  }
+
+  const handleDraftChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value
+    setDraft(val)
+    if (val.startsWith('/')) {
+      const slashQuery = val.slice(1).trim()
+      setSkillSearchInput(slashQuery)
+      setShowSkillPicker(true)
+    }
+  }
+
+  const displaySkills = skillSearchInput.trim()
+    ? remoteSkills
+    : CURATED_SKILLS.slice(0, 10)
   const [messages, setMessages] = useState<StudioMessage[]>([
     {
       role: 'assistant',
@@ -656,7 +715,8 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
 
   async function send(text: string) {
     const currentAttachments = [...attachments]
-    const value = text.trim() || (currentAttachments.length > 0 ? 'Please integrate and swap the attached asset(s) into the portfolio layout.' : '')
+    const currentSkills = [...attachedSkills]
+    const value = text.trim() || (currentAttachments.length > 0 || currentSkills.length > 0 ? 'Please apply the attached assets and skills to the portfolio layout.' : '')
     if (!value || busy.current) return
     busy.current = true
 
@@ -667,6 +727,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         role: 'user',
         text: value,
         attachedFiles: currentAttachments.map(a => a.name),
+        attachedSkills: currentSkills.map(s => s.name || s.skillId || s.id),
         status: 'done',
       },
       // Append assistant placeholder for streaming
@@ -680,9 +741,9 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
 
     setDraft('')
     setAttachments([])
-    const currentSkill = selectedSlashSkill
-    setSelectedSlashSkill(null)
-    setShowSlashMenu(false)
+    setAttachedSkills([])
+    setShowSkillPicker(false)
+    setSkillSearchInput('')
     setStreaming(true)
     onAgentStatusChange?.({ active: true, currentStep: 'Analyzing directive...' })
 
@@ -696,7 +757,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
             message: value,
             contextLabel,
             attachments: currentAttachments,
-            attachedSkill: currentSkill,
+            attachedSkills: currentSkills,
           }),
         })
 
@@ -1003,66 +1064,162 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           multiple
         />
 
-        {/* Slash Command Autocomplete Popover */}
-        {(draft.startsWith('/') || showSlashMenu) && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 p-2 rounded-xl bg-[#0d0f14] border border-white/15 shadow-2xl shadow-black space-y-1 max-h-[280px] overflow-y-auto z-40 backdrop-blur-xl">
-            <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400 border-b border-white/[0.08] mb-1">
-              <span className="flex items-center gap-1.5 text-purple-300 font-semibold">
-                <Zap className="w-3 h-3 text-purple-400" />
-                <span>Agent Skills from skills.sh</span>
-              </span>
-              <span>Click or select to apply</span>
+        {/* Clean V0-Style Skill Attachment Popover */}
+        {showSkillPicker && (
+          <div
+            ref={skillPickerRef}
+            className="absolute bottom-full left-0 right-0 mb-3 rounded-2xl bg-[#0c0e14]/98 backdrop-blur-2xl border border-purple-500/40 shadow-2xl shadow-black z-50 flex flex-col max-h-[380px] overflow-hidden"
+          >
+            {/* Popover Header */}
+            <div className="p-3.5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-purple-950/40 via-transparent to-transparent">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-bold text-white tracking-tight">Attach Skills to Prompt</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                  {attachedSkills.length}/3 attached
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSkillPicker(false)}
+                className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            {isSearchingSlashSkills && slashSkills.length === 0 ? (
-              <div className="p-4 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
-                <span>Searching skills.sh...</span>
-              </div>
-            ) : slashSkills.length === 0 ? (
-              <div className="p-3 text-center text-xs text-zinc-400 font-mono">
-                No matching skills found on skills.sh
-              </div>
-            ) : (
-              slashSkills.map(s => {
-                const cmd = `/${s.skillId || s.name}`
-                const author = s.author || (s.source ? s.source.split('/')[0] : 'skills.sh')
-                return (
+            {/* Search Input Bar */}
+            <div className="p-2.5 border-b border-white/10 bg-black/40">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/80 border border-white/10 focus-within:border-purple-500/60 transition">
+                <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <input
+                  type="text"
+                  value={skillSearchInput}
+                  onChange={e => setSkillSearchInput(e.target.value)}
+                  placeholder="Search skills.sh (e.g. ui-ux, chart, three, tailwind)..."
+                  className="bg-transparent border-0 text-xs text-white placeholder-zinc-500 outline-none w-full font-sans"
+                  autoFocus
+                />
+                {skillSearchInput && (
                   <button
-                    key={s.id}
                     type="button"
-                    onClick={() => {
-                      setSelectedSlashSkill(s)
-                      setDraft(`${cmd} `)
-                      setShowSlashMenu(false)
-                    }}
-                    className="w-full p-2 rounded-lg hover:bg-white/[0.06] transition-all flex items-start justify-between gap-3 text-left group cursor-pointer border border-transparent hover:border-white/10"
+                    onClick={() => setSkillSearchInput('')}
+                    className="text-zinc-500 hover:text-white text-xs cursor-pointer"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-purple-300 group-hover:text-purple-200">
-                          {cmd}
-                        </span>
-                        <span className="text-xs font-medium text-zinc-200 truncate">
-                          {s.name}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-zinc-400 line-clamp-1 mt-0.5 font-sans">
-                        {s.description || 'Native skill from skills.sh'}
-                      </p>
-                    </div>
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400 border border-white/5 shrink-0">
-                      by {author}
-                    </span>
+                    <X className="w-3 h-3" />
                   </button>
-                )
-              })
-            )}
+                )}
+              </div>
+            </div>
+
+            {/* Skills List Container */}
+            <div className="overflow-y-auto p-2 space-y-1.5 custom-scrollbar flex-1 min-h-0 text-left">
+              {isSearchingSkills ? (
+                <div className="py-8 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                  <span>Searching skills.sh...</span>
+                </div>
+              ) : displaySkills.length === 0 ? (
+                <div className="py-8 text-center text-xs text-zinc-400 font-mono">
+                  No skills found matching "{skillSearchInput}"
+                </div>
+              ) : (
+                displaySkills.map((skill: any) => {
+                  const skillKey = skill.id || skill.slug || skill.name
+                  const isAttached = attachedSkills.some(s => (s.id || s.slug || s.name) === skillKey)
+                  const isMax = attachedSkills.length >= 3 && !isAttached
+
+                  return (
+                    <div
+                      key={skillKey}
+                      onClick={() => toggleAttachSkill(skill)}
+                      className={`p-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 text-left cursor-pointer group ${
+                        isAttached
+                          ? 'bg-purple-950/40 border-purple-500/60 ring-1 ring-purple-500/30'
+                          : isMax
+                          ? 'opacity-40 bg-zinc-900/30 border-white/5 cursor-not-allowed'
+                          : 'bg-zinc-900/40 hover:bg-zinc-800/60 border-white/5 hover:border-purple-500/30'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                          <span className="text-xs font-semibold text-white group-hover:text-purple-200 transition">
+                            {skill.name || skill.skillId || skill.id}
+                          </span>
+                          <span className="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/20">
+                            /{skill.skillId || skill.name}
+                          </span>
+                          {skill.author && (
+                            <span className="text-[10px] font-mono text-zinc-500">
+                              by {skill.author}
+                            </span>
+                          )}
+                          {skill.installs ? (
+                            <span className="text-[10px] font-mono text-zinc-500">
+                              • {Number(skill.installs).toLocaleString()} installs
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="text-[11px] text-zinc-400 line-clamp-1 leading-snug">
+                          {skill.headline || skill.description || 'Native remote skill from skills.sh'}
+                        </p>
+                      </div>
+
+                      <div className="shrink-0">
+                        {isAttached ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <Check className="w-3 h-3 text-emerald-400" /> Attached
+                          </span>
+                        ) : isMax ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono text-zinc-500 border border-white/5 bg-white/5">
+                            <Lock className="w-3 h-3" /> Max (3/3)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-purple-600/30 group-hover:bg-purple-600 text-purple-200 group-hover:text-white border border-purple-500/40 transition">
+                            + Attach
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Attached Skills Tray */}
+        {attachedSkills.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 p-2 bg-[#0c0e14] border-b border-white/10 rounded-t-lg">
+            <span className="text-[10px] font-mono text-purple-400 uppercase tracking-wider mr-1 font-semibold flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              Attached Skills:
+            </span>
+            {attachedSkills.map(skill => {
+              const skillKey = skill.id || skill.slug || skill.name
+              return (
+                <div
+                  key={skillKey}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-purple-500/15 border border-purple-500/30 text-purple-200 text-xs font-mono"
+                >
+                  <span className="truncate max-w-[150px] font-medium">{skill.name || skill.skillId || skillKey}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachedSkill(skillKey)}
+                    className="text-zinc-400 hover:text-white cursor-pointer ml-0.5"
+                    title="Remove skill"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
 
         {attachments.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 p-2 bg-zinc-900/90 border-b border-white/10 rounded-t-lg">
+          <div className="flex flex-wrap gap-1.5 p-2 bg-zinc-900/90 border-b border-white/10">
             {attachments.map((att, idx) => (
               <div key={idx} className="flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] px-2 py-1 rounded-md">
                 {att.contentType.startsWith('image/') ? (
@@ -1087,7 +1244,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         <textarea
           aria-label="Message Grtr"
           value={draft}
-          onChange={e => setDraft(e.target.value)}
+          onChange={handleDraftChange}
           placeholder={chatId ? 'Ask to refine copy, restyle, or swap in attached assets...' : 'Direct portfolio changes…'}
           onKeyDown={e => {
             if (e.nativeEvent.isComposing || e.keyCode === 229) return
@@ -1097,42 +1254,53 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
             }
           }}
         />
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center justify-between p-2 pt-1 border-t border-white/5">
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowSlashMenu(prev => !prev)}
-              className={`flex items-center gap-1 px-2 py-1 text-[11px] font-mono rounded transition cursor-pointer border ${
-                showSlashMenu
-                  ? 'bg-purple-600 text-white border-purple-500'
+              onClick={() => setShowSkillPicker(prev => !prev)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono rounded-lg transition-all cursor-pointer border ${
+                attachedSkills.length > 0 || showSkillPicker
+                  ? 'bg-purple-950/70 text-purple-200 border-purple-500/50 shadow-sm shadow-purple-950/40 ring-1 ring-purple-500/30'
                   : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border-white/10'
               }`}
-              title="Browse and apply agent skills from skills.sh"
+              title="Attach skills from skills.sh (max 3)"
             >
-              <Zap className="w-3 h-3 text-purple-400" />
-              <span>/ Skills</span>
+              <Zap className="w-3.5 h-3.5 text-purple-400" />
+              <span>Skills</span>
+              {attachedSkills.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-purple-500/25 text-purple-300 border border-purple-500/30">
+                  {attachedSkills.length}/3
+                </span>
+              )}
             </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1 px-2 py-1 text-[11px] rounded bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer border border-white/10"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/10"
               title="Attach screenshot or graphic to swap into portfolio"
             >
-              <Paperclip className="w-3 h-3 text-purple-400" />
-              <span>Attach Asset</span>
+              <Paperclip className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white" />
+              <span>Attach</span>
             </button>
-            <span className="text-[10px] text-zinc-400 hidden sm:inline">
+            <span className="text-[11px] font-mono text-zinc-400 hidden sm:inline-flex items-center gap-1.5 ml-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {chatId ? 'Live Sandbox Connected' : 'Ready'}
             </span>
           </div>
 
           <button
+            type="button"
             aria-label="Send message"
-            disabled={streaming || (!draft.trim() && attachments.length === 0)}
+            disabled={streaming || (!draft.trim() && attachments.length === 0 && attachedSkills.length === 0)}
             onClick={() => send(draft)}
-            className="p-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition cursor-pointer"
+            className="p-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-30 disabled:cursor-not-allowed text-white transition-all cursor-pointer flex items-center justify-center shadow-md shadow-purple-950/50"
           >
-            <Send className="w-3.5 h-3.5" />
+            {streaming ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
