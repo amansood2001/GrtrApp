@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPortfolioAnalytics, recordPortfolioEvent } from '@/lib/analytics-tracker'
+import { getPortfolioAnalytics, getAllPortfolioAnalytics, recordPortfolioEvent } from '@/lib/analytics-tracker'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,9 +7,18 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const chatId = searchParams.get('chatId')
+    const chatIdsParam = searchParams.get('chatIds')
+    const all = searchParams.get('all')
+
+    if (chatIdsParam || all === 'true') {
+      const ids = chatIdsParam ? chatIdsParam.split(',').map(s => s.trim()).filter(Boolean) : undefined
+      const events = await getAllPortfolioAnalytics(ids)
+      return NextResponse.json({ success: true, events, totalViews: events.length })
+    }
 
     if (!chatId) {
-      return NextResponse.json({ error: 'chatId is required' }, { status: 400 })
+      const events = await getAllPortfolioAnalytics()
+      return NextResponse.json({ success: true, events, totalViews: events.length })
     }
 
     const summary = await getPortfolioAnalytics(chatId)
