@@ -152,16 +152,6 @@ function Header({
       </nav>
 
       <div className="flex items-center gap-3 ml-auto">
-        {!isCreatingNew && (
-          <button
-            type="button"
-            onClick={onStartNew}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-zinc-200 text-zinc-950 flex items-center gap-1.5 cursor-pointer shadow-sm transition-all border border-white/20 active:scale-[0.98]"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Portfolio</span>
-          </button>
-        )}
         <UserNav />
       </div>
 
@@ -191,15 +181,6 @@ function Header({
               className={active === 4 ? 'active' : ''}
             >
               Portfolios ({applicationsCount})
-            </button>
-            <button
-              onClick={() => {
-                onStartNew?.()
-                setMobileOpen(false)
-              }}
-              className="text-purple-300 font-medium"
-            >
-              + New Portfolio
             </button>
           </motion.div>
         )}
@@ -2020,29 +2001,6 @@ function LiveStudio({
                   : 'All changes saved'}
               </span>
             </div>
-            {chatId && (
-              <div className="hidden sm:flex items-center gap-1.5 ml-2">
-                <button
-                  type="button"
-                  onClick={handleCopyLiveLink}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer"
-                  title="Copy shareable Vercel link"
-                >
-                  {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedLink ? 'Copied Link!' : 'Copy Link'}</span>
-                </button>
-                <a
-                  href={liveShareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition no-underline"
-                  title="Open live preview in full tab"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open Tab ↗</span>
-                </a>
-              </div>
-            )}
           </div>
           <div className="toolbar-actions">
             {blueprint && (
@@ -2073,9 +2031,6 @@ function LiveStudio({
                 <Monitor />
               </button>
             </div>
-            <span className="system-badge" title={selectedDesign}>
-              <b className="truncate max-w-[130px] inline-block align-middle">{formatDesignLabel(selectedDesign, 20)}</b>
-            </span>
             <Button onClick={() => setPublish(true)} className="publish-button">
               <Rocket data-icon="inline-start" />
               Publish
