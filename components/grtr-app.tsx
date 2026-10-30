@@ -1112,17 +1112,6 @@ function InputStudio({
                               </div>
                             )}
                           </div>
-
-                          {/* How v0 handles this skill */}
-                          <div className="p-4 rounded-xl bg-[#06080c] border border-white/10">
-                            <div className="flex items-center gap-2 text-zinc-200 font-medium mb-1.5">
-                              <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
-                              <span>Native Remote Skill Integration</span>
-                            </div>
-                            <p className="text-zinc-400 leading-relaxed text-[11px]">
-                              When attached, this skill is passed natively to v0 as <code className="text-purple-300 font-mono">type: &apos;remote&apos;</code>. v0 fetches and runs the complete, authoritative skill specification directly from the skills.sh registry to guide component layout, styling, and interactivity, without overriding your CV narrative or hardcoding styles.
-                            </p>
-                          </div>
                         </div>
 
                         {/* Modal Footer */}
