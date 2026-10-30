@@ -1869,6 +1869,7 @@ interface LiveStudioProps {
   chatId: string | null
   previewUrl: string | null
   selectedDesign: string
+  selectedDirectionIndex?: number
   onMarkReady?: (chatId: string) => void
   onBackToPortfolios?: () => void
 }
@@ -1878,6 +1879,7 @@ function LiveStudio({
   chatId,
   previewUrl,
   selectedDesign,
+  selectedDirectionIndex = 0,
   onMarkReady,
   onBackToPortfolios,
 }: LiveStudioProps) {
@@ -2148,18 +2150,54 @@ function LiveStudio({
 
                 {/* Strategic Angles */}
                 <div className="mb-6">
-                  <span className="text-[10px] uppercase font-mono text-purple-400 font-semibold tracking-wider block mb-2">
-                    Company Research &amp; Right to Win Angles
-                  </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] uppercase font-mono text-purple-400 font-semibold tracking-wider block">
+                      Company Research &amp; Right to Win Angles
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-400">
+                      Chosen: <span className="text-purple-300 font-semibold">Angle 0{((blueprint.selectedDirectionIndex ?? selectedDirectionIndex) || 0) + 1}</span>
+                    </span>
+                  </div>
                   <div className="space-y-3">
-                    {blueprint.directions?.map((d, i) => (
-                      <div key={i} className="p-3.5 rounded-lg bg-zinc-900/40 border border-[#232530] text-xs space-y-1.5">
-                        <strong className="text-purple-300 font-medium block">Angle 0{i + 1}: {d.angle}</strong>
-                        <p className="text-zinc-300 text-[11px]"><strong className="text-zinc-400">Challenge:</strong> {d.observedChallenge}</p>
-                        <p className="text-zinc-300 text-[11px]"><strong className="text-zinc-400">Strategy:</strong> {d.proposedStrategy}</p>
-                        <p className="text-emerald-300 text-[11px]"><strong className="text-emerald-400">Right to Win:</strong> {d.rightToWinProof}</p>
-                      </div>
-                    ))}
+                    {blueprint.directions?.map((d, i) => {
+                      const activeIndex = blueprint.selectedDirectionIndex ?? selectedDirectionIndex ?? 0
+                      const isSelected = i === activeIndex
+                      return (
+                        <div
+                          key={i}
+                          className={`p-3.5 rounded-lg text-xs space-y-1.5 transition-all ${
+                            isSelected
+                              ? 'bg-purple-950/40 border border-purple-500/60 ring-1 ring-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.12)]'
+                              : 'bg-zinc-900/30 border border-[#232530] opacity-65 hover:opacity-85'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <strong className={`block ${isSelected ? 'text-purple-200 font-semibold text-xs' : 'text-zinc-300 font-medium'}`}>
+                              Angle 0{i + 1}: {d.angle}
+                            </strong>
+                            {isSelected ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
+                                <Check className="w-3 h-3 text-emerald-400" />
+                                Selected Angle
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono text-zinc-500 shrink-0">
+                                Alternative
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-zinc-300 text-[11px] leading-relaxed">
+                            <strong className="text-zinc-400">Challenge:</strong> {d.observedChallenge}
+                          </p>
+                          <p className="text-zinc-300 text-[11px] leading-relaxed">
+                            <strong className="text-zinc-400">Strategy:</strong> {d.proposedStrategy}
+                          </p>
+                          <p className="text-emerald-300 text-[11px] leading-relaxed">
+                            <strong className="text-emerald-400">Right to Win:</strong> {d.rightToWinProof}
+                          </p>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -2210,6 +2248,7 @@ interface ApplicationItem {
   chatId: string
   previewUrl: string
   selectedDesign: string
+  selectedDirectionIndex?: number
   blueprint?: StrategicBlueprint
   status?: 'generating' | 'ready' | 'error'
   createdAt: string
@@ -2701,6 +2740,7 @@ export function GrtrApp() {
   const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
   const [isBuildingPortfolio, setIsBuildingPortfolio] = useState(false)
   const [blueprint, setBlueprint] = useState<StrategicBlueprint | null>(null)
+  const [selectedDirectionIndex, setSelectedDirectionIndex] = useState<number>(0)
   const [chatId, setChatId] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -2734,6 +2774,7 @@ export function GrtrApp() {
     setJobDescription('')
     setSelectedDesign('Minimal Monochrome')
     setBlueprint(null)
+    setSelectedDirectionIndex(0)
     setErrorMessage(null)
     setIsCreatingNew(true)
     setActive(1)
@@ -2817,6 +2858,11 @@ export function GrtrApp() {
         if (parsed.previewUrl) setPreviewUrl(parsed.previewUrl)
         if (parsed.selectedDesign) setSelectedDesign(parsed.selectedDesign)
         if (parsed.blueprint) setBlueprint(parsed.blueprint)
+        if (typeof parsed.selectedDirectionIndex === 'number') {
+          setSelectedDirectionIndex(parsed.selectedDirectionIndex)
+        } else if (typeof parsed.blueprint?.selectedDirectionIndex === 'number') {
+          setSelectedDirectionIndex(parsed.blueprint.selectedDirectionIndex)
+        }
       }
     } catch (err) {
       console.warn('Failed to load saved portfolios from localStorage:', err)
@@ -2847,12 +2893,17 @@ export function GrtrApp() {
               company: p.target_company,
               role: p.target_role,
               selectedDesign: p.theme || 'obsidian',
+              selectedDirectionIndex: typeof p.blueprint?.selectedDirectionIndex === 'number'
+                ? p.blueprint.selectedDirectionIndex
+                : (p.strategic_angle && p.blueprint?.directions
+                    ? Math.max(0, p.blueprint.directions.findIndex((d: any) => d.angle === p.strategic_angle))
+                    : 0),
               status: 'ready' as const,
               createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Recently',
               previewUrl: `/api/preview/${p.chat_id}`,
               blueprint: p.blueprint,
               url: `grtr.app/p/${(p.candidate_name || 'candidate').toLowerCase().replace(/\s+/g, '')}/${(p.target_company || 'company').toLowerCase().replace(/\s+/g, '')}`,
-              plan: 'Plus',
+              plan: p.strategic_angle || 'Plus',
               views: 1,
               time: 'Active',
               last: 'Live',
@@ -2886,6 +2937,12 @@ export function GrtrApp() {
       setPreviewUrl(appItem.previewUrl || `/api/preview/${appItem.chatId}`)
       if (appItem.blueprint) setBlueprint(appItem.blueprint)
       if (appItem.selectedDesign) setSelectedDesign(appItem.selectedDesign)
+      const restoredIdx = typeof appItem.selectedDirectionIndex === 'number'
+        ? appItem.selectedDirectionIndex
+        : (typeof appItem.blueprint?.selectedDirectionIndex === 'number'
+            ? appItem.blueprint.selectedDirectionIndex
+            : 0)
+      setSelectedDirectionIndex(restoredIdx)
       setIsCreatingNew(false)
       setActive(3) // Advance to Stage 3: Live Studio
     } else {
@@ -2963,12 +3020,19 @@ export function GrtrApp() {
     try {
       setIsBuildingPortfolio(true)
       setErrorMessage(null)
+      setSelectedDirectionIndex(selectedDirectionIndex)
+
+      const updatedBlueprint: StrategicBlueprint = {
+        ...blueprint,
+        selectedDirectionIndex,
+      }
+      setBlueprint(updatedBlueprint)
 
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          blueprint,
+          blueprint: updatedBlueprint,
           designSystem: selectedDesign,
           selectedDirectionIndex,
           resumeText,
@@ -2990,6 +3054,8 @@ export function GrtrApp() {
         setChatId(data.chatId)
         setPreviewUrl(fullPreviewUrl)
 
+        const chosenAngleName = blueprint.directions?.[selectedDirectionIndex]?.angle || 'Strategic Angle'
+
         // Add to applications list & persist in localStorage
         const newApp: ApplicationItem = {
           id: data.chatId,
@@ -2999,11 +3065,12 @@ export function GrtrApp() {
           company: blueprint.targetCompany || 'Target Enterprise',
           candidateName: blueprint.candidateName,
           selectedDesign,
-          blueprint,
+          selectedDirectionIndex,
+          blueprint: updatedBlueprint,
           status: 'generating',
           createdAt: new Date().toISOString(),
           url: `grtr.app/p/${blueprint.candidateName.toLowerCase().replace(/\s+/g, '')}/${blueprint.targetCompany.toLowerCase().replace(/\s+/g, '')}`,
-          plan: 'Plus',
+          plan: chosenAngleName,
           views: 1,
           time: 'Just now',
           last: 'Live now',
@@ -3030,7 +3097,8 @@ export function GrtrApp() {
             chatId: data.chatId,
             previewUrl: fullPreviewUrl,
             selectedDesign,
-            blueprint,
+            selectedDirectionIndex,
+            blueprint: updatedBlueprint,
             active: 3,
           }))
         } catch (e) {
@@ -3121,6 +3189,7 @@ export function GrtrApp() {
               chatId={chatId}
               previewUrl={previewUrl}
               selectedDesign={selectedDesign}
+              selectedDirectionIndex={selectedDirectionIndex}
               onMarkReady={markApplicationReady}
               onBackToPortfolios={() => setActive(4)}
             />
