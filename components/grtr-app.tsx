@@ -398,9 +398,43 @@ function InputStudio({
   const [skillSearch, setSkillSearch] = useState('')
   const [skillsList, setSkillsList] = useState<any[]>([])
   const [activeModalSkill, setActiveModalSkill] = useState<any | null>(null)
+  const [isLoadingModalSummary, setIsLoadingModalSummary] = useState(false)
   const [isSearchingSkills, setIsSearchingSkills] = useState(false)
   const [parsingCv, setParsingCv] = useState(false)
   const [parsingJd, setParsingJd] = useState(false)
+
+  // On-demand fetch of official skills.sh summary when modal opens if headline/bullets not loaded
+  useEffect(() => {
+    if (!activeModalSkill || !activeModalSkill.id) return
+    if (activeModalSkill.bullets && activeModalSkill.bullets.length > 0) return
+
+    let cancelled = false
+    setIsLoadingModalSummary(true)
+
+    fetch(`/api/skills?id=${encodeURIComponent(activeModalSkill.id)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!cancelled && data.success && data.skill) {
+          setActiveModalSkill((prev: any) => {
+            if (!prev || prev.id !== activeModalSkill.id) return prev
+            return {
+              ...prev,
+              headline: data.skill.headline || prev.headline,
+              bullets: data.skill.bullets?.length ? data.skill.bullets : prev.bullets,
+              description: data.skill.description || prev.description,
+            }
+          })
+        }
+      })
+      .catch(err => console.warn('Failed to load skill summary:', err))
+      .finally(() => {
+        if (!cancelled) setIsLoadingModalSummary(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeModalSkill?.id])
 
   // Real-time live search against skills.sh API (exact v0 parity)
   useEffect(() => {
@@ -1088,13 +1122,45 @@ function InputStudio({
                         {/* Modal Scrollable Body */}
                         <div className="p-5 overflow-y-auto space-y-4 text-left custom-scrollbar text-xs">
                           {/* Summary Card */}
-                          <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20">
-                            <div className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold mb-1.5">
-                              Skill Overview from skills.sh
+                          <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 flex flex-col">
+                            <div className="flex items-center justify-between mb-2.5">
+                              <div className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold flex items-center gap-1.5">
+                                <span>Skill Overview from skills.sh</span>
+                              </div>
+                              {isLoadingModalSummary && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-zinc-400">
+                                  <Loader2 className="w-3 h-3 animate-spin text-purple-400" />
+                                  Loading summary...
+                                </span>
+                              )}
                             </div>
-                            <p className="text-xs text-zinc-200 leading-relaxed">
-                              {activeModalSkill.description || 'Authentic remote skill from skills.sh registry.'}
-                            </p>
+
+                            {/* Scrollable Summary Box */}
+                            <div className="max-h-[280px] sm:max-h-[320px] overflow-y-auto pr-1.5 custom-scrollbar space-y-3">
+                              {activeModalSkill.headline && (
+                                <p className="text-xs font-semibold text-white leading-relaxed">
+                                  {activeModalSkill.headline}
+                                </p>
+                              )}
+
+                              {activeModalSkill.bullets && activeModalSkill.bullets.length > 0 ? (
+                                <ul className="space-y-2 text-xs text-zinc-300">
+                                  {activeModalSkill.bullets.map((bullet: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2.5 leading-relaxed">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 shrink-0" />
+                                      <span className="text-zinc-200">{bullet}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                !activeModalSkill.headline && (
+                                  <p className="text-xs text-zinc-200 leading-relaxed">
+                                    {activeModalSkill.description || 'Authentic remote skill from skills.sh registry.'}
+                                  </p>
+                                )
+                              )}
+                            </div>
+
                             {activeModalSkill.id && (
                               <div className="mt-3 pt-3 border-t border-purple-500/20 flex items-center justify-between">
                                 <span className="text-[10px] font-mono text-zinc-400">

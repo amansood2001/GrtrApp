@@ -7,6 +7,8 @@ export interface AgentSkill {
   source: string
   installs: number
   description: string
+  headline?: string
+  bullets?: string[]
   tags: string[]
   content: string
   command?: string
