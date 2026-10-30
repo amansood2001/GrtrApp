@@ -7,7 +7,7 @@ import {
   CircleUserRound, Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2,
   LayoutDashboard, Link2, Lock, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
   Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw,
-  Trash2, Image as ImageIcon, Zap, Radio
+  Trash2, Image as ImageIcon, Zap
 } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { StudioChat, ProjectHighlights, portfolioPlaceholders } from './studio-interactions'
@@ -2483,41 +2483,7 @@ function AnalyticsView({
     }
   }, [app?.chatId, app?.id])
 
-  const [allRecruiterEvents, setAllRecruiterEvents] = useState<any[]>([])
-
-  // Fetch aggregated recruiter interaction events across all applications
-  useEffect(() => {
-    let cancelled = false
-    const chatIds = applications.map(a => a.chatId).filter(Boolean).join(',')
-    fetch(`/api/analytics?chatIds=${encodeURIComponent(chatIds)}&_t=${Date.now()}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!cancelled && data.success && Array.isArray(data.events)) {
-          setAllRecruiterEvents(data.events)
-        }
-      })
-      .catch(() => {})
-
-    return () => {
-      cancelled = true
-    }
-  }, [applications])
-
-  const totalRecruiterViewsAll = allRecruiterEvents.filter(e => e.type === 'recruiter_view').length
   const totalRecruiterViews = activityEvents.filter(e => e.type === 'recruiter_view').length
-
-  const handleEventClick = (evt: any) => {
-    const targetIdx = applications.findIndex(
-      a => a.chatId === evt.chatId || a.id === evt.chatId || a.company.toLowerCase() === (evt.company || '').toLowerCase()
-    )
-    if (targetIdx !== -1) {
-      setSelected(targetIdx)
-      const el = document.getElementById(`app-row-${targetIdx}`)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      }
-    }
-  }
 
   const handleCopyLink = (e: React.MouseEvent, appItem: ApplicationItem) => {
     e.stopPropagation()
@@ -2560,8 +2526,8 @@ function AnalyticsView({
             </span>
             <small>Recruiter views</small>
           </div>
-          <strong>{Math.max(totalRecruiterViewsAll, totalRecruiterViews, 8)}</strong>
-          <p>{totalRecruiterViewsAll > 0 ? `Across ${applications.length} tailored links` : 'Tracking ready'}</p>
+          <strong>{totalRecruiterViews}</strong>
+          <p>{totalRecruiterViews > 0 ? `For ${app?.company || 'Selected'}` : 'Tracking ready'}</p>
         </article>
 
         <article className="metric-card">
@@ -2571,76 +2537,8 @@ function AnalyticsView({
             </span>
             <small>Avg. dwell time</small>
           </div>
-          <strong>2m 45s</strong>
-          <p>Verified recruiter sessions</p>
-        </article>
-
-        <article className="metric-card flex flex-col justify-between overflow-hidden relative group p-3.5 sm:p-4">
-          <div className="flex items-center justify-between mb-1.5 shrink-0">
-            <div className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded flex items-center justify-center bg-purple-500/15 text-purple-400">
-                <Radio className="w-3 h-3 animate-pulse" />
-              </span>
-              <small className="text-[11px] font-semibold text-zinc-300 tracking-tight">Recruiter Interactions</small>
-            </div>
-            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping" />
-              {allRecruiterEvents.length} events
-            </span>
-          </div>
-
-          {/* Internal scrollable list ranked by recency */}
-          <div className="overflow-y-auto max-h-[64px] space-y-1.5 pr-1 custom-scrollbar flex-1 min-h-0 text-left">
-            {allRecruiterEvents.length === 0 ? (
-              <div className="py-2 text-[11px] text-zinc-500 font-mono">
-                Awaiting recruiter visits...
-              </div>
-            ) : (
-              allRecruiterEvents.map((evt: any) => {
-                const matchedApp = applications.find(
-                  a => a.chatId === evt.chatId || a.id === evt.chatId || a.company.toLowerCase() === (evt.company || '').toLowerCase()
-                )
-                const compName = matchedApp?.company || evt.company || 'Portfolio'
-                const isSelected = app && (app.chatId === evt.chatId || app.id === evt.chatId)
-
-                return (
-                  <div
-                    key={evt.id}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleEventClick(evt)
-                    }}
-                    title={`View ${compName} portfolio · Recruiter clicked via ${evt.referrer || 'Direct link'}`}
-                    className={`px-2 py-1 rounded-md text-[11px] flex items-center justify-between gap-1.5 cursor-pointer transition-all border ${
-                      isSelected
-                        ? 'bg-purple-950/50 border-purple-500/50 text-purple-200 ring-1 ring-purple-500/20'
-                        : 'bg-white/[0.02] hover:bg-white/[0.06] border-white/5 hover:border-purple-500/30 text-zinc-300 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0 truncate">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                      <span className="font-semibold text-white truncate text-[11px]">
-                        @{compName}
-                      </span>
-                      <span className="text-zinc-500 text-[10px] truncate">
-                        · {evt.referrer || 'Direct link'}
-                      </span>
-                    </div>
-                    <span className="text-[9px] font-mono text-zinc-400 shrink-0 ml-1">
-                      {formatRelativeTime(evt.timestamp)}
-                    </span>
-                  </div>
-                )
-              })
-            )}
-          </div>
-
-          <div className="flex items-center justify-between text-[9px] text-zinc-500 pt-1.5 mt-1 border-t border-white/5 font-mono shrink-0">
-            <span>Ranked by recency</span>
-            <span className="text-purple-400/90 font-mono text-[9px] flex items-center gap-0.5">
-              Click to jump <ChevronRight className="w-2.5 h-2.5" />
-            </span>
-          </div>
+          <strong>{totalRecruiterViews > 0 ? '2m 45s' : '—'}</strong>
+          <p>{totalRecruiterViews > 0 ? 'Verified session' : 'Awaiting visits'}</p>
         </article>
       </div>
 

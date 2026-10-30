@@ -978,6 +978,23 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 }
 
 /* ==========================================================================
+   Dashboard 3-Card Core Metrics Grid (Option C: Let Metrics Breathe)
+   ========================================================================== */
+.grtr-app .metric-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 16px !important;
+  margin-bottom: 24px !important;
+}
+
+@media(max-width: 768px) {
+  .grtr-app .metric-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* ==========================================================================
    Studio Side-by-Side & Positioning Hook Polish (v0 Matching)
    ========================================================================== */
 .grtr-app .studio-view {
