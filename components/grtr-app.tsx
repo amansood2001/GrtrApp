@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronRight, ChevronDown, ChevronLeft,
   CircleUserRound, Clipboard, CloudUpload, Code2, Copy, ExternalLink, FileText, Globe2,
-  LayoutDashboard, Link2, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
+  LayoutDashboard, Link2, Lock, Menu, MessageSquare, Monitor, Palette, Plus, Rocket, Search, Send,
   Smartphone, Sparkles, Target, TrendingUp, Upload, WandSparkles, X, Loader2, RefreshCw,
   Trash2, Image as ImageIcon, Zap
 } from 'lucide-react'
@@ -454,28 +454,27 @@ function InputStudio({
     }
   }, [skillSearch])
 
+  const getSkillKey = (skill: any): string => {
+    if (!skill) return ''
+    return skill.id || (skill.source && skill.skillId ? `${skill.source}/${skill.skillId}` : '') || skill.name || ''
+  }
+
   const isSkillSelected = (skill: any, list = selectedSkills || []) => {
     if (!skill) return false
-    return list.some(s => {
-      if (s.id && skill.id && s.id === skill.id) return true
-      if (s.slug && skill.slug && s.slug === skill.slug) return true
-      return false
-    })
+    const targetKey = getSkillKey(skill)
+    return list.some(s => getSkillKey(s) === targetKey)
   }
 
   const toggleSkill = (skill: AgentSkill) => {
     if (!setSelectedSkills || !skill) return
     const current = selectedSkills || []
-    const exists = isSkillSelected(skill, current)
+    const targetKey = getSkillKey(skill)
+    const exists = current.some(s => getSkillKey(s) === targetKey)
     if (exists) {
-      setSelectedSkills(current.filter(s => {
-        if (s.id && skill.id && s.id === skill.id) return false
-        if (s.slug && skill.slug && s.slug === skill.slug) return false
-        return true
-      }))
+      setSelectedSkills(current.filter(s => getSkillKey(s) !== targetKey))
     } else {
       if (current.length >= 3) {
-        alert('Maximum of 3 skills can be attached simultaneously to maintain optimal reasoning quality and avoid design collisions.')
+        alert('Maximum of 3 skills can be attached simultaneously to maintain optimal reasoning quality and prevent design collisions. Please detach a skill first.')
         return
       }
       setSelectedSkills([...current, skill])
@@ -879,27 +878,38 @@ function InputStudio({
                     <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-500/30 flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-purple-300 font-semibold flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            (selectedSkills || []).length >= 3 ? 'bg-amber-400' : 'bg-purple-400 animate-pulse'
+                          }`} />
                           Skills Attached ({(selectedSkills || []).length}/3)
+                          {(selectedSkills || []).length >= 3 && (
+                            <span className="text-amber-400 font-sans normal-case tracking-normal text-[10px] bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">
+                              Max Limit Reached
+                            </span>
+                          )}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {(selectedSkills || []).map(skill => (
-                          <span
-                            key={skill.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-purple-500/10 text-purple-200 border border-purple-500/30"
-                          >
-                            <span>{skill.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => toggleSkill(skill)}
-                              className="text-purple-400 hover:text-white ml-0.5 cursor-pointer"
-                              title="Detach skill"
+                        {(selectedSkills || []).map(skill => {
+                          const author = skill.author || (skill.source ? skill.source.split('/')[0] : '')
+                          return (
+                            <span
+                              key={skill.id || skill.name}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-purple-500/10 text-purple-200 border border-purple-500/30"
                             >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </span>
-                        ))}
+                              <span>{skill.name}</span>
+                              {author && <span className="text-zinc-400 text-[10px]">by {author}</span>}
+                              <button
+                                type="button"
+                                onClick={() => toggleSkill(skill)}
+                                className="text-purple-400 hover:text-white ml-0.5 cursor-pointer"
+                                title="Detach skill"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
@@ -1020,18 +1030,23 @@ function InputStudio({
                                     toggleSkill(skill)
                                   }}
                                   disabled={isMaxReached}
-                                  className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
+                                  className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
                                     isAttached
-                                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 cursor-pointer'
                                       : isMaxReached
-                                      ? 'bg-white/[0.02] text-zinc-600 border border-white/5 cursor-not-allowed'
-                                      : 'bg-white/[0.05] text-zinc-200 hover:bg-purple-600 hover:text-white border border-white/10 hover:border-purple-500'
+                                      ? 'bg-white/[0.02] text-zinc-500 border border-white/5 cursor-not-allowed opacity-50'
+                                      : 'bg-white/[0.05] text-zinc-200 hover:bg-purple-600 hover:text-white border border-white/10 hover:border-purple-500 cursor-pointer'
                                   }`}
                                 >
                                   {isAttached ? (
                                     <>
                                       <Check className="w-3 h-3 text-emerald-400" />
                                       <span>Attached</span>
+                                    </>
+                                  ) : isMaxReached ? (
+                                    <>
+                                      <Lock className="w-3 h-3 text-zinc-500" />
+                                      <span>Max (3/3)</span>
                                     </>
                                   ) : (
                                     <>
@@ -1163,18 +1178,23 @@ function InputStudio({
                                     toggleSkill(activeModalSkill)
                                   }}
                                   disabled={isMaxReached}
-                                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-md ${
+                                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 shadow-md ${
                                     isAttached
-                                      ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30'
+                                      ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 cursor-pointer'
                                       : isMaxReached
-                                      ? 'bg-white/[0.04] text-zinc-500 border border-white/5 cursor-not-allowed'
-                                      : 'bg-purple-600 hover:bg-purple-500 text-white border border-purple-500 shadow-purple-900/40'
+                                      ? 'bg-white/[0.04] text-zinc-500 border border-white/5 cursor-not-allowed opacity-50'
+                                      : 'bg-purple-600 hover:bg-purple-500 text-white border border-purple-500 shadow-purple-900/40 cursor-pointer'
                                   }`}
                                 >
                                   {isAttached ? (
                                     <>
                                       <X className="w-3.5 h-3.5 text-red-300" />
                                       <span>Detach Skill</span>
+                                    </>
+                                  ) : isMaxReached ? (
+                                    <>
+                                      <Lock className="w-3.5 h-3.5 text-zinc-500" />
+                                      <span>Maximum (3/3) Reached</span>
                                     </>
                                   ) : (
                                     <>

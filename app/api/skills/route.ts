@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
         return {
           id,
           skillId,
-          slug: skillId,
+          slug: id,
           name: item.name || item.skillId || id,
           source: item.source || '',
           installs: typeof item.installs === 'number' ? item.installs : 0,
