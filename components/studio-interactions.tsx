@@ -1042,17 +1042,20 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
         <div ref={end} />
       </div>
 
-      <div className="suggestions">
-        {[
-          'Deploy and share the link on chat',
-          'Sharpen company teardown & strategic thesis',
-        ].map(text => (
-          <button key={text} disabled={streaming} onClick={() => send(text)}>
-            <span>{text}</span>
-            <ArrowRight className="w-3 h-3 text-purple-400 shrink-0 ml-2" />
-          </button>
-        ))}
-      </div>
+      {/* Suggestions: Only display when skill picker is closed and no skills are attached to preserve chat viewport */}
+      {!showSkillPicker && attachedSkills.length === 0 && (
+        <div className="suggestions">
+          {[
+            'Deploy and share the link on chat',
+            'Sharpen company teardown & strategic thesis',
+          ].map(text => (
+            <button key={text} disabled={streaming} onClick={() => send(text)}>
+              <span>{text}</span>
+              <ArrowRight className="w-3 h-3 text-purple-400 shrink-0 ml-2" />
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="chat-composer relative">
         <input
@@ -1064,18 +1067,18 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           multiple
         />
 
-        {/* Clean V0-Style Skill Attachment Popover */}
+        {/* Clean V0-Style Skill Attachment Popover (UI/UX Pro Max Architecture) */}
         {showSkillPicker && (
           <div
             ref={skillPickerRef}
-            className="absolute bottom-full left-0 right-0 mb-2 rounded-xl bg-[#0c0e14]/98 backdrop-blur-2xl border border-purple-500/30 shadow-2xl shadow-black z-50 flex flex-col max-h-[220px] overflow-hidden"
+            className="skill-picker-popover absolute bottom-full left-0 right-0 mb-2 z-50 flex flex-col"
           >
-            {/* Compact Popover Header */}
-            <div className="px-3 py-1.5 border-b border-white/10 flex items-center justify-between bg-zinc-950/90 shrink-0">
+            {/* Popover Header */}
+            <div className="popover-header">
               <div className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-purple-400" />
-                <span className="text-[11px] font-semibold text-zinc-200 tracking-tight">Attach Skills</span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                <Zap className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                <span className="text-xs font-semibold text-white tracking-tight">Attach Skills to Prompt</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">
                   {attachedSkills.length}/3 attached
                 </span>
               </div>
@@ -1089,16 +1092,16 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
               </button>
             </div>
 
-            {/* Compact Search Input Bar */}
-            <div className="px-2.5 py-1.5 border-b border-white/10 bg-black/40 shrink-0">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-white/10 focus-within:border-purple-500/50 transition">
-                <Search className="w-3 h-3 text-zinc-400 shrink-0" />
+            {/* Search Input Bar */}
+            <div className="popover-search-container">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/90 border border-white/10 focus-within:border-purple-500/60 transition">
+                <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 <input
                   type="text"
                   value={skillSearchInput}
                   onChange={e => setSkillSearchInput(e.target.value)}
-                  placeholder="Search skills.sh (e.g. ui-ux, chart, three)..."
-                  className="bg-transparent border-0 text-[11px] text-white placeholder-zinc-500 outline-none w-full font-sans"
+                  placeholder="Search skills.sh (e.g. ui-ux, chart, tailwind)..."
+                  className="bg-transparent border-0 text-xs text-white placeholder-zinc-500 outline-none w-full font-sans"
                   autoFocus
                 />
                 {skillSearchInput && (
@@ -1113,15 +1116,15 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
               </div>
             </div>
 
-            {/* Compact Skills List Container */}
-            <div className="overflow-y-auto p-1.5 space-y-1 custom-scrollbar flex-1 min-h-0 text-left">
+            {/* Skills List Container */}
+            <div className="popover-list-container custom-scrollbar text-left">
               {isSearchingSkills ? (
-                <div className="py-4 text-center text-[11px] text-zinc-400 font-mono flex items-center justify-center gap-2">
-                  <Loader2 className="w-3 h-3 animate-spin text-purple-400" />
+                <div className="py-8 text-center text-xs text-zinc-400 font-mono flex items-center justify-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
                   <span>Searching skills.sh...</span>
                 </div>
               ) : displaySkills.length === 0 ? (
-                <div className="py-4 text-center text-[11px] text-zinc-400 font-mono">
+                <div className="py-8 text-center text-xs text-zinc-400 font-mono">
                   No skills found matching "{skillSearchInput}"
                 </div>
               ) : (
@@ -1134,47 +1137,54 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
                     <div
                       key={skillKey}
                       onClick={() => toggleAttachSkill(skill)}
-                      className={`px-2.5 py-1.5 rounded-lg border transition-all flex items-center justify-between gap-2 text-left cursor-pointer group ${
-                        isAttached
-                          ? 'bg-purple-950/40 border-purple-500/60 ring-1 ring-purple-500/20'
-                          : isMax
-                          ? 'opacity-40 bg-zinc-900/30 border-white/5 cursor-not-allowed'
-                          : 'bg-zinc-900/40 hover:bg-zinc-800/60 border-white/5 hover:border-purple-500/30'
-                      }`}
+                      className={`skill-item-card group ${isAttached ? 'is-attached' : ''} ${isMax ? 'opacity-40 cursor-not-allowed' : ''}`}
                     >
-                      <div className="min-w-0 flex-1 flex items-center gap-1.5 truncate">
-                        <span className="text-xs font-medium text-white group-hover:text-purple-200 transition truncate">
-                          {skill.name || skill.skillId || skill.id}
-                        </span>
-                        <span className="text-[9px] font-mono text-purple-300 bg-purple-500/10 px-1 py-0.2 rounded border border-purple-500/20 shrink-0">
-                          /{skill.skillId || skill.name}
-                        </span>
+                      {/* Top Row: Name + Command Badge + Action Button */}
+                      <div className="skill-card-top">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className="text-xs font-semibold text-white group-hover:text-purple-200 transition truncate">
+                            {skill.name || skill.skillId || skill.id}
+                          </span>
+                          <span className="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20 shrink-0">
+                            /{skill.command?.replace('/', '') || skill.skillId || skill.slug || skill.name}
+                          </span>
+                        </div>
+
+                        <div className="shrink-0 ml-2">
+                          {isAttached ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-mono font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              <Check className="w-3 h-3 text-emerald-400" /> Attached
+                            </span>
+                          ) : isMax ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-500 border border-white/5 bg-white/5">
+                              <Lock className="w-3 h-3" /> 3/3 Limit
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-mono font-medium bg-purple-600/30 group-hover:bg-purple-600 text-purple-200 group-hover:text-white border border-purple-500/40 transition">
+                              + Attach
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Middle: Clear Description / Headline */}
+                      <p className="text-[11px] text-zinc-400 leading-snug line-clamp-2 mt-1.5">
+                        {skill.headline || skill.description || 'Native remote skill from skills.sh'}
+                      </p>
+
+                      {/* Bottom Row: Author + Uses */}
+                      <div className="skill-card-bottom">
                         {skill.author && (
-                          <span className="text-[9px] font-mono text-zinc-500 truncate hidden sm:inline">
-                            by {skill.author}
+                          <span className="text-[10px] font-mono text-zinc-400">
+                            by <span className="text-zinc-300">{skill.author}</span>
                           </span>
                         )}
                         {skill.installs ? (
-                          <span className="text-[9px] font-mono text-zinc-500 shrink-0">
-                            • {Number(skill.installs).toLocaleString()}
+                          <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-1">
+                            <span className="text-zinc-600">•</span>
+                            <span>{Number(skill.installs).toLocaleString()} uses</span>
                           </span>
                         ) : null}
-                      </div>
-
-                      <div className="shrink-0">
-                        {isAttached ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            <Check className="w-2.5 h-2.5 text-emerald-400" /> Attached
-                          </span>
-                        ) : isMax ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono text-zinc-500 border border-white/5 bg-white/5">
-                            <Lock className="w-2.5 h-2.5" /> 3/3
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-600/30 group-hover:bg-purple-600 text-purple-200 group-hover:text-white border border-purple-500/40 transition">
-                            + Attach
-                          </span>
-                        )}
                       </div>
                     </div>
                   )
@@ -1184,21 +1194,21 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
           </div>
         )}
 
-        {/* Attached Skills Tray */}
+        {/* Sleek Attached Skills Tray (Low-profile single row) */}
         {attachedSkills.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-[#0c0e14] border-b border-white/10 rounded-t-lg">
-            <span className="text-[9px] font-mono text-purple-400 uppercase tracking-wider mr-1 font-semibold flex items-center gap-1 shrink-0">
-              <Zap className="w-2.5 h-2.5" />
-              Skills:
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#090b10] border-b border-white/10 overflow-x-auto no-scrollbar shrink-0">
+            <span className="text-[10px] font-mono text-purple-400 shrink-0 font-medium flex items-center gap-1 mr-0.5">
+              <Zap className="w-3 h-3 text-purple-400" />
+              Skills ({attachedSkills.length}/3):
             </span>
             {attachedSkills.map(skill => {
               const skillKey = skill.id || skill.slug || skill.name
               return (
-                <div
+                <span
                   key={skillKey}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 text-purple-200 text-[11px] font-mono"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-200 text-[10px] font-mono whitespace-nowrap shrink-0 group"
                 >
-                  <span className="truncate max-w-[140px] font-medium">{skill.name || skill.skillId || skillKey}</span>
+                  <span className="truncate max-w-[120px] font-medium">{skill.name || skill.skillId || skillKey}</span>
                   <button
                     type="button"
                     onClick={() => removeAttachedSkill(skillKey)}
@@ -1207,7 +1217,7 @@ export function StudioChat({ chatId, onUpdatePreview, onAgentStatusChange, conte
                   >
                     <X className="w-2.5 h-2.5" />
                   </button>
-                </div>
+                </span>
               )
             })}
           </div>
