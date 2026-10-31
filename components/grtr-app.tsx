@@ -29,6 +29,20 @@ export function formatDesignLabel(design?: string, maxLen = 32): string {
   return design
 }
 
+export function getEffectiveAppDesign(app?: Partial<ApplicationItem> | null): string {
+  if (!app) return 'Minimal Monochrome'
+  if (app.blueprint?.fitStats?.designFoundation && app.blueprint.fitStats.designFoundation.startsWith('Skill:')) {
+    return app.blueprint.fitStats.designFoundation
+  }
+  if (app.selectedDesign && app.selectedDesign !== 'Minimal Monochrome' && app.selectedDesign !== 'obsidian') {
+    return app.selectedDesign
+  }
+  if (app.blueprint?.fitStats?.designFoundation && app.blueprint.fitStats.designFoundation !== 'Minimal Monochrome') {
+    return app.blueprint.fitStats.designFoundation
+  }
+  return app.selectedDesign || 'Minimal Monochrome'
+}
+
 const views = [
   { id: 1, short: 'Input', label: 'Input Studio', icon: FileText },
   { id: 2, short: 'Blueprint', label: 'Strategic Blueprint', icon: Target },
@@ -2609,8 +2623,8 @@ function AnalyticsView({
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[11px] text-zinc-400">{a.candidateName}</span>
                       <span className="text-zinc-600">·</span>
-                      <span className="text-[11px] text-zinc-500 font-mono truncate max-w-[140px]" title={a.selectedDesign}>
-                        {formatDesignLabel(a.selectedDesign, 20)}
+                      <span className="text-[11px] text-zinc-500 font-mono truncate max-w-[140px]" title={getEffectiveAppDesign(a)}>
+                        {formatDesignLabel(getEffectiveAppDesign(a), 20)}
                       </span>
                     </div>
                   </div>
@@ -2715,9 +2729,9 @@ function AnalyticsView({
                 <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono block">Design Foundation</span>
                 <span
                   className="text-xs text-purple-300 font-mono block max-h-24 overflow-y-auto leading-relaxed bg-zinc-900/60 p-2 rounded border border-white/5 break-words"
-                  title={app.selectedDesign}
+                  title={getEffectiveAppDesign(app)}
                 >
-                  {app.selectedDesign}
+                  {getEffectiveAppDesign(app)}
                 </span>
               </div>
             </div>
@@ -2948,8 +2962,12 @@ export function GrtrApp() {
       if (savedApps) {
         const parsed = JSON.parse(savedApps)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          localSaved = parsed
-          setApplications(parsed)
+          const normalized = parsed.map((a: ApplicationItem) => {
+            const effective = getEffectiveAppDesign(a)
+            return { ...a, selectedDesign: effective }
+          })
+          localSaved = normalized
+          setApplications(normalized)
         }
       }
       const savedSession = localStorage.getItem('grtr_active_portfolio_session_v1')
@@ -2957,7 +2975,12 @@ export function GrtrApp() {
         const parsed = JSON.parse(savedSession)
         if (parsed.chatId) setChatId(parsed.chatId)
         if (parsed.previewUrl) setPreviewUrl(parsed.previewUrl)
-        if (parsed.selectedDesign) setSelectedDesign(parsed.selectedDesign)
+        if (parsed.selectedDesign) {
+          const effective = (parsed.blueprint?.fitStats?.designFoundation?.startsWith('Skill:'))
+            ? parsed.blueprint.fitStats.designFoundation
+            : parsed.selectedDesign
+          setSelectedDesign(effective)
+        }
         if (parsed.blueprint) setBlueprint(parsed.blueprint)
         if (typeof parsed.selectedDirectionIndex === 'number') {
           setSelectedDirectionIndex(parsed.selectedDirectionIndex)
@@ -2993,7 +3016,7 @@ export function GrtrApp() {
               candidateName: p.candidate_name,
               company: p.target_company,
               role: p.target_role,
-              selectedDesign: p.theme || 'obsidian',
+              selectedDesign: getEffectiveAppDesign({ selectedDesign: p.theme, blueprint: p.blueprint }),
               selectedDirectionIndex: typeof p.blueprint?.selectedDirectionIndex === 'number'
                 ? p.blueprint.selectedDirectionIndex
                 : (p.strategic_angle && p.blueprint?.directions
@@ -3087,6 +3110,8 @@ export function GrtrApp() {
         ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
         : selectedDesign
 
+      setSelectedDesign(effectiveDesign)
+
       const res = await fetch('/api/blueprint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3107,6 +3132,9 @@ export function GrtrApp() {
       }
 
       if (data.success && data.blueprint) {
+        if (data.blueprint.fitStats?.designFoundation) {
+          setSelectedDesign(data.blueprint.fitStats.designFoundation)
+        }
         setBlueprint(data.blueprint)
         setActive(2) // Advance to Stage 2: Blueprint
       } else {
@@ -3136,7 +3164,9 @@ export function GrtrApp() {
 
       const effectiveDesign = ((selectedSkills || []).length > 0 && (!selectedDesign || selectedDesign === 'Minimal Monochrome' || selectedDesign.startsWith('Skill:')))
         ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
-        : selectedDesign
+        : (blueprint.fitStats?.designFoundation?.startsWith('Skill:') ? blueprint.fitStats.designFoundation : selectedDesign)
+
+      setSelectedDesign(effectiveDesign)
 
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -3174,7 +3204,7 @@ export function GrtrApp() {
           role: blueprint.targetRole || 'Growth Executive',
           company: blueprint.targetCompany || 'Target Enterprise',
           candidateName: blueprint.candidateName,
-          selectedDesign,
+          selectedDesign: effectiveDesign,
           selectedDirectionIndex,
           blueprint: updatedBlueprint,
           status: 'generating',
@@ -3206,7 +3236,7 @@ export function GrtrApp() {
           localStorage.setItem('grtr_active_portfolio_session_v1', JSON.stringify({
             chatId: data.chatId,
             previewUrl: fullPreviewUrl,
-            selectedDesign,
+            selectedDesign: effectiveDesign,
             selectedDirectionIndex,
             blueprint: updatedBlueprint,
             active: 3,
