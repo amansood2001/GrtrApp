@@ -250,39 +250,22 @@ MODE C: SKILL-DRIVEN DESIGN SYSTEM GOVERNANCE (CRITICAL):
 - Direct v0 to invoke its complete built-in design intelligence for ${attachedSkillNames} and build production-ready, interactive React client components with smooth Framer Motion/CSS transitions, high-contrast surfaces, and full clickability.
 - Do NOT allow v0 to fall back to generic, unstyled Tailwind card templates or flat static boxes.
 
-HIGH-AGENCY INTERACTIVE MODULES (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
-- NEVER output 3 flat static cards or simple numbered text lists for the thesis, and NEVER output 3 identical rectangular boxes for metrics.
-- Instead, explicitly instruct v0 to build HIGH-AGENCY INTERACTIVE MODULES:
-
-1. Dynamic Strategy & Operational Console (components/strategy-console.tsx):
-   - Replace static text blocks with an interactive executive strategy console featuring:
-     * Interactive Tabbed State Switcher: Smooth animated tab navigation between [The Core Challenge], [Strategic Execution Playbook], and [Proven Right-to-Win].
-     * Interactive Playbook Steps: Each pillar (e.g. 1. Market Sensing, 2. Dynamic Pricing Engine, 3. Cross-functional Scaling) must be an interactive step selector where clicking reveals in-depth operational mechanics, data inputs, and team execution workflows with layout transitions.
-     * Embedded Live Domain Simulator / Dynamic Scenario Modeler: Build a real, working interactive simulator tailored specifically to ${blueprint.targetRole} at ${blueprint.targetCompany} (e.g. for Scapia Revenue Management: an interactive Dynamic Pricing & Margin Simulator with slider controls for demand surge, competitor price variance, and target contribution margin with live reactive calculations).
-
-2. Interactive Bento Proof Deck (components/proof-bento.tsx):
-   - Replace flat metric rows with an interactive asymmetric Bento Grid:
-     * A primary hero metric visualizer with live animated counter and dynamic reactive sparkline/telemetry SVG.
-     * Clickable proof case cards with hover elevation and expandable modal/drawer walkthroughs detailing problem, action, and verified impact.
-     * Telemetry status pills and live verified badges.
-
-3. Authentic Career Track Record & Leadership Timeline:
-   - Interactive career milestone timeline with domain competency filters (e.g. "GTM Strategy", "Revenue Operations", "Analytics & Modeling").
-
-4. Direct Recruiter Contact Modal (components/contact-modal.tsx):
-   - Direct conversion modal with verified candidate email and LinkedIn links extracted from my CV.
+HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL):
+- NEVER output generic flat static cards, dry walls of plain text, or identical non-clickable boxes.
+- Exercise your full design intelligence to architect bespoke, highly interactive React client components organically tailored to the specific nature of ${blueprint.targetRole} at ${blueprint.targetCompany}.
+- Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth governed strictly by the design language of ${attachedSkillNames}.
 
 HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx to prevent React hydration warnings.
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Skill-Driven Architectural Thesis (citing ${attachedSkillNames})
-2. My Strategic Operator Thesis & Interactive Strategy Console Directive (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, followed by the explicit directive commanding an interactive console with tab switcher and live domain simulator)
-3. Interactive Bento Proof Deck (commanding an asymmetric bento grid with hero telemetry and expandable proof cards)
+2. My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, followed by an explicit directive to bring this strategy to life through dynamic, bespoke interactive components rather than static text)
+3. Verified Metrics & Highlighted Proof Cases (rendered through dynamic, highly engaging visual components)
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Skill-Driven Design System & Motion Physics (strictly citing ${attachedSkillNames})
-6. Domain-Tailored Delight & Micro-interactions tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
-7. Direct Recruiter Contact Modal (using verified contact details from my CV)`
+6. Domain-Tailored Delight: Subtle, role-tailored micro-interactions for ${blueprint.targetRole} at ${blueprint.targetCompany}
+7. Direct Recruiter Contact (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
   const safeJobDescription = truncateSafely(jobDescription, 15000)
@@ -352,26 +335,20 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 - NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
 - Talk to v0 with authority, taste, and clarity.
 
-HIGH-AGENCY INTERACTIVE MODULES (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
+HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
 - Avoid walls of plain text and do NOT output simple 3-card flat grids for the strategy or metrics.
 - Clearly set the overarching aesthetic mood and design language (${designSystem}).
-- Instruct v0 to construct HIGH-AGENCY INTERACTIVE MODULES:
-  1. Dynamic Strategy & Operational Console (components/strategy-console.tsx):
-     - Interactive tabbed switcher between [The Challenge], [Execution Playbook Pillars], and [Proven Right-to-Win].
-     - Interactive step selector for the operational playbook pillars revealing tactical depth on click.
-     - Embedded Live Scenario Modeler / Interactive Simulator tailored to ${blueprint.targetRole} at ${blueprint.targetCompany}.
-  2. Interactive Bento Proof Deck (components/proof-bento.tsx):
-     - Asymmetric bento grid with animated telemetry counters, reactive sparklines, and expandable proof case study walkthroughs on click.
-  3. Authentic Career Track Record & Timeline with domain competency filters.
-  4. Direct Recruiter Contact Modal with verified email and LinkedIn from my CV.
+- Exercise your full design intelligence to architect bespoke, highly interactive React client components organically tailored to the specific nature of ${blueprint.targetRole} at ${blueprint.targetCompany}.
+- Do NOT prescribe rigid component names or fixed layouts (e.g. do not force a fixed bento grid or predefined component paths like components/strategy-console.tsx or components/proof-bento.tsx). Let the candidate's authentic domain, target role, and impact dictate the optimal interactive architecture.
+- Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth.
 
 HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx.
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 1. First-Person Opening & Executive Positioning Thesis
-2. My Strategic Operator Thesis & Interactive Strategy Console (Output full thesis context, directing v0 to build an interactive console with tab switcher and live domain simulator)
-3. Interactive Bento Proof Deck (asymmetric bento grid with hero telemetry and expandable proof cards)
+2. My Strategic Operator Thesis for ${blueprint.targetCompany} (Output full thesis context, directing v0 to bring this strategy to life through dynamic, bespoke interactive components rather than static text)
+3. Verified Metrics & Highlighted Proof Cases (rendered through dynamic, highly engaging visual components tailored to the role)
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 5. Aesthetic Atmosphere & Signature Concept (${designSystem})
 6. Domain-Tailored Delight: Subtle, playful touches tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
