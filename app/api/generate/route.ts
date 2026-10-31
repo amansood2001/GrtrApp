@@ -139,30 +139,6 @@ DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
 HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to ensure app/layout.tsx has suppressHydrationWarning on both <html> and <body> so that client browser extensions (password managers, translators) do not cause React hydration mismatch warnings.
 
-COMMUNITY TEMPLATE ADAPTATION & ASSET AUDIT PROTOCOL:
-You must perform an identity & layout preservation audit before crafting the prompt for v0:
-
-Step 1: Identity & Residual Sanitization
-- Inspect the template's existing content and metadata:
-  * Completely eliminate all placeholder author branding, personal headshots, creator bios, and mock credentials.
-  * Purge all template author social handles (e.g. GitHub, Twitter/X, Substack, personal Calendly) and generic mock buttons (e.g. "Sign In", "Deploy Platform").
-  * Contact & Social Links: Use verified contact info (email, LinkedIn) extracted directly from my CV. If a specific channel is not provided in my CV, instruct v0 to remove that icon or link entirely rather than linking to a dead "#" or the original template author.
-
-Step 2: Visual Media and Slot Replacement (CRITICAL)
-- The template contains visual media, image placeholders, or decorative graphics originally designed for a different project or persona.
-- NEVER instruct v0 to output unverified or hallucinated external image URLs (which break or 404), and NEVER retain the original template author's personal photos or assets.
-- If the template features procedural visual scenes, 3D canvases, or interactive graphic shaders, PRESERVE THEM 100% INTACT. Do NOT replace them with generic photos.
-- If the template has an avatar/headshot slot, instruct v0 to render a refined typographic monogram token or an abstract design-system-aligned visual mark rather than an arbitrary stock photo.
-- Analyze my authentic profile from my CV against the target role in the JD:
-  * Deeply evaluate what constitutes my natural proof of work and tangible professional output.
-  * Direct v0 to exercise its full design intelligence to build native React/Tailwind/Lucide/SVG implementations that authentically represent my impact in this field.
-  * Instruct v0 to replace each remaining visual slot with that bespoke component.
-
-Step 3: Codebase & Aesthetic Preservation Guardrails
-- Instruct v0 to preserve the core structural layout, spatial hierarchy, materials (e.g. borders, surface elevations, and margins), responsive navigation, and motion physics that make this template distinct.
-- Direct v0 to surgically adapt the existing component tree in app/page.tsx and associated modules, rather than wiping out the code and rebuilding from scratch.
-- Ensure that while all narrative, data, and visual surfaces are deeply personalized to me and the target role, the visual polish and design integrity of the original template remain 100% intact.
-
 STRUCTURE OF YOUR PROMPT FOR V0:
 - First-Person Opening & Community Template Adaptation Thesis (explicitly emphasize that v0 is building on top of and surgically adapting this duplicated ${templateProfile.name} template codebase)
 - My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win VERBATIM without condensing, followed by the explicit directive instructing v0 to render it with interactive elements, animations, and motion rather than plain text)
