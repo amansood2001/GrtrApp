@@ -43,11 +43,11 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
     archetype: 'Dark Glass · High-Tech Velocity',
     siteUrl: 'https://v0-compute-11.vercel.app',
     structuralSlots: {
-      heroSlot: 'Ambient hero visual lockup, headline badge, and deploy agent CTA button',
-      metricsSlot: 'Real-time telemetry metric counters, active latency dials, and SLA indicators',
-      capabilitySlot: 'Interactive dark glass capability tab modules with glowing border tokens',
-      codeTerminalSlot: 'Syntax-highlighted code execution console with copy action',
-      footerSlot: 'Deployment status indicators, author watermark, and verified recruiter channels',
+      heroSlot: 'Hero section, primary value proposition, and call to action',
+      metricsSlot: 'Key metrics and quantitative performance highlights',
+      capabilitySlot: 'Core capabilities and platform features',
+      codeTerminalSlot: 'Code sample or technical demonstration area',
+      footerSlot: 'Status indicators, author watermark, and contact links',
     },
   },
   'TirCdHf4EQ8': {
@@ -56,10 +56,10 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
     archetype: 'Creative Engineering · Interactive Labs',
     siteUrl: 'https://v0.app/templates/eincode-digital-lab-NjOUgG6VT7X',
     structuralSlots: {
-      heroSlot: 'Digital laboratory headline, status pill, and interactive terminal display',
-      showcaseSlot: 'Interactive project showcases with dynamic hover states and tag chips',
-      workbenchSlot: 'Experimental digital tools and workbench interactive displays',
-      footerSlot: 'Curiosity journal links, verified social links, and lab status pill',
+      heroSlot: 'Hero section and introduction',
+      showcaseSlot: 'Project and work presentation area',
+      workbenchSlot: 'Interactive tools and experimental work',
+      footerSlot: 'Contact and social links',
     },
   },
   'jMO0lvF8j85': {
@@ -68,10 +68,10 @@ export const COMMUNITY_TEMPLATE_PROFILES: Record<string, CommunityTemplateProfil
     archetype: 'High-Converting SaaS · Bold Layout',
     siteUrl: 'https://v0.app/templates/exact-landing-page-clone-TRBFYs8lKCv',
     structuralSlots: {
-      heroSlot: 'High-impact value headline, social proof badge, and primary recruiter conversion CTA',
-      metricsSlot: 'Key milestone metric numbers and quantifiable impact counters',
-      caseStudySlot: 'Strategic case study breakdown modules with challenges and solutions',
-      contactSlot: 'Direct conversion form and recruiter touchpoint surface with clean footer',
+      heroSlot: 'Hero headline, value proposition, and primary call to action',
+      metricsSlot: 'Key performance highlights and metrics',
+      caseStudySlot: 'Work highlights and case study breakdowns',
+      contactSlot: 'Direct contact section and clean footer',
     },
   },
 }
@@ -149,14 +149,14 @@ Step 1: Identity & Residual Sanitization
   * Contact & Social Links: Use verified contact info (email, LinkedIn) extracted directly from my CV. If a specific channel is not provided in my CV, instruct v0 to remove that icon or link entirely rather than linking to a dead "#" or the original template author.
 
 Step 2: Visual Media and Slot Replacement (CRITICAL)
-- The template contains visual media showcases, image placeholders, or decorative graphics originally designed for a different project or persona.
+- The template contains visual media, image placeholders, or decorative graphics originally designed for a different project or persona.
 - NEVER instruct v0 to output unverified or hallucinated external image URLs (which break or 404), and NEVER retain the original template author's personal photos or assets.
 - If the template features procedural visual scenes, 3D canvases, or interactive graphic shaders, PRESERVE THEM 100% INTACT. Do NOT replace them with generic photos.
 - If the template has an avatar/headshot slot, instruct v0 to render a refined typographic monogram token or an abstract design-system-aligned visual mark rather than an arbitrary stock photo.
 - Analyze my authentic profile from my CV against the target role in the JD:
-  * Deeply evaluate what constitutes my natural "proof of work" and tangible professional output.
-  * Dynamically determine the most compelling visual vocabulary, interactive UI widgets, data visualizations, process workflows, or functional components that authentically demonstrate my impact in this specific field.
-  * Instruct v0 to replace each remaining visual slot with that bespoke, natively rendered React/Tailwind/Lucide/SVG component.
+  * Deeply evaluate what constitutes my natural proof of work and tangible professional output.
+  * Direct v0 to exercise its full design intelligence to build native React/Tailwind/Lucide/SVG implementations that authentically represent my impact in this field.
+  * Instruct v0 to replace each remaining visual slot with that bespoke component.
 
 Step 3: Codebase & Aesthetic Preservation Guardrails
 - Instruct v0 to preserve the core structural layout, spatial hierarchy, materials (e.g. borders, surface elevations, and margins), responsive navigation, and motion physics that make this template distinct.
@@ -166,12 +166,12 @@ Step 3: Codebase & Aesthetic Preservation Guardrails
 STRUCTURE OF YOUR PROMPT FOR V0:
 - First-Person Opening & Community Template Adaptation Thesis (explicitly emphasize that v0 is building on top of and surgically adapting this duplicated ${templateProfile.name} template codebase)
 - My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win VERBATIM without condensing, followed by the explicit directive instructing v0 to render it with interactive elements, animations, and motion rather than plain text)
-- Verified Metrics & Highlighted Proof Cases (rendered in the template's metric counters, telemetry displays, and proof slots)
+- Verified Metrics & Highlighted Proof Cases (rendered in the template's metric and proof slots)
 - Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 - Aesthetic Atmosphere & Signature Interactive Concept (state explicitly that it must be identical to ${templateProfile.name} and must not be altered)
 - Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany} integrated into the template
 - Motion Design Physics & Interaction Pacing (state explicitly that it must remain identical to ${templateProfile.name} and should not be meddled with, maintaining immediate first-paint)
-- Direct Recruiter Conversion Touchpoint (e.g. interactive briefing dock, integrated conversion terminal, or verified recruiter contact using details from my CV)`
+- Direct Recruiter Contact (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
   const safeJobDescription = truncateSafely(jobDescription, 15000)
@@ -252,8 +252,8 @@ MODE C: SKILL-DRIVEN DESIGN SYSTEM GOVERNANCE (CRITICAL):
 
 HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL):
 - NEVER output generic flat static cards, dry walls of plain text, or identical non-clickable boxes.
-- Exercise your full design intelligence to architect bespoke, highly interactive React client components organically tailored to the specific nature of ${blueprint.targetRole} at ${blueprint.targetCompany}.
-- Do NOT force rigid, predictable layouts or 1-column linear card stacks. Feel free to interweave metrics, interactive operational simulators, split consoles, or contextual proof points organically to best showcase this specific candidate.
+- Give v0 full creative and architectural freedom to implement the layout, component hierarchy, and interactive elements. Let the candidate's authentic domain, target role, and the attached skill (${attachedSkillNames}) guide the visual execution.
+- Do NOT force rigid, predictable layouts or 1-column linear card stacks. Direct v0 to architect bespoke React client components that best showcase this candidate's preparation and credentials.
 - Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth governed strictly by the design language of ${attachedSkillNames}.
 
 HYDRATION & EXTENSION RESILIENCE:
@@ -261,12 +261,12 @@ HYDRATION & EXTENSION RESILIENCE:
 
 STRUCTURE OF YOUR PROMPT FOR V0:
 - First-Person Opening & Skill-Driven Architectural Thesis (citing ${attachedSkillNames})
-- My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, followed by an explicit directive to bring this strategy to life through dynamic, bespoke interactive components rather than static text)
+- My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, directing v0 to bring this strategy to life through dynamic, bespoke interactive components rather than static text)
 - Verified Metrics & Highlighted Proof Cases (rendered through dynamic, highly engaging visual components)
 - Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 - Skill-Driven Design System & Motion Physics (strictly citing ${attachedSkillNames})
 - Domain-Tailored Delight: Subtle, role-tailored micro-interactions for ${blueprint.targetRole} at ${blueprint.targetCompany}
-- Direct Recruiter Conversion Touchpoint (e.g. interactive briefing dock, integrated conversion terminal, or verified recruiter contact using details from my CV)`
+- Direct Recruiter Contact (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
   const safeJobDescription = truncateSafely(jobDescription, 15000)
@@ -339,9 +339,8 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
 - Avoid walls of plain text and do NOT output simple 3-card flat grids for the strategy or metrics.
 - Clearly set the overarching aesthetic mood and design language (${designSystem}).
-- Exercise your full design intelligence to architect bespoke, highly interactive React client components organically tailored to the specific nature of ${blueprint.targetRole} at ${blueprint.targetCompany}.
-- Do NOT prescribe rigid component names or fixed layouts (e.g. do not force a fixed bento grid, 3-card rows, or predefined component paths). Let the candidate's authentic domain, target role, and impact dictate the optimal interactive architecture.
-- Feel free to interweave strategy, metrics, and proof points into a unified, high-craft composition (e.g. telemetry integrated into the hero, split-screen operator consoles, or interactive contextual navigation) rather than a rigid top-to-bottom sequence of uniform boxes.
+- Give v0 complete creative and architectural freedom to implement the layout, component hierarchy, and interactive elements. Let the candidate's authentic background and target role at ${blueprint.targetCompany} guide the optimal implementation.
+- Do NOT prescribe rigid component names, fixed layouts, or predetermined design tropes.
 - Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth.
 
 HYDRATION & EXTENSION RESILIENCE:
@@ -355,7 +354,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 - Aesthetic Atmosphere & Signature Concept (${designSystem})
 - Domain-Tailored Delight: Subtle, playful touches tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
 - Motion Design, Tailored Physics & Visual Effects
-- Direct Recruiter Conversion Touchpoint (e.g. interactive briefing dock, integrated conversion terminal, or verified recruiter contact using details from my CV)`
+- Direct Recruiter Contact (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
   const safeJobDescription = truncateSafely(jobDescription, 15000)
@@ -429,9 +428,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
         siteUrl: `https://v0.app/chat/${seedChatId}`,
         structuralSlots: {
           heroSlot: 'Hero headline, introduction, and call to action',
-          metricsSlot: 'Key performance telemetry displays and quantitative proof points',
-          projectsSlot: 'Showcase modules and strategic case study deep-dives',
-          footerSlot: 'Direct recruiter conversion touchpoint and social channels',
+          metricsSlot: 'Key performance metrics and quantitative proof points',
+          projectsSlot: 'Work highlights and case study breakdowns',
+          footerSlot: 'Contact and social channels',
         },
       }
 
