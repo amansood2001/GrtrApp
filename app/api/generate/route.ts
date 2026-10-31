@@ -228,8 +228,6 @@ MODE C: SKILL-DRIVEN DESIGN SYSTEM GOVERNANCE (CRITICAL):
 
 HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL):
 - NEVER output generic flat static cards, dry walls of plain text, or identical non-clickable boxes.
-- Give v0 full creative and architectural freedom to implement the layout, component hierarchy, and interactive elements. Let the candidate's authentic domain, target role, and the attached skill (${attachedSkillNames}) guide the visual execution.
-- Do NOT force rigid, predictable layouts or 1-column linear card stacks. Direct v0 to architect bespoke React client components that best showcase this candidate's preparation and credentials.
 - Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth governed strictly by the design language of ${attachedSkillNames}.
 
 HYDRATION & EXTENSION RESILIENCE:
@@ -315,8 +313,6 @@ CRITICAL VOICE & PERSONA INSTRUCTIONS:
 HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
 - Avoid walls of plain text and do NOT output simple 3-card flat grids for the strategy or metrics.
 - Clearly set the overarching aesthetic mood and design language (${designSystem}).
-- Give v0 complete creative and architectural freedom to implement the layout, component hierarchy, and interactive elements. Let the candidate's authentic background and target role at ${blueprint.targetCompany} guide the optimal implementation.
-- Do NOT prescribe rigid component names, fixed layouts, or predetermined design tropes.
 - Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth.
 
 HYDRATION & EXTENSION RESILIENCE:
