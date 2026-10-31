@@ -3038,9 +3038,23 @@ export function GrtrApp() {
             prev.forEach(item => {
               if (item.chatId) map.set(item.chatId, item)
             })
-            cloudApps.forEach(item => {
-              if (item.chatId && !map.has(item.chatId)) {
-                map.set(item.chatId, item)
+            cloudApps.forEach(cloudItem => {
+              if (!cloudItem.chatId) return
+              const localItem = map.get(cloudItem.chatId)
+              if (!localItem) {
+                map.set(cloudItem.chatId, cloudItem)
+              } else {
+                const cloudEffective = getEffectiveAppDesign(cloudItem)
+                const localEffective = getEffectiveAppDesign(localItem)
+                const chosenDesign = (cloudEffective && cloudEffective !== 'Minimal Monochrome' && cloudEffective !== 'obsidian')
+                  ? cloudEffective
+                  : (localEffective || cloudEffective)
+                map.set(cloudItem.chatId, {
+                  ...localItem,
+                  ...cloudItem,
+                  selectedDesign: chosenDesign,
+                  blueprint: cloudItem.blueprint || localItem.blueprint,
+                })
               }
             })
             const merged = Array.from(map.values())
@@ -3156,17 +3170,23 @@ export function GrtrApp() {
       setErrorMessage(null)
       setSelectedDirectionIndex(selectedDirectionIndex)
 
-      const updatedBlueprint: StrategicBlueprint = {
-        ...blueprint,
-        selectedDirectionIndex,
-      }
-      setBlueprint(updatedBlueprint)
-
       const effectiveDesign = ((selectedSkills || []).length > 0 && (!selectedDesign || selectedDesign === 'Minimal Monochrome' || selectedDesign.startsWith('Skill:')))
         ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
         : (blueprint.fitStats?.designFoundation?.startsWith('Skill:') ? blueprint.fitStats.designFoundation : selectedDesign)
 
       setSelectedDesign(effectiveDesign)
+
+      const updatedBlueprint: StrategicBlueprint = {
+        ...blueprint,
+        selectedDirectionIndex,
+        fitStats: {
+          ...blueprint.fitStats,
+          roleFit: blueprint.fitStats?.roleFit || 'Exceptional',
+          evidenceCoverage: blueprint.fitStats?.evidenceCoverage || '9 / 10',
+          designFoundation: effectiveDesign,
+        },
+      }
+      setBlueprint(updatedBlueprint)
 
       const res = await fetch('/api/generate', {
         method: 'POST',
