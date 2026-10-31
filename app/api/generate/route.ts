@@ -218,11 +218,10 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 }
 
 // ---------------------------------------------------------------------------
-// MODE A: Blank-Canvas Prompt Synthesizer (Moods, Custom & Skills)
+// MODE C: Skill-Driven Architecture Prompt Synthesizer
 // ---------------------------------------------------------------------------
-async function synthesizeV0Prompt(
+async function synthesizeV0SkillDrivenPrompt(
   blueprint: StrategicBlueprint,
-  designSystem: string,
   selectedDirectionIndex: number = 0,
   resumeText: string = '',
   jobDescription: string = '',
@@ -235,71 +234,62 @@ async function synthesizeV0Prompt(
 
   const openai = new OpenAI({ apiKey })
   const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
+  const attachedSkillNames = attachedSkills.map(s => `"${s.name || s.id}"`).join(', ')
 
-  const hasAttachedSkills = attachedSkills && attachedSkills.length > 0
-  const attachedSkillNames = hasAttachedSkills ? attachedSkills.map(s => `"${s.name || s.id}"`).join(', ') : ''
-
-  const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface to have it build your executive career portfolio.
+  const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface. You are commissioning v0 to build a world-class, bespoke executive career portfolio from scratch, where the visual design system, component grammar, and motion physics are strictly governed by the attached skills.sh skill(s): ${attachedSkillNames}.
 
 CRITICAL VOICE & PERSONA INSTRUCTIONS:
 - Write strictly in the FIRST PERSON ("I", "me", "my") directly addressing v0 as "you".
-- Opening line must be natural and direct, exactly like an executive talking to an elite designer:
-  "Build an extraordinary, bespoke executive career portfolio for me. My name is ${blueprint.candidateName}, and I'm positioning myself for the ${blueprint.targetRole} role at ${blueprint.targetCompany}..."
+- Opening line must be natural, authoritative, and direct:
+  "Build an extraordinary, bespoke executive career portfolio for me using the attached skills.sh design foundation (${attachedSkillNames}). My name is ${blueprint.candidateName}, and I'm positioning myself for the ${blueprint.targetRole} role at ${blueprint.targetCompany}..."
 - NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
 - Talk to v0 with authority, taste, and clarity.
 
-HIGH-AGENCY & VISUAL DIRECTION:
-${hasAttachedSkills ? `- ATTACHED SKILLS.SH AGENT SKILLS:
-  * I have attached verified open-source skill(s) from skills.sh directly to this chat session: ${attachedSkillNames}.
-  * In Section 5 (Aesthetic Atmosphere & Signature Concept): Explicitly instruct v0 that the visual hierarchy, component architecture, layout density, and design grammar are strictly governed by the attached skills.sh skill(s): ${attachedSkillNames}. Instruct v0 to invoke its complete built-in design intelligence for these skills.
-  * In Section 7 (Motion & Physics): Instruct v0 that the interaction physics, hover states, transitions, and micro-interactions are governed by the attached skill(s): ${attachedSkillNames}. Ensure all elements, buttons, tabs, metric cards, and proof points are fully clickable, engaging, and production-ready.
-  * Do NOT invent conflicting aesthetic styles, flat non-clickable boxes, or arbitrary layouts that deviate from these skills.` : `- Avoid walls of plain text. Make this portfolio visually driven, engaging, and interactive with interesting elements.
-- DO NOT micromanage or hardcode minute component details, exact pixel dimensions, or rigid borders. Give v0 room to exercise its frontend design reasoning intelligence.
-- Clearly set the overarching aesthetic mood, spatial atmosphere, and design language (${designSystem}).`}
+MODE C: SKILL-DRIVEN DESIGN SYSTEM GOVERNANCE (CRITICAL):
+- Explicitly instruct v0 that the entire design foundation, spatial grid hierarchy, typography scales, card density, elevation tokens, border treatments, and motion physics are 100% strictly governed by the attached skill(s): ${attachedSkillNames}.
+- Direct v0 to invoke its complete built-in design intelligence for ${attachedSkillNames} and build production-ready, interactive React client components with smooth Framer Motion/CSS transitions, high-contrast surfaces, and full clickability.
+- Do NOT allow v0 to fall back to generic, unstyled Tailwind card templates or flat static boxes.
 
-JD & CV SEMANTIC ALIGNMENT (CRITICAL):
-- Carefully analyze my attached Full CV in the direct context of the attached Job Description.
-- In Section 4 (Authentic Career Track Record & Domain Strengths), craft an authentic, comprehensive narrative of my real career milestones, leadership scope, and domain capabilities extracted directly from my CV. Tailor this presentation specifically to address the employer's core challenges, responsibilities, and required competencies outlined in the JD, demonstrating why my track record makes me the ideal operator for this role.
-- NEVER dump raw JSON, curly braces, or bracketed syntax. Describe skills and experience in articulate, natural executive English.
-- Extract any verified contact details (email, LinkedIn) directly from my CV for the recruiter contact modal.
+HIGH-AGENCY INTERACTIVE MODULES (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
+- NEVER output 3 flat static cards or simple numbered text lists for the thesis, and NEVER output 3 identical rectangular boxes for metrics.
+- Instead, explicitly instruct v0 to build HIGH-AGENCY INTERACTIVE MODULES:
 
-STRATEGIC THESIS & COMPANY RESEARCH FOR SECTION 2 (ZERO-COMPRESSION & INTERACTION DIRECTIVE):
-- In Section 2 of your prompt for v0 ("My Strategic Operator Thesis for ${blueprint.targetCompany}"), you must output the full, word-for-word text of my selected strategic direction:
-  * The Observed Company Challenge (verbatim as provided in selectedStrategicDirection.observedChallenge)
-  * The Proposed Operational Strategy / Playbook (verbatim as provided in selectedStrategicDirection.proposedStrategy)
-  * My Proven Right-to-Win (verbatim as provided in selectedStrategicDirection.rightToWinProof)
-- NEVER summarize, condense, or dilute these points into high-level slogans. They demonstrate my deep preparation, domain insight, and tailored effort for this role.
-- Immediately following the verbatim text in Section 2, instruct v0 with this explicit directive:
-  "CRITICAL PRESENTATION & INTERACTION DIRECTIVE FOR THIS SECTION: Retain the complete substance, depth, and specific company insights from the text above. Do NOT dilute it into a one-line slogan. However, NEVER render this as a dry, static wall of text. Bring this section to life with engaging visual elements, smooth animations, and interactive touches that blend naturally with the template's aesthetic atmosphere."
+1. Dynamic Strategy & Operational Console (components/strategy-console.tsx):
+   - Replace static text blocks with an interactive executive strategy console featuring:
+     * Interactive Tabbed State Switcher: Smooth animated tab navigation between [The Core Challenge], [Strategic Execution Playbook], and [Proven Right-to-Win].
+     * Interactive Playbook Steps: Each pillar (e.g. 1. Market Sensing, 2. Dynamic Pricing Engine, 3. Cross-functional Scaling) must be an interactive step selector where clicking reveals in-depth operational mechanics, data inputs, and team execution workflows with layout transitions.
+     * Embedded Live Domain Simulator / Dynamic Scenario Modeler: Build a real, working interactive simulator tailored specifically to ${blueprint.targetRole} at ${blueprint.targetCompany} (e.g. for Scapia Revenue Management: an interactive Dynamic Pricing & Margin Simulator with slider controls for demand surge, competitor price variance, and target contribution margin with live reactive calculations).
 
-DOMAIN-TAILORED DELIGHT (MANDATORY REQUIREMENT):
-- Analyze the target company's industry domain and the specific role (${blueprint.targetRole} at ${blueprint.targetCompany}).
-- Invent 1-2 subtle, playful micro-interactions or ambient touches uniquely tailored to this role and industry domain (e.g. for fintech: live ticker pulses or balance ledgers; for travel: route maps or flight cursors; for devtools: terminal readouts or deployment pipelines; for data/AI: telemetry graphs or model simulators).
-- Instruct v0 to incorporate these domain-specific delight touches into the user experience.
+2. Interactive Bento Proof Deck (components/proof-bento.tsx):
+   - Replace flat metric rows with an interactive asymmetric Bento Grid:
+     * A primary hero metric visualizer with live animated counter and dynamic reactive sparkline/telemetry SVG.
+     * Clickable proof case cards with hover elevation and expandable modal/drawer walkthroughs detailing problem, action, and verified impact.
+     * Telemetry status pills and live verified badges.
+
+3. Authentic Career Track Record & Leadership Timeline:
+   - Interactive career milestone timeline with domain competency filters (e.g. "GTM Strategy", "Revenue Operations", "Analytics & Modeling").
+
+4. Direct Recruiter Contact Modal (components/contact-modal.tsx):
+   - Direct conversion modal with verified candidate email and LinkedIn links extracted from my CV.
 
 HYDRATION & EXTENSION RESILIENCE:
-- Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx so that client browser extensions (e.g. password managers, form fillers, translators) do not cause React hydration warnings.
-
-MOTION DESIGN & INTERACTION PHYSICS:
-${hasAttachedSkills ? `- The motion curves, transition durations, and interaction physics are governed by the attached skills.sh skill(s): ${attachedSkillNames}. Instruct v0 to follow the exact interaction specs and clickable patterns defined by these skills.` : `- Analyze the unique intersection of my work style, domain, and seniority from my Full CV against the target company's culture, product caliber, and technical expectations in the Job Description.
-- Based on that analysis, dynamically determine the most fitting motion physics, interaction rhythm, and visual transitions for this specific profile:
-  * Decide how interactive elements should physically feel and respond (e.g. transition pacing, hover feedback, tab switching dynamics, and visual state changes) so the interactive feel authentically mirrors how an elite operator in this specific discipline works.
-  * Explicitly instruct v0 on this bespoke visual rhythm and motion style in Section 7.`}
+- Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx to prevent React hydration warnings.
 
 STRUCTURE OF YOUR PROMPT FOR V0:
-1. First-Person Opening & Executive Positioning Thesis
-2. My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win VERBATIM without condensing, followed by the explicit directive instructing v0 to render it with interactive elements, animations, and motion rather than plain text)
-3. Verified Metrics & Highlighted Proof Cases (rendered as visual, interactive components)
+1. First-Person Opening & Skill-Driven Architectural Thesis (citing ${attachedSkillNames})
+2. My Strategic Operator Thesis & Interactive Strategy Console Directive (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, followed by the explicit directive commanding an interactive console with tab switcher and live domain simulator)
+3. Interactive Bento Proof Deck (commanding an asymmetric bento grid with hero telemetry and expandable proof cards)
 4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
-5. Aesthetic Atmosphere & Signature Interactive Concept (${hasAttachedSkills ? `Instruct v0 that the visual foundation and component architecture are governed by the attached skills.sh skill(s): ${attachedSkillNames}` : designSystem})
-6. Domain-Tailored Delight: Subtle, playful touches tailored for the ${blueprint.targetRole} role at ${blueprint.targetCompany}
-7. Motion Design, Tailored Physics & Visual Effects (${hasAttachedSkills ? `Instruct v0 to follow the interaction physics, transitions, and clickable depth from the attached skills.sh skill(s): ${attachedSkillNames}` : 'bespoke animation pacing dynamically derived from my profile and the JD'})
-8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
+5. Skill-Driven Design System & Motion Physics (strictly citing ${attachedSkillNames})
+6. Domain-Tailored Delight & Micro-interactions tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
+7. Direct Recruiter Contact Modal (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
   const safeJobDescription = truncateSafely(jobDescription, 15000)
 
   const userContext = {
+    mode: 'Mode C: Pure Skill-Driven Architecture',
+    attachedSkills: attachedSkills.map(s => s.name || s.id),
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
     candidateName: blueprint.candidateName,
@@ -312,8 +302,100 @@ STRUCTURE OF YOUR PROMPT FOR V0:
       rightToWinProof: activeDirection.rightToWinProof,
     } : undefined,
     highlightedProofCases: blueprint.caseStudies,
-    selectedDesignSystem: hasAttachedSkills ? `skills.sh: ${attachedSkillNames}` : designSystem,
-    attachedSkills: hasAttachedSkills ? attachedSkills.map(s => s.name || s.id) : undefined,
+    stats: blueprint.stats,
+    roles: blueprint.roles,
+    fullCvText: safeResumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
+    fullJobDescription: safeJobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
+  }
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: `Generate the first-person v0 skill-driven build prompt based on my authentic background:\n${JSON.stringify(userContext, null, 2)}` }
+    ],
+    temperature: 0.7,
+  })
+
+  const promptText = completion.choices[0]?.message?.content
+  if (!promptText) {
+    throw new Error('OpenAI failed to synthesize the skill-driven v0 prompt.')
+  }
+
+  return promptText
+}
+
+// ---------------------------------------------------------------------------
+// MODE A: Blank-Canvas Prompt Synthesizer (Moods & Custom)
+// ---------------------------------------------------------------------------
+async function synthesizeV0Prompt(
+  blueprint: StrategicBlueprint,
+  designSystem: string,
+  selectedDirectionIndex: number = 0,
+  resumeText: string = '',
+  jobDescription: string = ''
+): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is required for creative prompt synthesis.')
+  }
+
+  const openai = new OpenAI({ apiKey })
+  const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
+
+  const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface to have it build your executive career portfolio.
+
+CRITICAL VOICE & PERSONA INSTRUCTIONS:
+- Write strictly in the FIRST PERSON ("I", "me", "my") directly addressing v0 as "you".
+- Opening line must be natural and direct, exactly like an executive talking to an elite designer:
+  "Build an extraordinary, bespoke executive career portfolio for me. My name is ${blueprint.candidateName}, and I'm positioning myself for the ${blueprint.targetRole} role at ${blueprint.targetCompany}..."
+- NEVER use mechanical labels like "Creative Director Brief for...", "v0 frontend engineer", "Candidate Profile:", or "MANDATORY SPECIFICATION".
+- Talk to v0 with authority, taste, and clarity.
+
+HIGH-AGENCY INTERACTIVE MODULES (CRITICAL - DO NOT GENERATE LINEAR STATIC CARDS):
+- Avoid walls of plain text and do NOT output simple 3-card flat grids for the strategy or metrics.
+- Clearly set the overarching aesthetic mood and design language (${designSystem}).
+- Instruct v0 to construct HIGH-AGENCY INTERACTIVE MODULES:
+  1. Dynamic Strategy & Operational Console (components/strategy-console.tsx):
+     - Interactive tabbed switcher between [The Challenge], [Execution Playbook Pillars], and [Proven Right-to-Win].
+     - Interactive step selector for the operational playbook pillars revealing tactical depth on click.
+     - Embedded Live Scenario Modeler / Interactive Simulator tailored to ${blueprint.targetRole} at ${blueprint.targetCompany}.
+  2. Interactive Bento Proof Deck (components/proof-bento.tsx):
+     - Asymmetric bento grid with animated telemetry counters, reactive sparklines, and expandable proof case study walkthroughs on click.
+  3. Authentic Career Track Record & Timeline with domain competency filters.
+  4. Direct Recruiter Contact Modal with verified email and LinkedIn from my CV.
+
+HYDRATION & EXTENSION RESILIENCE:
+- Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx.
+
+STRUCTURE OF YOUR PROMPT FOR V0:
+1. First-Person Opening & Executive Positioning Thesis
+2. My Strategic Operator Thesis & Interactive Strategy Console (Output full thesis context, directing v0 to build an interactive console with tab switcher and live domain simulator)
+3. Interactive Bento Proof Deck (asymmetric bento grid with hero telemetry and expandable proof cards)
+4. Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
+5. Aesthetic Atmosphere & Signature Concept (${designSystem})
+6. Domain-Tailored Delight: Subtle, playful touches tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
+7. Motion Design, Tailored Physics & Visual Effects
+8. Direct Recruiter Contact Modal (using verified contact details from my CV)`
+
+  const safeResumeText = truncateSafely(resumeText, 25000)
+  const safeJobDescription = truncateSafely(jobDescription, 15000)
+
+  const userContext = {
+    mode: 'Mode A: Moods & Custom Canvas',
+    targetCompany: blueprint.targetCompany,
+    targetRole: blueprint.targetRole,
+    candidateName: blueprint.candidateName,
+    approvedPositioningHook: blueprint.positioningHook,
+    approvedPositioningSubtitle: blueprint.positioningSubtitle,
+    selectedStrategicDirection: activeDirection ? {
+      angle: activeDirection.angle,
+      observedChallenge: activeDirection.observedChallenge,
+      proposedStrategy: activeDirection.proposedStrategy,
+      rightToWinProof: activeDirection.rightToWinProof,
+    } : undefined,
+    highlightedProofCases: blueprint.caseStudies,
+    selectedDesignSystem: designSystem,
     fullCvText: safeResumeText || (blueprint.roles ? JSON.stringify(blueprint.roles, null, 2) : ''),
     fullJobDescription: safeJobDescription || `${blueprint.targetRole} at ${blueprint.targetCompany}`,
   }
@@ -439,13 +521,23 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       })
     }
 
-    // Default Flow: Master First-Person Synthesizer (OpenAI) writes the bespoke prompt for v0
-    console.log(`[Prompt Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}"...`)
-    const startTime = Date.now()
-    const message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription, attachedSkills)
-    console.log(`[Prompt Synthesizer] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
+    // Check if user selected Mode C (Skill-Driven Architecture) or Mode A (Moods & Custom Canvas)
+    const hasAttachedSkills = Array.isArray(attachedSkills) && attachedSkills.length > 0
+    let message: string
 
-    console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem}) with ${attachedSkills.length} attached skill(s)`)
+    if (hasAttachedSkills) {
+      console.log(`[Mode C: Skill-Driven Synthesizer] Crafting bespoke skill-driven prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" with ${attachedSkills.length} skill(s)...`)
+      const startTime = Date.now()
+      message = await synthesizeV0SkillDrivenPrompt(blueprint, selectedDirectionIndex, resumeText, jobDescription, attachedSkills)
+      console.log(`[Mode C] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
+    } else {
+      console.log(`[Mode A: Moods & Custom Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})...`)
+      const startTime = Date.now()
+      message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription)
+      console.log(`[Mode A] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
+    }
+
+    console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${hasAttachedSkills ? 'Mode C: Skills' : designSystem}) with ${attachedSkills.length} attached skill(s)`)
 
     // Pass skills as native remote skills to v0 (zero synthetic file overrides)
     const v0Skills = (attachedSkills || [])

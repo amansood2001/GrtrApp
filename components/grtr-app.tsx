@@ -486,13 +486,27 @@ function InputStudio({
     const targetKey = getSkillKey(skill)
     const exists = current.some(s => getSkillKey(s) === targetKey)
     if (exists) {
-      setSelectedSkills(current.filter(s => getSkillKey(s) !== targetKey))
+      const updated = current.filter(s => getSkillKey(s) !== targetKey)
+      setSelectedSkills(updated)
+      if (setSelectedDesign) {
+        if (updated.length > 0) {
+          const names = updated.map(s => s.name || s.id).filter(Boolean).join(' + ')
+          setSelectedDesign(`Skill: ${names}`)
+        } else {
+          setSelectedDesign('Minimal Monochrome')
+        }
+      }
     } else {
       if (current.length >= 3) {
         alert('Maximum of 3 skills can be attached simultaneously to maintain optimal reasoning quality and prevent design collisions. Please detach a skill first.')
         return
       }
-      setSelectedSkills([...current, skill])
+      const updated = [...current, skill]
+      setSelectedSkills(updated)
+      if (setSelectedDesign) {
+        const names = updated.map(s => s.name || s.id).filter(Boolean).join(' + ')
+        setSelectedDesign(`Skill: ${names}`)
+      }
     }
   }
 
@@ -671,7 +685,13 @@ function InputStudio({
                 role="tab"
                 aria-selected={designTab === id}
                 key={id}
-                onClick={() => setDesignTab(id)}
+                onClick={() => {
+                  setDesignTab(id)
+                  if (id === 'skills' && (selectedSkills || []).length > 0 && setSelectedDesign) {
+                    const names = (selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')
+                    setSelectedDesign(`Skill: ${names}`)
+                  }
+                }}
                 className={designTab === id ? 'active' : ''}
               >
                 {label}
@@ -3063,13 +3083,18 @@ export function GrtrApp() {
       setIsGeneratingBlueprint(true)
       setErrorMessage(null)
 
+      const effectiveDesign = ((selectedSkills || []).length > 0 && (!selectedDesign || selectedDesign === 'Minimal Monochrome' || selectedDesign.startsWith('Skill:')))
+        ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
+        : selectedDesign
+
       const res = await fetch('/api/blueprint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resumeText,
           jobDescription,
-          designSystem: selectedDesign,
+          designSystem: effectiveDesign,
+          attachedSkills: selectedSkills,
         }),
       })
 
@@ -3109,12 +3134,16 @@ export function GrtrApp() {
       }
       setBlueprint(updatedBlueprint)
 
+      const effectiveDesign = ((selectedSkills || []).length > 0 && (!selectedDesign || selectedDesign === 'Minimal Monochrome' || selectedDesign.startsWith('Skill:')))
+        ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
+        : selectedDesign
+
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           blueprint: updatedBlueprint,
-          designSystem: selectedDesign,
+          designSystem: effectiveDesign,
           selectedDirectionIndex,
           resumeText,
           jobDescription,

@@ -265,7 +265,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<BlueprintResp
     const body = await req.json()
     const resumeText: string = body.resumeText || ''
     const jobDescription: string = body.jobDescription || ''
-    const designSystem: string = body.designSystem || 'Minimal Monochrome'
+    const attachedSkills = body.attachedSkills || []
+    let designSystem: string = body.designSystem || ''
+
+    if (Array.isArray(attachedSkills) && attachedSkills.length > 0) {
+      const skillNames = attachedSkills.map((s: any) => s.name || s.id).filter(Boolean).join(' + ')
+      designSystem = skillNames ? `Skill: ${skillNames}` : 'Skill-Driven Architecture'
+    } else if (!designSystem) {
+      designSystem = 'Minimal Monochrome'
+    }
 
     if (!resumeText || !jobDescription) {
       return NextResponse.json(
