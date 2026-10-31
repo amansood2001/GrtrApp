@@ -148,8 +148,8 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
   "candidateName": "<Candidate full name extracted from CV>",
   "targetRole": "<Target role title from JD>",
   "targetCompany": "<Target company name from JD>",
-  "positioningHook": "<CRITICAL: Unforgettable 4 to 7 word editorial display headline capturing the candidate's core domain mastery with ONE focal word surrounded by asterisks for brand emphasis (e.g. 'Engineering systems that *endure*.', 'Finding the *signal* in the scale.'). Derived 100% from candidate's actual CV and target role. Never a paragraph.>",
-  "positioningSubtitle": "<Crisp 1-2 sentence executive thesis explaining how the candidate translates expertise into foundational value, operational velocity, or commercial impact for the target company. Derived 100% from candidate's CV and target role.>",
+  "positioningHook": "<High-impact, authentic executive headline tailored specifically to the candidate's core domain mastery and target role (e.g. a bold value proposition, a key quantifiable inflection point, or a distinctive strategic thesis). Must be direct, natural, and memorable without resorting to canned buzzwords, formulaic slogans, or asterisks.>",
+  "positioningSubtitle": "<Crisp 1-2 sentence executive narrative explaining how the candidate directly solves the target company's challenges, unlocks commercial or technical leverage, and delivers measurable value. Grounded 100% in candidate's CV and target role.>",
   "companyBrand": {
     "primaryColor": "<Authentic primary hex brand color for target company, e.g. '#635bff', '#0052cc', '#0f172a', etc.>",
     "accentColor": "<Secondary accent hex, e.g. '#10b981', '#f59e0b', '#3b82f6', or '#6366f1'>",

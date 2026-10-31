@@ -1645,7 +1645,7 @@ function DynamicPortfolioFallback({
         </div>
         <h2>{blueprint.positioningHook}</h2>
         <p className="text-sm text-zinc-400 max-w-2xl leading-relaxed mb-6">
-          Architecting category leadership and compounding execution for {blueprint.targetCompany}. Proven systems from 0→1 to enterprise scale.
+          {blueprint.positioningSubtitle || `Delivering strategic execution and measurable impact for ${blueprint.targetCompany}.`}
         </p>
         <div className="flex items-center gap-3">
           <button
