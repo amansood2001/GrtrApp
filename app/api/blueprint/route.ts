@@ -116,31 +116,13 @@ Return strictly a valid JSON object with the key "directions" containing an arra
     if (Array.isArray(list) && list.length >= 2) {
       return list.slice(0, 3) as TeardownDirection[]
     }
-  } catch (err) {
-    console.warn('[Blueprint] Live strategic synthesis encountered an issue:', err)
-  }
 
-  // Pure dynamic fallback constructed directly from the provided role and company without ANY hardcoded SeekLab/MakeMyTrip strings
-  return [
-    {
-      angle: `Core Architectural Scaling & Moats at ${company}`,
-      observedChallenge: `${company} operates at the frontier of high-throughput performance requirements where standard off-the-shelf paradigms introduce unacceptable latency, operational overhead, and scalability limits. As user demand and integration complexity compound, maintaining sub-millisecond reliability while driving capital efficiency represents an existential infrastructure milestone.`,
-      proposedStrategy: `Pillar I: Re-architect critical path data flow to eliminate non-deterministic bottlenecks. Pillar II: Deploy automated telemetry and self-healing distributed failovers. Pillar III: Establish continuous benchmarking suites to guard performance SLAs.`,
-      rightToWinProof: `Brings verified track record of scaling high-complexity, mission-critical systems under severe reliability constraints, as demonstrated by measurable production milestones highlighted in the candidate's CV.`
-    },
-    {
-      angle: `Platform Reliability & Enterprise Integration Velocity`,
-      observedChallenge: `Accelerating institutional adoption for ${company} requires hardening interface boundaries and mitigating upstream dependency volatility. Without granular observability and robust deterministic guarantees, production deployments risk cascading failures and degraded partner trust.`,
-      proposedStrategy: `Pillar I: Isolate failure domains using asynchronous queues and circuit breakers. Pillar II: Establish rigorous automated contract testing for all interface boundaries. Pillar III: Compress developer iteration cycles with reproducible staging environments.`,
-      rightToWinProof: `Demonstrated experience diagnosing multi-layered systems friction and architecting resilient distributed primitives that unlock enterprise-grade execution velocity.`
-    },
-    {
-      angle: `Zero-to-One Product & Technical Infrastructure Moats`,
-      observedChallenge: `Translating cutting-edge architectural vision into robust, long-term commercial software requires bridging foundational engineering rigor with real-world product velocity. Rapid feature expansion without foundational modularity introduces technical debt that decelerates future platform evolution.`,
-      proposedStrategy: `Pillar I: Establish modular architectural standards that decouple core primitives from application logic. Pillar II: Standardize developer toolchains to maximize engineering leverage. Pillar III: Deploy continuous regression verification across every release pipeline.`,
-      rightToWinProof: `Proven ability to lead technical architecture from inception through hyper-scale adoption, transforming complex engineering requirements into competitive product moats.`
-    }
-  ]
+    throw new Error(`Failed to synthesize bespoke strategic company teardown for "${role}" at "${company}". OpenAI returned an invalid directions schema.`)
+  } catch (err: unknown) {
+    console.error('[Blueprint] Strategic company teardown synthesis failed:', err)
+    const errorDetail = err instanceof Error ? err.message : 'Unknown synthesis error'
+    throw new Error(`Failed to synthesize strategic teardown for "${role}" at "${company}": ${errorDetail}`)
+  }
 }
 
 // Thread 2: Candidate Proof & Blueprint Agent Prompt
