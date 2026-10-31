@@ -796,7 +796,7 @@ function InputStudio({
                       </div>
                       <strong className="text-xs text-white block font-medium">More Templates Coming Soon</strong>
                       <p className="text-[10px] text-zinc-500 mt-1 max-w-[210px] leading-relaxed">
-                        Curating new executive bento grids, editorial showcases, and engineering consoles into your verified workspace.
+                        Curating new executive showcases, interactive simulators, and engineering consoles into your verified workspace.
                       </p>
                       <span className="mt-3.5 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[9px] font-mono text-purple-300">
                         In Laboratory
@@ -1505,7 +1505,7 @@ function SynthesisHUD() {
     { title: 'Deconstructing Target Company Requirements', desc: 'Analyzing strategic JD friction points, core competency gaps & category landscape' },
     { title: 'Parsing Candidate Dossier & Trajectory', desc: 'Isolating verified metrics, leadership inflection points & right-to-win proof' },
     { title: 'Synthesizing 3 Differentiated Strategic Angles', desc: 'Formulating executive angles, proposed solutions & quantifiable hypotheses' },
-    { title: 'Calibrating Strategic Evidence & Narrative Pacing', desc: 'Curating verified proof points, case studies & executive bento layout' },
+    { title: 'Calibrating Strategic Evidence & Narrative Pacing', desc: 'Curating verified proof points, case studies & role-tailored interactive layout' },
     { title: 'Assembling Strategic Blueprint Pre-Flight', desc: 'Finalizing positioning hook, evidence cards & executive dossier' },
   ]
 

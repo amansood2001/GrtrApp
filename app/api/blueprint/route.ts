@@ -87,7 +87,7 @@ DO NOT use generic travel, marketing, or placeholder examples unless the CV and 
 For each direction, deliver deep, substantive analysis:
 1. angle: A crisp, compelling 3-5 word strategic title (e.g., "Deterministic Consensus Latency Optimization", "Enterprise Model Observability Moat", etc.).
 2. observedChallenge: A thorough, incisive paragraph (3-4 sentences) diagnosing the real-world friction, architectural/commercial bottlenecks, or competitive landscape ${company} faces in this specific space.
-3. proposedStrategy: A concrete, actionable 3-step operator playbook detailing how an elite ${role} would systematically tackle this challenge, deliver enterprise velocity, and solve the bottleneck.
+3. proposedStrategy: A concrete, actionable strategic framework or execution roadmap detailing how an elite ${role} would systematically tackle this challenge, deliver enterprise velocity, and solve the bottleneck (organically formulated as phased milestones, architectural layers, operational levers, or execution pillars, rather than forcing a generic numbered list).
 4. rightToWinProof: A persuasive paragraph explicitly demonstrating why THIS specific candidate possesses an unfair execution advantage to deliver on this strategy, citing concrete transferable capabilities, quantified metrics, and named systems/companies from their CV.
 
 Return strictly a valid JSON object with the key "directions" containing an array of 3 objects with keys: "angle", "observedChallenge", "proposedStrategy", "rightToWinProof".`
@@ -125,19 +125,19 @@ Return strictly a valid JSON object with the key "directions" containing an arra
     {
       angle: `Core Architectural Scaling & Moats at ${company}`,
       observedChallenge: `${company} operates at the frontier of high-throughput performance requirements where standard off-the-shelf paradigms introduce unacceptable latency, operational overhead, and scalability limits. As user demand and integration complexity compound, maintaining sub-millisecond reliability while driving capital efficiency represents an existential infrastructure milestone.`,
-      proposedStrategy: `1. Re-architect critical path data flow to eliminate non-deterministic bottlenecks. 2. Implement automated telemetry and self-healing distributed failovers. 3. Establish hardened benchmarking suites to continuously guard performance SLAs.`,
+      proposedStrategy: `Pillar I: Re-architect critical path data flow to eliminate non-deterministic bottlenecks. Pillar II: Deploy automated telemetry and self-healing distributed failovers. Pillar III: Establish continuous benchmarking suites to guard performance SLAs.`,
       rightToWinProof: `Brings verified track record of scaling high-complexity, mission-critical systems under severe reliability constraints, as demonstrated by measurable production milestones highlighted in the candidate's CV.`
     },
     {
       angle: `Platform Reliability & Enterprise Integration Velocity`,
       observedChallenge: `Accelerating institutional adoption for ${company} requires hardening interface boundaries and mitigating upstream dependency volatility. Without granular observability and robust deterministic guarantees, production deployments risk cascading failures and degraded partner trust.`,
-      proposedStrategy: `1. Isolate failure domains using asynchronous micro-queues and circuit breakers. 2. Establish rigorous automated contract testing for all internal and external APIs. 3. Compress developer iteration cycles with reproducible staging environments.`,
+      proposedStrategy: `Pillar I: Isolate failure domains using asynchronous queues and circuit breakers. Pillar II: Establish rigorous automated contract testing for all interface boundaries. Pillar III: Compress developer iteration cycles with reproducible staging environments.`,
       rightToWinProof: `Demonstrated experience diagnosing multi-layered systems friction and architecting resilient distributed primitives that unlock enterprise-grade execution velocity.`
     },
     {
       angle: `Zero-to-One Product & Technical Infrastructure Moats`,
       observedChallenge: `Translating cutting-edge architectural vision into robust, long-term commercial software requires bridging foundational engineering rigor with real-world product velocity. Rapid feature expansion without foundational modularity introduces technical debt that decelerates future platform evolution.`,
-      proposedStrategy: `1. Establish modular architectural standards that decouple core primitives from application logic. 2. Standardize developer toolchains to maximize engineering leverage. 3. Deploy automated security, compliance, and regression verification across every release pipeline.`,
+      proposedStrategy: `Pillar I: Establish modular architectural standards that decouple core primitives from application logic. Pillar II: Standardize developer toolchains to maximize engineering leverage. Pillar III: Deploy continuous regression verification across every release pipeline.`,
       rightToWinProof: `Proven ability to lead technical architecture from inception through hyper-scale adoption, transforming complex engineering requirements into competitive product moats.`
     }
   ]
@@ -176,10 +176,9 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
     "metaphor": "<1 sentence on how the candidate's craft connects to the company's product>"
   },
   "stats": [
-    { "value": "<Headline stat 1 from CV>", "label": "<Short 2-3 word label>", "note": "<Short context note>" },
-    { "value": "<Stat 2 from CV>", "label": "<Label 2>", "note": "<Note 2>" },
-    { "value": "<Stat 3 from CV>", "label": "<Label 3>", "note": "<Note 3>" },
-    { "value": "<Stat 4 from CV>", "label": "<Label 4>", "note": "<Note 4>" }
+    { "value": "<Headline quantitative metric 1 from CV>", "label": "<Short 2-3 word label>", "note": "<Short context note>" },
+    { "value": "<Metric 2 from CV>", "label": "<Label 2>", "note": "<Note 2>" },
+    { "value": "<Metric 3 from CV>", "label": "<Label 3>", "note": "<Note 3>" }
   ],
   "roles": [
     {
@@ -211,16 +210,6 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
       "number": "03",
       "summary": "<Summary 3>",
       "outcomes": ["<Outcome 1>", "<Outcome 2>"]
-    },
-    {
-      "year": "<Time period 4>",
-      "company": "<Company 4>",
-      "title": "<Title 4>",
-      "location": "<Location 4>",
-      "accent": "<Hex color 4>",
-      "number": "04",
-      "summary": "<Summary 4>",
-      "outcomes": ["<Outcome 1>", "<Outcome 2>"]
     }
   ],
   "skills": {
@@ -240,17 +229,11 @@ Generate a strictly valid JSON object (raw JSON only, no markdown, no comments) 
       "detail": "<Detail 2>",
       "metric": "<Headline metric from win #2>",
       "metricLabel": "<Label 2>"
-    },
-    {
-      "title": "<Provocative editorial headline from candidate's top win #3 from CV>",
-      "detail": "<Detail 3>",
-      "metric": "<Headline metric from win #3>",
-      "metricLabel": "<Label 3>"
     }
   ],
   "motionNarrative": {
-    "headline": "Signal → System → Scale",
-    "detail": "Guiding reviewers from high-level positioning into indisputable quantitative proof."
+    "headline": "<Bespoke 3-part kinetic progression capturing how this candidate creates impact, e.g. 'Calibrate → Intervene → Compound' or 'Probe → Model → Scale', organically synthesized from candidate's craft and the target role>",
+    "detail": "<1 sentence on how the portfolio guides reviewers from positioning into verifiable proof>"
   },
   "fitStats": {
     "roleFit": "Exceptional",
