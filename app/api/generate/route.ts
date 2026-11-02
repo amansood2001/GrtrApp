@@ -230,6 +230,10 @@ HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL):
 - NEVER output generic flat static cards, dry walls of plain text, or identical non-clickable boxes.
 - Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth governed strictly by the design language of ${attachedSkillNames}.
 
+FRAMER-MOTION & CLIENT DIRECTIVE (MANDATORY):
+- Explicitly instruct v0 to import and use framer-motion (e.g. motion, AnimatePresence) for interactive animations and motion effects throughout the portfolio.
+- MANDATORY 'use client' DIRECTIVE: Instruct v0 that every file importing framer-motion must place 'use client' at the very top (line 1) of the file to comply with Next.js App Router requirements.
+
 HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx to prevent React hydration warnings.
 
@@ -238,7 +242,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 - My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, directing v0 to bring this strategy to life through dynamic, bespoke interactive components rather than static text)
 - Verified Metrics & Highlighted Proof Cases (rendered through dynamic, highly engaging visual components)
 - Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
-- Skill-Driven Design System & Motion Physics (strictly citing ${attachedSkillNames})
+- Skill-Driven Design System & Framer Motion Effects (governed by ${attachedSkillNames}, with mandatory 'use client' directive at line 1 of motion components)
 - Domain-Tailored Delight: Subtle, role-tailored micro-interactions for ${blueprint.targetRole} at ${blueprint.targetCompany}
 - Direct Recruiter Contact (using verified contact details from my CV)`
 
@@ -315,6 +319,10 @@ HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL - DO NOT GENERATE LINEAR STATIC C
 - Clearly set the overarching aesthetic mood and design language (${designSystem}).
 - Bring every section to life with fluid transitions, engaging visual craft, interactive states, and responsive depth.
 
+FRAMER-MOTION & CLIENT DIRECTIVE (MANDATORY):
+- Explicitly instruct v0 to import and use framer-motion (e.g. motion, AnimatePresence) for interactive animations and motion effects throughout the portfolio.
+- MANDATORY 'use client' DIRECTIVE: Instruct v0 that every file importing framer-motion must place 'use client' at the very top (line 1) of the file to comply with Next.js App Router requirements.
+
 HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx.
 
@@ -325,7 +333,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 - Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 - Aesthetic Atmosphere & Signature Concept (${designSystem})
 - Domain-Tailored Delight: Subtle, playful touches tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
-- Motion Design, Tailored Physics & Visual Effects
+- Motion Design, Framer Motion Effects & Visual Physics (with mandatory 'use client' directive at line 1 of motion components)
 - Direct Recruiter Contact (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
