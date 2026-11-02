@@ -28,6 +28,12 @@ export const WORKSPACE_SEED_CHATS: Record<string, string> = {
   'jMO0lvF8j85': 'jMO0lvF8j85',
 }
 
+// Official native Framer Motion skill automatically locked in for all blank-canvas portfolios
+export const DEFAULT_MOTION_SKILL = {
+  id: 'c-jeril/framer-motion-skills/framer-motion-react',
+  name: 'framer-motion-react',
+}
+
 export interface CommunityTemplateProfile {
   id: string
   name: string
@@ -210,7 +216,15 @@ async function synthesizeV0SkillDrivenPrompt(
 
   const openai = new OpenAI({ apiKey })
   const activeDirection = blueprint.directions?.[selectedDirectionIndex] || blueprint.directions?.[0]
-  const attachedSkillNames = attachedSkills.map(s => `"${s.name || s.id}"`).join(', ')
+  
+  // Ensure default Framer Motion skill is bundled into skill governance
+  const allSkills = [
+    ...attachedSkills,
+    ...(attachedSkills.some(s => s.id === DEFAULT_MOTION_SKILL.id || s.name === DEFAULT_MOTION_SKILL.name)
+      ? []
+      : [{ id: DEFAULT_MOTION_SKILL.id, name: DEFAULT_MOTION_SKILL.name }])
+  ]
+  const attachedSkillNames = allSkills.map(s => `"${s.name || s.id}"`).join(', ')
 
   const systemPrompt = `You are ${blueprint.candidateName} writing directly into the v0 chat interface. You are commissioning v0 to build a world-class, bespoke executive career portfolio from scratch, where the visual design system, component grammar, and motion physics are strictly governed by the attached skills.sh skill(s): ${attachedSkillNames}.
 
@@ -247,7 +261,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 
   const userContext = {
     mode: 'Mode C: Pure Skill-Driven Architecture',
-    attachedSkills: attachedSkills.map(s => s.name || s.id),
+    attachedSkills: allSkills.map(s => s.name || s.id),
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
     candidateName: blueprint.candidateName,
@@ -325,7 +339,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
 - Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
 - Aesthetic Atmosphere & Signature Concept (${designSystem})
 - Domain-Tailored Delight: Subtle, playful touches tailored for ${blueprint.targetRole} at ${blueprint.targetCompany}
-- Motion Design, Tailored Physics & Visual Effects
+- Motion Design, Tailored Physics & Visual Effects (governed by the attached "${DEFAULT_MOTION_SKILL.name}" skill)
 - Direct Recruiter Contact (using verified contact details from my CV)`
 
   const safeResumeText = truncateSafely(resumeText, 25000)
@@ -489,10 +503,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
 
     console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${hasAttachedSkills ? 'Mode C: Skills' : designSystem}) with ${attachedSkills.length} attached skill(s)`)
 
-    // Pass skills as native remote skills to v0 (zero synthetic file overrides)
-    const v0Skills = (attachedSkills || [])
-      .filter(s => s.id)
-      .map(s => ({ type: 'remote' as const, id: s.id }))
+    // Pass skills as native remote skills to v0, automatically locking in the official Framer Motion skill
+    const remoteSkillIds = new Set<string>()
+    remoteSkillIds.add(DEFAULT_MOTION_SKILL.id)
+    ;(attachedSkills || []).forEach(s => {
+      if (s.id) remoteSkillIds.add(s.id)
+    })
+
+    const v0Skills = Array.from(remoteSkillIds).map(id => ({ type: 'remote' as const, id }))
 
     let chatResponse: any
     try {
