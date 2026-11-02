@@ -231,11 +231,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<BlueprintResp
     const resumeText: string = body.resumeText || ''
     const jobDescription: string = body.jobDescription || ''
     const attachedSkills = body.attachedSkills || []
+    const customDirective = typeof body.customDirective === 'string' ? body.customDirective.trim() : ''
     let designSystem: string = body.designSystem || ''
 
     if (Array.isArray(attachedSkills) && attachedSkills.length > 0) {
       const skillNames = attachedSkills.map((s: any) => s.name || s.id).filter(Boolean).join(' + ')
       designSystem = skillNames ? `Skill: ${skillNames}` : 'Skill-Driven Architecture'
+      if (customDirective) {
+        designSystem += ` (Custom)`
+      }
+    } else if (customDirective) {
+      designSystem = `Custom: ${customDirective.slice(0, 40)}`
     } else if (!designSystem) {
       designSystem = 'Minimal Monochrome'
     }

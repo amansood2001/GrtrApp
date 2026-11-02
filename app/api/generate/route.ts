@@ -207,7 +207,8 @@ async function synthesizeV0SkillDrivenPrompt(
   selectedDirectionIndex: number = 0,
   resumeText: string = '',
   jobDescription: string = '',
-  attachedSkills: Array<{ id: string; name: string; description?: string; content?: string }> = []
+  attachedSkills: Array<{ id: string; name: string; description?: string; content?: string }> = [],
+  customDirective: string = ''
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -239,6 +240,11 @@ MODE C: SKILL-DRIVEN DESIGN SYSTEM GOVERNANCE (CRITICAL):
 - Explicitly instruct v0 that the entire design foundation and motion physics are 100% strictly governed by the attached skill(s): ${attachedSkillNames}.
 - Direct v0 to invoke its complete built-in design intelligence for ${attachedSkillNames} and build production-ready, interactive React client components with smooth Framer Motion/CSS transitions, high-contrast surfaces, and full clickability.
 - Do NOT allow v0 to fall back to generic, unstyled Tailwind card templates or flat static boxes.
+${customDirective ? `
+CANDIDATE'S CUSTOM CREATIVE DIRECTIVE (CRITICAL):
+- Synthesize the design intelligence from ${attachedSkillNames} with the candidate's personal creative directive:
+  "${customDirective}"
+- Ensure this custom directive shapes the visual tone, color palette, and bespoke layout flavor, while ${attachedSkillNames} governs the UX component craft and layout interactions.` : ''}
 
 HIGH-AGENCY INTERACTIVE ARCHITECTURE (CRITICAL):
 - NEVER output generic flat static cards, dry walls of plain text, or identical non-clickable boxes.
@@ -248,11 +254,11 @@ HYDRATION & EXTENSION RESILIENCE:
 - Instruct v0 to include suppressHydrationWarning on both <html lang="en" suppressHydrationWarning> and <body suppressHydrationWarning ...> in app/layout.tsx to prevent React hydration warnings.
 
 STRUCTURE OF YOUR PROMPT FOR V0:
-- First-Person Opening & Skill-Driven Architectural Thesis (citing ${attachedSkillNames})
+- First-Person Opening & Skill-Driven Architectural Thesis (citing ${attachedSkillNames}${customDirective ? ' and incorporating custom creative brief' : ''})
 - My Strategic Operator Thesis for ${blueprint.targetCompany} (Output the Candidate's Observed Company Challenge, Proposed Strategy, and Right-to-Win in full, directing v0 to bring this strategy to life through dynamic, bespoke interactive components rather than static text)
 - Verified Metrics & Highlighted Proof Cases (rendered through dynamic, highly engaging visual components)
 - Authentic Career Track Record & Domain Strengths (extracted from my CV and tailored in light of the JD)
-- Skill-Driven Design System & Motion Physics (strictly citing ${attachedSkillNames})
+- Skill-Driven Design System & Motion Physics (strictly citing ${attachedSkillNames}${customDirective ? ` with candidate directive: "${customDirective}"` : ''})
 - Domain-Tailored Delight: Subtle, role-tailored micro-interactions for ${blueprint.targetRole} at ${blueprint.targetCompany}
 - Direct Recruiter Contact (using verified contact details from my CV)`
 
@@ -262,6 +268,7 @@ STRUCTURE OF YOUR PROMPT FOR V0:
   const userContext = {
     mode: 'Mode C: Pure Skill-Driven Architecture',
     attachedSkills: allSkills.map(s => s.name || s.id),
+    customCreativeDirective: customDirective || undefined,
     targetCompany: blueprint.targetCompany,
     targetRole: blueprint.targetRole,
     candidateName: blueprint.candidateName,
@@ -390,6 +397,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       resumeText = '',
       jobDescription = '',
       attachedSkills = [],
+      customDirective = '',
     }: {
       blueprint: StrategicBlueprint
       designSystem?: string
@@ -397,6 +405,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       resumeText?: string
       jobDescription?: string
       attachedSkills?: Array<{ id: string; name: string; description?: string; content?: string }>
+      customDirective?: string
     } = await req.json()
 
     if (!blueprint || !blueprint.candidateName) {
@@ -485,23 +494,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
       })
     }
 
-    // Check if user selected Mode C (Skill-Driven Architecture) or Mode A (Moods & Custom Canvas)
+    // Check if user selected Mode C (Skill-Driven Architecture / Custom Directive) or Mode A (Moods Canvas)
     const hasAttachedSkills = Array.isArray(attachedSkills) && attachedSkills.length > 0
+    const hasCustomDirective = typeof customDirective === 'string' && customDirective.trim().length > 0
     let message: string
 
-    if (hasAttachedSkills) {
-      console.log(`[Mode C: Skill-Driven Synthesizer] Crafting bespoke skill-driven prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" with ${attachedSkills.length} skill(s)...`)
+    if (hasAttachedSkills || hasCustomDirective) {
+      console.log(`[Mode C: Bespoke Synthesizer] Crafting bespoke prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" with ${attachedSkills.length} skill(s) & custom directive...`)
       const startTime = Date.now()
-      message = await synthesizeV0SkillDrivenPrompt(blueprint, selectedDirectionIndex, resumeText, jobDescription, attachedSkills)
+      message = await synthesizeV0SkillDrivenPrompt(blueprint, selectedDirectionIndex, resumeText, jobDescription, attachedSkills, customDirective.trim())
       console.log(`[Mode C] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
     } else {
-      console.log(`[Mode A: Moods & Custom Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})...`)
+      console.log(`[Mode A: Moods Synthesizer] Crafting bespoke first-person build prompt for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${designSystem})...`)
       const startTime = Date.now()
       message = await synthesizeV0Prompt(blueprint, designSystem, selectedDirectionIndex, resumeText, jobDescription)
       console.log(`[Mode A] Prompt crafted in ${((Date.now() - startTime) / 1000).toFixed(2)}s (length: ${message.length} chars)`)
     }
 
-    console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${hasAttachedSkills ? 'Mode C: Skills' : designSystem}) with ${attachedSkills.length} attached skill(s)`)
+    console.log(`Initiating v0 generation for "${blueprint.candidateName}" -> "${blueprint.targetCompany}" (${(hasAttachedSkills || hasCustomDirective) ? 'Mode C: Bespoke' : designSystem}) with ${attachedSkills.length} attached skill(s)`)
 
     // Pass skills as native remote skills to v0, automatically locking in the official Framer Motion skill
     const remoteSkillIds = new Set<string>()

@@ -296,6 +296,8 @@ interface InputStudioProps {
   setSelectedDesign: (val: string) => void
   selectedSkills?: AgentSkill[]
   setSelectedSkills?: (skills: AgentSkill[]) => void
+  customDirective?: string
+  setCustomDirective?: (val: string) => void
   onGenerate: () => void
   isGeneratingBlueprint: boolean
   error?: string | null
@@ -400,6 +402,8 @@ function InputStudio({
   setSelectedDesign,
   selectedSkills = [],
   setSelectedSkills,
+  customDirective = '',
+  setCustomDirective,
   onGenerate,
   isGeneratingBlueprint,
   error,
@@ -505,9 +509,9 @@ function InputStudio({
       if (setSelectedDesign) {
         if (updated.length > 0) {
           const names = updated.map(s => s.name || s.id).filter(Boolean).join(' + ')
-          setSelectedDesign(`Skill: ${names}`)
+          setSelectedDesign(customDirective.trim() ? `Skill: ${names} + Custom` : `Skill: ${names}`)
         } else {
-          setSelectedDesign('Minimal Monochrome')
+          setSelectedDesign(customDirective.trim() ? `Custom: ${customDirective.trim().slice(0, 40)}` : 'Minimal Monochrome')
         }
       }
     } else {
@@ -519,7 +523,7 @@ function InputStudio({
       setSelectedSkills(updated)
       if (setSelectedDesign) {
         const names = updated.map(s => s.name || s.id).filter(Boolean).join(' + ')
-        setSelectedDesign(`Skill: ${names}`)
+        setSelectedDesign(customDirective.trim() ? `Skill: ${names} + Custom` : `Skill: ${names}`)
       }
     }
   }
@@ -692,8 +696,7 @@ function InputStudio({
             {[
               ['moods', 'Moods'],
               ['templates', 'Templates'],
-              ['custom', 'Custom'],
-              ['skills', `Skills (${(selectedSkills || []).length}/3)`],
+              ['skills', (selectedSkills || []).length > 0 ? `Skills & Custom (${(selectedSkills || []).length}/3)` : 'Skills & Custom'],
             ].map(([id, label]) => (
               <button
                 role="tab"
@@ -701,9 +704,15 @@ function InputStudio({
                 key={id}
                 onClick={() => {
                   setDesignTab(id)
-                  if (id === 'skills' && (selectedSkills || []).length > 0 && setSelectedDesign) {
+                  if (id === 'skills' && setSelectedDesign) {
                     const names = (selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')
-                    setSelectedDesign(`Skill: ${names}`)
+                    if (names && customDirective.trim()) {
+                      setSelectedDesign(`Skill: ${names} + Custom`)
+                    } else if (names) {
+                      setSelectedDesign(`Skill: ${names}`)
+                    } else if (customDirective.trim()) {
+                      setSelectedDesign(`Custom: ${customDirective.trim().slice(0, 40)}`)
+                    }
                   }
                 }}
                 className={designTab === id ? 'active' : ''}
@@ -904,22 +913,6 @@ function InputStudio({
                 </>
               )}
 
-              {designTab === 'custom' && (
-                <div className="custom-prompt">
-                  <textarea
-                    aria-label="Custom design direction"
-                    value={selectedDesign.startsWith('Custom: ') ? selectedDesign.replace('Custom: ', '') : ''}
-                    placeholder="Describe your custom visual direction — e.g. An understated, high-density engineering dossier with Swiss grid layout, muted slate palette, monospace code snippets for technical metrics, and subtle scroll-linked typography reveals..."
-                    onChange={e => setSelectedDesign(`Custom: ${e.target.value}`)}
-                    className="min-h-[160px]"
-                  />
-                  <div className="mt-2 text-[10px] text-muted font-mono flex items-center justify-between">
-                    <span>Custom architectural prompt injection</span>
-                    <span>Fully editable anytime</span>
-                  </div>
-                </div>
-              )}
-
               {designTab === 'skills' && (
                 <div className="space-y-4 text-left">
                   {/* Attached Skills Ribbon */}
@@ -1111,6 +1104,43 @@ function InputStudio({
                       })}
                     </div>
                   )}
+
+                  {/* Optional Custom Design Directive */}
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-2 mt-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Custom Design Directive (Optional)</span>
+                      </label>
+                      <span className="text-[10px] text-zinc-500 font-mono">
+                        Synthesizes alongside attached skills
+                      </span>
+                    </div>
+                    <textarea
+                      aria-label="Custom design directive"
+                      value={customDirective}
+                      onChange={e => {
+                        const val = e.target.value
+                        setCustomDirective?.(val)
+                        if (setSelectedDesign) {
+                          const names = (selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')
+                          if (names && val.trim()) {
+                            setSelectedDesign(`Skill: ${names} + Custom`)
+                          } else if (names) {
+                            setSelectedDesign(`Skill: ${names}`)
+                          } else if (val.trim()) {
+                            setSelectedDesign(`Custom: ${val.trim().slice(0, 40)}`)
+                          }
+                        }
+                      }}
+                      placeholder="Add any specific styling, theme, or architectural directives — e.g. An understated, high-density engineering dossier with Swiss grid layout, dark slate palette, and subtle scroll-linked reveals..."
+                      className="w-full min-h-[90px] p-3 text-xs bg-[#090b0e] border border-white/10 focus:border-purple-500/50 rounded-lg text-zinc-200 placeholder:text-zinc-600 outline-none resize-y transition font-sans"
+                    />
+                    <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                      <span>Combines with skills.sh agent skills natively in v0</span>
+                      <span>{customDirective.length} characters</span>
+                    </div>
+                  </div>
 
                   {/* Skill Summary & Specification Modal */}
                   {activeModalSkill && (
@@ -2850,6 +2880,7 @@ export function GrtrApp() {
   const [jobDescription, setJobDescription] = useState('')
   const [selectedDesign, setSelectedDesign] = useState('Minimal Monochrome')
   const [selectedSkills, setSelectedSkills] = useState<AgentSkill[]>([])
+  const [customDirective, setCustomDirective] = useState('')
 
   // Pipeline State
   const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false)
@@ -2888,6 +2919,8 @@ export function GrtrApp() {
     setResumeFileName('')
     setJobDescription('')
     setSelectedDesign('Minimal Monochrome')
+    setSelectedSkills([])
+    setCustomDirective('')
     setBlueprint(null)
     setSelectedDirectionIndex(0)
     setErrorMessage(null)
@@ -3120,9 +3153,15 @@ export function GrtrApp() {
       setIsGeneratingBlueprint(true)
       setErrorMessage(null)
 
-      const effectiveDesign = ((selectedSkills || []).length > 0 && (!selectedDesign || selectedDesign === 'Minimal Monochrome' || selectedDesign.startsWith('Skill:')))
-        ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
-        : selectedDesign
+      let effectiveDesign = selectedDesign
+      const skillNames = (selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')
+      if (skillNames && customDirective.trim()) {
+        effectiveDesign = `Skill: ${skillNames} + Custom`
+      } else if (skillNames) {
+        effectiveDesign = `Skill: ${skillNames}`
+      } else if (customDirective.trim()) {
+        effectiveDesign = `Custom: ${customDirective.trim().slice(0, 40)}`
+      }
 
       setSelectedDesign(effectiveDesign)
 
@@ -3134,6 +3173,7 @@ export function GrtrApp() {
           jobDescription,
           designSystem: effectiveDesign,
           attachedSkills: selectedSkills,
+          customDirective: customDirective.trim() || undefined,
         }),
       })
 
@@ -3170,9 +3210,17 @@ export function GrtrApp() {
       setErrorMessage(null)
       setSelectedDirectionIndex(selectedDirectionIndex)
 
-      const effectiveDesign = ((selectedSkills || []).length > 0 && (!selectedDesign || selectedDesign === 'Minimal Monochrome' || selectedDesign.startsWith('Skill:')))
-        ? `Skill: ${(selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')}`
-        : (blueprint.fitStats?.designFoundation?.startsWith('Skill:') ? blueprint.fitStats.designFoundation : selectedDesign)
+      let effectiveDesign = selectedDesign
+      const skillNames = (selectedSkills || []).map(s => s.name || s.id).filter(Boolean).join(' + ')
+      if (skillNames && customDirective.trim()) {
+        effectiveDesign = `Skill: ${skillNames} + Custom`
+      } else if (skillNames) {
+        effectiveDesign = `Skill: ${skillNames}`
+      } else if (customDirective.trim()) {
+        effectiveDesign = `Custom: ${customDirective.trim().slice(0, 40)}`
+      } else if (blueprint.fitStats?.designFoundation && !blueprint.fitStats.designFoundation.startsWith('Minimal')) {
+        effectiveDesign = blueprint.fitStats.designFoundation
+      }
 
       setSelectedDesign(effectiveDesign)
 
@@ -3198,6 +3246,7 @@ export function GrtrApp() {
           resumeText,
           jobDescription,
           attachedSkills: selectedSkills,
+          customDirective: customDirective.trim() || undefined,
         }),
       })
 
@@ -3327,6 +3376,8 @@ export function GrtrApp() {
               setSelectedDesign={setSelectedDesign}
               selectedSkills={selectedSkills}
               setSelectedSkills={setSelectedSkills}
+              customDirective={customDirective}
+              setCustomDirective={setCustomDirective}
               onGenerate={handleGenerateBlueprint}
               isGeneratingBlueprint={isGeneratingBlueprint}
               error={errorMessage}
