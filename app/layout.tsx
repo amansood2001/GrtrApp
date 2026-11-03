@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description: 'Turn your CV and target role into a bespoke, role-winning executive portfolio.',
   metadataBase: new URL('https://grtr.app'),
   generator: 'Grtr App',
+  verification: {
+    google: 'google87f1db388bff1031',
+  },
 }
 
 export const viewport: Viewport = {
